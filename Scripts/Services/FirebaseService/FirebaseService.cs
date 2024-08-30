@@ -65,7 +65,7 @@ namespace TapEmpire.Services
             }
         }
 
-        public FirebaseRemoteConfig GetConfig() => FirebaseRemoteConfig.DefaultInstance;
+        public FirebaseRemoteConfig GetNativeConfig() => FirebaseRemoteConfig.DefaultInstance;
 
         public void Crash()
         {
@@ -104,7 +104,7 @@ namespace TapEmpire.Services
             {
                 Debug.LogError(
                     $"[FirebaseManager] Remote data not loaded.\n{nameof(info.LastFetchStatus)}: {info.LastFetchStatus}");
-                OnConfigLoadingFinished(new EmptyRemoteConfiguration());
+                // OnConfigLoadingFinished(new EmptyRemoteConfiguration());
             }
             var stopWatch = new Stopwatch();
             stopWatch.Start();
