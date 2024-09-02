@@ -13,7 +13,11 @@ namespace TapEmpire.Services
         [NonSerialized]
         private bool _initialized;
 
+        [NonSerialized]
+        private int _order = -1;
+
         bool IInitializable.Initialized => _initialized;
+        int IInitializable.Order { get => _order; set => _order = value; }
 
         async UniTask IInitializable.InitializeAsync(CancellationToken cancellationToken)
         {

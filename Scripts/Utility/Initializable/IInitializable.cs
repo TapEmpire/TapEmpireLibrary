@@ -7,6 +7,8 @@ namespace TapEmpire.Services
     {
         bool Initialized { get; }
 
+        int Order { get; set; }
+
         UniTask InitializeAsync(CancellationToken cancellationToken);
 
         void Release();

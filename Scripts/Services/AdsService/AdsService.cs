@@ -65,9 +65,9 @@ namespace TapEmpire.Services
             _interstitialTimerTween?.Kill();
         }
 
-        public void ShowInterstitial(int level, System.Action callback)
+        public void ShowInterstitial(int levelIndex, System.Action callback)
         {
-            bool shouldShow  = _adsSettings.InterstitialAfterLevels.Any(interstitialLevel => interstitialLevel == level);
+            bool shouldShow  = _adsSettings.InterstitialAfterLevels.Any(interstitialLevel => interstitialLevel == levelIndex + 1);
 
             if (shouldShow && IsInterstitialReady)
             {

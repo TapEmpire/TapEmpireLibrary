@@ -127,8 +127,8 @@ namespace TapEmpire.Services
             RemoteConfiguration = remoteConfiguration;
             _isLoaded.Value = true;
 
-            Debug.LogError(RemoteConfiguration.GetString("ConfigName", string.Empty));
-            Debug.LogError(RemoteConfiguration.GetString("AdsSettings", string.Empty));
+            // Debug.LogError(RemoteConfiguration.GetString("ConfigName", string.Empty));
+            // Debug.LogError(RemoteConfiguration.GetString("AdsSettings", string.Empty));
         }
     }
 }

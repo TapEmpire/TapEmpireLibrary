@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using TapEmpire.Utility;
 using UnityEngine;
 using Zenject;
 
@@ -12,6 +13,9 @@ namespace TapEmpire.Services
     {
         [NonSerialized]
         private readonly List<IService> _runtimeServices = new();
+
+        [SerializeReference]
+        private IService[] _orderedServices = Array.Empty<IService>();
         
         [SerializeReference]
         // ReSharper disable once FieldCanBeMadeReadOnly.Local
@@ -23,17 +27,18 @@ namespace TapEmpire.Services
         public override void InstallBindings()
         {
             _runtimeServices.Clear();
-            foreach (var service in _services)
-            {
-                ConfigureService(service);
-            }
+
+            _orderedServices.ForEachIndexed((service, index) => ConfigureService(service, index));
+            _services.ForEach(service => ConfigureService(service, -1));
+
             Container.Bind<IService[]>().FromInstance(_runtimeServices.ToArray()).AsSingle();
             
             SubscribeToApplicationExit(Application.exitCancellationToken);
         }
         
-        private void ConfigureService(IService service)
+        private void ConfigureService(IService service, int order)
         {
+            service.Order = order;
             if (service.Initialized)
             {
                 service.Release();
