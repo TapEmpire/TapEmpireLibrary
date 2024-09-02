@@ -7,6 +7,7 @@ using UnityEngine;
 using TapEmpire.Services;
 using Game.Ads;
 using System.Linq;
+using Zenject;
 
 namespace TapEmpire.Services
 {
@@ -36,12 +37,16 @@ namespace TapEmpire.Services
         // [SerializeField]
         // private AppMetrica _appMetricaPrefab = null;
 
+        [Inject]
+        private DiContainer _diContainer = null;
+
         private bool _adsDisabled = false;
         private string _currentAdPlacement = "";
 
         private Tween _interstitialTimerTween = null;
         private float _interstitialTimer = 30.0f;
         private bool _isInitialized = false;
+        private AdsAnalyticsModule _analyticsModule = null;
 
         protected override UniTask OnInitializeAsync(CancellationToken cancellationToken)
         {
@@ -51,6 +56,9 @@ namespace TapEmpire.Services
             GameObject.Instantiate(_adsManagerPrefab);
             // GameObject.Instantiate(_appMetricaPrefab);
             GameObject.Instantiate(_adjustPrefab);
+
+            _analyticsModule = new AdsAnalyticsModule(_diContainer);
+            _analyticsModule.Initialize();
             
             // global::AdsManager.Instance.OnInitialized += OnInitialized;
             global::AdsManager.Instance.Initialize_AdNetworks();
@@ -62,6 +70,8 @@ namespace TapEmpire.Services
         protected override void OnRelease()
         {
             _isInitialized = false;
+            _analyticsModule.OnRelease();
+            _analyticsModule = null;
             _interstitialTimerTween?.Kill();
         }
 

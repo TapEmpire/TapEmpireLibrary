@@ -1,10 +1,4 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using TapEmpire.Services;
-using Game.Ads;
-
-namespace TEL.Services
+namespace TapEmpire.Services
 {
     public interface IAdsService : IService
     {
