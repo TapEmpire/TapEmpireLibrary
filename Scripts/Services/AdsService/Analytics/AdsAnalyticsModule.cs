@@ -43,21 +43,21 @@ namespace TapEmpire.Services
 
         private void OnAdClickedEvent(string adPlacement)
         {
-            _analyticsService.LogEvent(AnalyticsEvents.AdsButtonClicked, new Dictionary<string, object>{
+            _analyticsService.LogEvent(AdsAnalyticsEvents.AdsButtonClicked, new Dictionary<string, object>{
                 { "placement", adPlacement },
             });
         }
 
         private void OnAdShowing(string adPlacement)
         {
-            _analyticsService.LogEvent(AnalyticsEvents.AdsStarted, new Dictionary<string, object>{
+            _analyticsService.LogEvent(AdsAnalyticsEvents.AdsStarted, new Dictionary<string, object>{
                 { "placement", adPlacement },
             });
         }
 
         private void OnInterstitialAdShowRequested(bool hasAds)
         {
-            _analyticsService.LogEvent(AnalyticsEvents.AdsInterstitialCheck, new Dictionary<string, object>{
+            _analyticsService.LogEvent(AdsAnalyticsEvents.AdsInterstitialCheck, new Dictionary<string, object>{
                 { "has_ads", hasAds },
             });
         }
@@ -70,8 +70,8 @@ namespace TapEmpire.Services
             var adsWatchedCount = progressService.UpdateAdsWatchedProgress();
             var levelsCompleted = progressService.GetLevelProgress();
             
-            _analyticsService.SetUserProperty(AnalyticsParameters.AdsWatched, adsWatchedCount);
-            _analyticsService.LogEvent(AnalyticsEvents.AdsWatched, new Dictionary<string, object>{
+            _analyticsService.SetUserProperty(AdsAnalyticsParameters.AdsWatched, adsWatchedCount);
+            _analyticsService.LogEvent(AdsAnalyticsEvents.AdsWatched, new Dictionary<string, object>{
                 { "placement", adPlacement },
                 { "network", adData.Network },
                 { "mediation", adData.Mediation },
@@ -84,7 +84,7 @@ namespace TapEmpire.Services
         {
             var progressService = _diContainer.Resolve<IProgressService>();
             var levelsCompleted = progressService.GetLevelProgress();
-            _analyticsService.LogEvent(AnalyticsEvents.AdsPayed, new Dictionary<string, object>{
+            _analyticsService.LogEvent(AdsAnalyticsEvents.AdsPayed, new Dictionary<string, object>{
                 { "placement", adType },
                 { "network", network },
                 { "mediation", mediation },

@@ -124,7 +124,7 @@ namespace TapEmpire.Services
                 { AnalyticsParameters.RemoteConfig, progressService.GetRemoteConfigName() },
                 { CoreGenericAnalyticsParameters.LevelsCompleted, levelsCompleted },
                 { CoreGenericAnalyticsParameters.CyclesCompleted, cyclesCompleted },
-                { AnalyticsParameters.AdsWatched, adsWatchedCount }
+                { AdsAnalyticsParameters.AdsWatched, adsWatchedCount }
                 //{ AnalyticsParameters.AbGroup1, _diContainer.Resolve<IABTestingService>().Group },
             });
 
