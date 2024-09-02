@@ -24,11 +24,6 @@ namespace TapEmpire.Services
             {
                 InterstitialAfterLevels = settings.InterstitialAfterLevels.ToList();
             }
-
-            /*public List<WishListItem> GetLocalModel()
-            {
-                return Items.Select(remote => remote.GetLocalModel()).ToList();
-            }*/
         }
 
         public string TokenName => "AdsSettings";
@@ -36,10 +31,7 @@ namespace TapEmpire.Services
         public void DeserializeJson(JToken token)
         {
             var model = token.ToObject<AdsRemoteModel>();
-            // fill adsSettings;
-            /*var wishListSettings = _settingsManager.WishListSettings;
-            wishListSettings.Items = model.GetLocalModel();
-            wishListSettings.MaxItems = model.MaxItems;*/
+            _adsSettings.InterstitialAfterLevels = model.InterstitialAfterLevels;
         }
 
         public string SerializeJson()

@@ -37,7 +37,7 @@ namespace TapEmpire.Services
         // private AppMetrica _appMetricaPrefab = null;
 
         private bool _adsDisabled = false;
-        private string _currentAdPlacement = null;
+        private string _currentAdPlacement = "";
 
         private Tween _interstitialTimerTween = null;
         private float _interstitialTimer = 30.0f;
@@ -85,7 +85,7 @@ namespace TapEmpire.Services
 
         public void ShowInterstitial()
         {
-            if (_currentAdPlacement != null || !_isInitialized)
+            if (_currentAdPlacement != "" || !_isInitialized)
             {
                 ResetInterstitialByTimer();
                 return;
@@ -140,7 +140,7 @@ namespace TapEmpire.Services
 
             OnAdReceivedRewardEvent?.Invoke(_currentAdPlacement);
             OnAdReceivedOnceRewardEvent?.Invoke(_currentAdPlacement);
-            _currentAdPlacement = null;
+            _currentAdPlacement = "";
         }
 
         private void OnRewardedAdLoadedCallback()

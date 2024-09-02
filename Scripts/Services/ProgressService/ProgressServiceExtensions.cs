@@ -1,7 +1,4 @@
-﻿
-using UnityEditor.UI;
-
-namespace TapEmpire.Services
+﻿namespace TapEmpire.Services
 {
     public static partial class ProgressServiceExtensions
     {

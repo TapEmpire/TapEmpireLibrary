@@ -13,7 +13,7 @@ namespace TapEmpire.Services
     [System.Serializable]
     public class SerializationService : Initializable, ISerializationService
     {
-        public static readonly string ConfigNameKey = "configName";
+        public static readonly string ConfigNameKey = "ConfigName";
 
         [SerializeReference]
         private List<IRemoteSerializable> _serializables = new();
@@ -49,7 +49,7 @@ namespace TapEmpire.Services
         private void OnLoaded(bool isLoaded)
         {
             _disposable.Dispose();
-#if !UNITY_EDITOR
+#if UNITY_EDITOR
             _progressService.SetRemoteConfigName("unityEditor");
 #else
             _progressService.SetRemoteConfigName(_firebaseService.RemoteConfiguration.GetString(ConfigNameKey, string.Empty));
@@ -69,6 +69,13 @@ namespace TapEmpire.Services
                 }
             });
 #endif
+        }
+
+        protected override void OnRelease()
+        {
+            base.OnRelease();
+            _disposable.Dispose();
+            _serializableDictionary.Clear();
         }
     }
 }

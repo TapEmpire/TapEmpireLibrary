@@ -5,9 +5,9 @@ namespace TapEmpire.Utility
 {
     public static class FileUtility
     {
-#if UNITY_EDITOR
         public static void SaveText(string title, string fileName, string text)
         {
+#if UNITY_EDITOR
             var path = EditorUtility.SaveFilePanel(
                 title,
                 "",
@@ -18,7 +18,7 @@ namespace TapEmpire.Utility
             {
                 File.WriteAllText(path, text);
             }
-        }
 #endif
+        }
     }
 }
