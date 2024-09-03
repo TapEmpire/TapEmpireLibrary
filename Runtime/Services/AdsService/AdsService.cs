@@ -77,7 +77,7 @@ namespace TapEmpire.Services
         protected override void OnRelease()
         {
             _isInitialized = false;
-            _analyticsModule.OnRelease();
+            _analyticsModule?.OnRelease();
             _analyticsModule = null;
             _interstitialTimerTween?.Kill();
         }
