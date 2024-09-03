@@ -63,6 +63,7 @@ namespace TapEmpire.Services
                 _analyticsModule.Initialize();
 
                 // global::AdsManager.Instance.OnInitialized += OnInitialized;
+                global::AdsManager.Instance.EnableAppOpen = _adsSettings.EnableAppOpen;
                 global::AdsManager.Instance.Initialize_AdNetworks();
                 PeriodicAdCheck();
                 _isInitialized = true;
@@ -81,7 +82,7 @@ namespace TapEmpire.Services
 
         public void ShowInterstitial(int levelIndex, System.Action callback)
         {
-            bool shouldShow = _adsSettings.InterstitialAfterLevels.Any(interstitialLevel => interstitialLevel == levelIndex + 1);
+            bool shouldShow = ShouldShowInterstital(levelIndex);
 
             if (shouldShow && IsInterstitialReady)
             {
@@ -176,6 +177,13 @@ namespace TapEmpire.Services
             }
 
             DOVirtual.DelayedCall(1.0f, () => PeriodicAdCheck());
+        }
+
+        private bool ShouldShowInterstital(int levelIndex)
+        {
+            bool shouldShow = _adsSettings.InterstitialAfterLevels.Any(interstitialLevel => interstitialLevel == levelIndex + 1);
+
+            return shouldShow;
         }
     }
 }
