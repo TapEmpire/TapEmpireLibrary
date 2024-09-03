@@ -407,7 +407,7 @@ public class AdsManager : MonoBehaviour
     }
 
     float InterstitialTimer = 0;
-    bool ReadyForNextInterstitial => Time.time > InterstitialTimer;
+    bool ReadyForNextInterstitial => true; // Time.time > InterstitialTimer;
     public void ExtendInterstitialTime()
     {
         InterstitialTimer = Time.time + AdsRemoteSettings.Instance.NextInterstitialDelay;
