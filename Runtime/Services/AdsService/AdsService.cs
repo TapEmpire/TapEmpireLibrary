@@ -2,10 +2,7 @@ using System.Threading;
 using com.adjust.sdk;
 using Cysharp.Threading.Tasks;
 using DG.Tweening;
-using TEL.Services;
 using UnityEngine;
-using TapEmpire.Services;
-using Game.Ads;
 using System.Linq;
 using Zenject;
 

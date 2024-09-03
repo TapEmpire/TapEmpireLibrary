@@ -3,8 +3,6 @@ using System.Threading;
 using Cysharp.Threading.Tasks;
 using Newtonsoft.Json;
 using UnityEngine;
-using TapEmpire.Services;
-using UnityEditor;
 
 namespace TapEmpire.Services
 {

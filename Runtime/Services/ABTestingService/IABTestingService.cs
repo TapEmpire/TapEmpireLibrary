@@ -1,7 +1,4 @@
-using TapEmpire.Services;
-using TapEmpire.Services;
-
-namespace TEL.Services
+namespace TapEmpire.Services
 {
     public interface IABTestingService : IService
     {
