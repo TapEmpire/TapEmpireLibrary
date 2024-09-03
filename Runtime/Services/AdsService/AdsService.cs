@@ -40,6 +40,7 @@ namespace TapEmpire.Services
         [Inject]
         private DiContainer _diContainer = null;
 
+        [SerializeField]
         private bool _adsDisabled = false;
         private string _currentAdPlacement = "";
 
@@ -48,21 +49,27 @@ namespace TapEmpire.Services
         private bool _isInitialized = false;
         private AdsAnalyticsModule _analyticsModule = null;
 
+        public bool AdsDisabled => _adsDisabled;
+
         protected override UniTask OnInitializeAsync(CancellationToken cancellationToken)
         {
             if (_isInitialized)
                 return UniTask.CompletedTask;
-            _isInitialized = true;
-            GameObject.Instantiate(_adsManagerPrefab);
-            // GameObject.Instantiate(_appMetricaPrefab);
-            GameObject.Instantiate(_adjustPrefab);
 
-            _analyticsModule = new AdsAnalyticsModule(_diContainer);
-            _analyticsModule.Initialize();
-            
-            // global::AdsManager.Instance.OnInitialized += OnInitialized;
-            global::AdsManager.Instance.Initialize_AdNetworks();
-            PeriodicAdCheck();
+            if (!_adsDisabled)
+            {
+                GameObject.Instantiate(_adsManagerPrefab);
+                // GameObject.Instantiate(_appMetricaPrefab);
+                GameObject.Instantiate(_adjustPrefab);
+
+                _analyticsModule = new AdsAnalyticsModule(_diContainer);
+                _analyticsModule.Initialize();
+
+                // global::AdsManager.Instance.OnInitialized += OnInitialized;
+                global::AdsManager.Instance.Initialize_AdNetworks();
+                PeriodicAdCheck();
+                _isInitialized = true;
+            }
 
             return UniTask.CompletedTask;
         }
@@ -77,11 +84,12 @@ namespace TapEmpire.Services
 
         public void ShowInterstitial(int levelIndex, System.Action callback)
         {
-            bool shouldShow  = _adsSettings.InterstitialAfterLevels.Any(interstitialLevel => interstitialLevel == levelIndex + 1);
+            bool shouldShow = _adsSettings.InterstitialAfterLevels.Any(interstitialLevel => interstitialLevel == levelIndex + 1);
 
             if (shouldShow && IsInterstitialReady)
             {
-                OnAdReceivedOnceRewardEvent = (adType) => {
+                OnAdReceivedOnceRewardEvent = (adType) =>
+                {
                     OnAdReceivedOnceRewardEvent = null;
                     callback?.Invoke();
                 };
