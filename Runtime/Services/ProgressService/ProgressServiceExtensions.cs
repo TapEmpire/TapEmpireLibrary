@@ -24,6 +24,11 @@
             return self.BoolValuesDictionary.TryGetValue(prop.ToString(), out value, canUseCached, canUseDefault, setNotCached);
         }
 
+        public static int GetIntProp(this IProgressService self, ProgressIntProp prop)
+        {
+            return self.IntValuesDictionary.TryGetValue(prop.ToString(), out var value) ? value : default;
+        }
+
         public static int UpdateIntProp(this IProgressService self, ProgressIntProp prop)
         {
             var key = $"{prop}";
@@ -50,6 +55,14 @@
         }
 
         #endregion
+
+        #region analytics
+
+        public static int GetSessionsStarted(this IProgressService self) => self.GetIntProp(ProgressIntProp.SessionsStarted);
+
+        public static int UpdateSessionsStarted(this IProgressService self) => self.UpdateIntProp(ProgressIntProp.SessionsStarted);
+
+        #endregion analytics
 
         #region level
 

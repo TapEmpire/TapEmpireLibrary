@@ -24,8 +24,8 @@ namespace TapEmpire.Services
         [SerializeField]
         private bool _logAmplitude;
 
-        [Inject]
         private DiContainer _diContainer = null;
+        private IProgressService _progressService = null;
 
         private Amplitude _amplitude = null;
         private bool _isInitialized = false;
@@ -35,6 +35,13 @@ namespace TapEmpire.Services
 
         // [NonSerialized]
         // private AnalyticsGlobalModule _globalModule;
+
+        [Inject]
+        private void Construct(DiContainer diContainer, IProgressService progressService)
+        {
+            _diContainer = diContainer;
+            _progressService = progressService;
+        }
 
         protected override UniTask OnInitializeAsync(CancellationToken cancellationToken)
         {
@@ -176,6 +183,7 @@ namespace TapEmpire.Services
             {
                 logEventDelayed(AnalyticsEvents.SessionStart);
                 PlayerPrefsUtility.SetSessionStart();
+                _progressService.UpdateSessionsStarted();
             }
             else
             {
