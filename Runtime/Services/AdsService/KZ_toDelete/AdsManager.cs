@@ -82,6 +82,10 @@ public class AdsManager : MonoBehaviour
     public AdFormat InterstitialType => (OnRewardComplete != null) ? AdFormat.RewardedInt : AdFormat.Interstitial;
     public Action OnMaxBannerLoaded { get; private set; }
     public Action OnMaxBannerFailed { get; private set; }
+    public Action<bool> OnConsentObtained = null;
+
+    public static bool IsAdmobInitSuccess { get; private set; }
+    public static bool IsApplovinInitSuccess { get; private set; }
 
     Action OnRewardComplete;
 
@@ -111,8 +115,6 @@ public class AdsManager : MonoBehaviour
     public static OnAdnetworkInit OnAdmobInitSuccess;
     public static OnAdnetworkInit OnApplovinInitSuccess;
 
-    private TapEmpire.Utility.ConditionBarrier _initializationBarrier = null;
-
     #endregion
 
     #region Initialization
@@ -125,17 +127,9 @@ public class AdsManager : MonoBehaviour
         GameAnalyticsSDK.GameAnalytics.Initialize();
     }
 
-    public void Initialize_AdNetworks()
+    public async UniTask Initialize_AdNetworks()
     {
-        ConsentManager.GatherConsent(TestAds, IsForFamily, (status, message) =>
-        {
-            ThreadDispatcher.Enqueue(() =>
-            {
-                MonetizationLogger.Log($"UMP Response | Status : {status}, Message : {message}");
-                StartCoroutine(Initialize_Routine());
-  
-            });
-        });
+        await Initialize();
     }
 
     public void OnRelease()
@@ -143,41 +137,23 @@ public class AdsManager : MonoBehaviour
         Admob.OnRelease();
     }
 
-    IEnumerator Retry_Consent()
+    private async UniTask Initialize()
     {
-        ConsentManager.GatherConsent(TestAds, IsForFamily, (status, message) =>
-        {
-            ThreadDispatcher.Enqueue(() =>
-            {
-                MonetizationLogger.Log($"Retry UMP Response | Status : {status}, Message : {message}");
-            });
-        });
+        OnAdmobInitSuccess = () => { IsAdmobInitSuccess = true; };
+        OnApplovinInitSuccess = () => { IsApplovinInitSuccess = true; };
 
-        while (ConsentManager.IsFetching) yield return null;
-    }
+        await UniTask.WaitUntil(() => AdConstants.InternetAvailable);
+        await Retry_Consent();
 
-
-    IEnumerator Initialize_Routine()
-    {
-        var waitForInternet = new WaitForSecondsRealtime(5);
-        while (!AdConstants.InternetAvailable)
-            yield return waitForInternet;
-
-        if (ConsentManager.ConsentStillRequired)
-            yield return StartCoroutine(Retry_Consent());
+        OnConsentObtained?.Invoke(ConsentManager.isPersonalized);
 
         PassAdjustConsentParameters();
 
-        _initializationBarrier = new TapEmpire.Utility.ConditionBarrier(2, OnBarrierDone);
-        global::AdsManager.OnApplovinInitSuccess += OnApplovinInitialized;
-        global::AdsManager.OnAdmobInitSuccess += OnAdmobInitialized;
+        await UniTask.WaitForSeconds(2);
 
-        WaitForSeconds waitForOneSecond = new WaitForSeconds(1);
-        yield return waitForOneSecond; RemoteSettings.Initialize();
-        yield return waitForOneSecond; Admob.Initialize();
-        yield return waitForOneSecond; FirebaseManager.Initialize();
-        //yield return waitForOneSecond; AppsFlyerSDK.AppsFlyerAdRevenue.start();
-        yield return waitForOneSecond;
+        Admob.Initialize();
+        await UniTask.WaitUntil(() => IsAdmobInitSuccess);
+
 
         #region Applovin
 
@@ -189,6 +165,35 @@ public class AdsManager : MonoBehaviour
         else
             Applovin.Initialize();
 
+        await UniTask.WaitUntil(() => IsApplovinInitSuccess);
+
+        SubscribeToMaxBanners();
+
+        #endregion
+
+        ReportDeviceInfo();
+        OnBarrierDone();
+    }
+
+    private async UniTask Retry_Consent()
+    {
+        ConsentManager.GatherConsent(TestAds, IsForFamily,
+            (status, message) =>
+            {
+                ThreadDispatcher.Enqueue(() =>
+                {
+                    MonetizationLogger.Log($"Retry UMP Response | Status : {status}, Message : {message}");
+                });
+            });
+
+        if (ConsentManager.ConsentStillRequired)
+        {
+            await UniTask.WaitWhile(() => ConsentManager.IsFetching);
+        }
+    }
+
+    private void SubscribeToMaxBanners()
+    {
         OnMaxBannerLoaded = delegate
         {
             Admob.HideBanner();
@@ -206,22 +211,6 @@ public class AdsManager : MonoBehaviour
             else
                 Admob.HideBanner();
         };
-
-        #endregion
-
-        ReportDeviceInfo();
-    }
-
-    private void OnAdmobInitialized()
-    {
-        global::AdsManager.OnAdmobInitSuccess -= OnAdmobInitialized;
-        _initializationBarrier.Done();
-    }
-
-    private void OnApplovinInitialized()
-    {
-        global::AdsManager.OnApplovinInitSuccess -= OnApplovinInitialized;
-        _initializationBarrier.Done();
     }
 
     private void OnBarrierDone()
@@ -459,7 +448,7 @@ public class AdsManager : MonoBehaviour
     {
         if (!AdConstants.AdsRemoved && !IsForFamily)
         {
-            if (Time.time > AppOpenTimer)
+            if (Time.time > AppOpenTimer && Admob.IsReady)
             {
                 ExtendAppOpenTime();
                 Admob.ShowAppOpen();

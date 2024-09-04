@@ -64,8 +64,8 @@ namespace TapEmpire.Services
 
                 // global::AdsManager.Instance.OnInitialized += OnInitialized;
                 global::AdsManager.Instance.EnableAppOpen = _adsSettings.EnableAppOpen;
-                global::AdsManager.Instance.Initialize_AdNetworks();
-                PeriodicAdCheck();
+                global::AdsManager.Instance.OnConsentObtained += OnConsentObtained;
+                global::AdsManager.Instance.Initialize_AdNetworks().ContinueWith(() => PeriodicAdCheck()).Forget();
                 _isInitialized = true;
             }
 
@@ -124,6 +124,11 @@ namespace TapEmpire.Services
             global::AdsManager.Instance.ShowRewarded(() => OnAdReceivedReward(), adPlacement);
         }
 
+        public void ShowAppOpen()
+        {
+            global::AdsManager.Instance.ShowAppOpen();
+        }
+
         public void DisableAds(bool shouldDisable)
         {
             _adsDisabled = shouldDisable;
@@ -142,6 +147,14 @@ namespace TapEmpire.Services
             // global::AdsManager.Instance.OnInitialized -= OnInitialized;
             _isInitialized = true;
             ResetInterstitialByTimer();
+        }
+
+        private void OnConsentObtained(bool isPersonalized)
+        {
+            global::AdsManager.Instance.OnConsentObtained += OnConsentObtained;
+            var firebaseService = _diContainer.Resolve<IFirebaseService>();
+
+            firebaseService.UpdateConsentStatus(isPersonalized);
         }
 
         private void ResetInterstitialByTimer()

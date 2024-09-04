@@ -12,5 +12,7 @@ namespace TapEmpire.Services
         void Crash();
 
         FirebaseRemoteConfig GetNativeConfig();
+
+        void UpdateConsentStatus(bool isPersonalized);
     }
 }
