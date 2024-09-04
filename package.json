@@ -1,6 +1,6 @@
 {
     "name": "com.tapempire.library",
-    "version": "0.1.1",
+    "version": "0.2.0",
     "displayName": "TapEmpire Library",
     "description": "Several unity tools to create games fast",
     "unity": "2022.3",
