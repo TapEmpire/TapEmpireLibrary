@@ -137,6 +137,11 @@ public class AdsManager : MonoBehaviour
         });
     }
 
+    public void OnRelease()
+    {
+        Admob.OnRelease();
+    }
+
     IEnumerator Retry_Consent()
     {
         ConsentManager.GatherConsent(TestAds, IsForFamily, (status, message) =>

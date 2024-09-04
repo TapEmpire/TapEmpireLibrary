@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace TEL.Services
+namespace TapEmpire.Services
 {
     public class MonoCallbacksService : MonoBehaviour
     {

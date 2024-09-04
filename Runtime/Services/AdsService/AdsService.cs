@@ -78,6 +78,8 @@ namespace TapEmpire.Services
             _analyticsModule?.OnRelease();
             _analyticsModule = null;
             _interstitialTimerTween?.Kill();
+
+            global::AdsManager.Instance?.OnRelease();
         }
 
         public void ShowInterstitial(int levelIndex, System.Action callback)

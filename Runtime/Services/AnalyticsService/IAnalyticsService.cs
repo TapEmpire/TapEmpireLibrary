@@ -1,7 +1,6 @@
 using System.Collections.Generic;
-using TapEmpire.Services;
 
-namespace TEL.Services
+namespace TapEmpire.Services
 {
     public interface IAnalyticsService : IService
     {
