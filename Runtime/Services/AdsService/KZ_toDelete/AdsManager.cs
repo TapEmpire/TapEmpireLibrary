@@ -7,14 +7,16 @@ using GoogleMobileAds.Ump.Api;
 using com.adjust.sdk;
 using TapEmpire.Utility;
 using System.Threading;
+using Sirenix.OdinInspector;
+using Cysharp.Threading.Tasks;
 
-#if UNITY_EDITOR
-using UnityEditor;
-#endif
-
+[HideMonoScript]
 public class AdsManager : MonoBehaviour
 {
+    [ShowInInspector, DisplayAsString, GUIColor(1.0f, 1.0f, 1.0f), BoxGroup("Info", false)]
     public const string Version = "2.5.2";
+
+    [ShowInInspector, DisplayAsString, GUIColor(1.0f, 1.0f, 1.0f), BoxGroup("Info", false)]
     public const string Release_Date = "March 11, 2024";
 
     #region Instance
@@ -38,7 +40,6 @@ public class AdsManager : MonoBehaviour
     [Header("Settings")]
     public bool IsForFamily = false;
     public bool TestAds = false;
-    public int BannerRefreshRate = 10;
     public bool EnableAppOpen = true;
 
     [Header("References")]
@@ -225,7 +226,7 @@ public class AdsManager : MonoBehaviour
 
     private void OnBarrierDone()
     {
-        UniTaskUtility.ExecuteNextFrame(() => global::AdsManager.Instance.ShowBanner(), CancellationToken.None);
+        UniTaskUtility.ExecuteNextFrame(() => global::AdsManager.Instance.ShowBanner(), CancellationToken.None).Forget();
     }
 
     void ReportDeviceInfo()
@@ -240,52 +241,6 @@ public class AdsManager : MonoBehaviour
         GameAnalyticsSDK.GameAnalytics.SetCustomDimension01(RamInGB);
         GameAnalyticsSDK.GameAnalytics.SetCustomDimension02(ConsentInformation.ConsentStatus.ToString());
     }
-    #endregion
-
-    #region Monetization Hack
-
-    /*private void OnEnable()
-    {
-        bool CanHack = (isFirstTime && Input.multiTouchEnabled) || AdConstants.IsDebugBuild;
-        if (CanHack) StartCoroutine(HackCoroutine());
-    }*/
-
-    IEnumerator HackCoroutine()
-    {
-        float timer = 0;
-        float touchTimer = 0;
-        while (timer < 1)
-        {
-            timer += Time.deltaTime / 10;
-            if (Input.touchCount > 2)
-            {
-                touchTimer += Time.deltaTime;
-                if (touchTimer > 3)
-                {
-                    AdConstants.SwitchToDebugMode();
-                    yield break;
-                }
-            }
-            yield return null;
-        }
-    }
-
-    bool isFirstTime
-    {
-        get
-        {
-            bool flag = !PlayerPrefs.HasKey("FirstTimeHack");
-            if (flag)
-            {
-                PlayerPrefs.SetInt("FirstTimeHack", 1);
-                PlayerPrefs.Save();
-                return true;
-            }
-            else
-                return false;
-        }
-    }
-
     #endregion
 
     #region Banner
@@ -574,93 +529,8 @@ public class AdsManager : MonoBehaviour
         return unityPlayer.GetStatic<AndroidJavaObject>("currentActivity");
     }
     #endregion
-
-    #region Old GAID
-    //    public static string GetAdvertisingID()
-    //    {
-    //#if UNITY_ANDROID && !UNITY_EDITOR
-    //        try
-    //        {
-    //            //AndroidJavaClass jc = new AndroidJavaClass("com.unity3d.player.UnityPlayer");
-    //            //AndroidJavaObject activity = jc.GetStatic<AndroidJavaObject>("currentActivity");
-
-    //            AndroidJavaClass gaDeviceClass = new AndroidJavaClass("com.gameanalytics.sdk.device.GADevice");
-
-    //            return gaDeviceClass.CallStatic<string>("getGAID");
-    //            //bool isLimitAdTrackingEnabled = gaDeviceClass.CallStatic<bool>("getIsLimitedAdTracking");
-    //            //Debug.Log("Advertising ID: " + advertisingID);
-    //            //Debug.Log("Opt-out status: " + isLimitAdTrackingEnabled);
-    //        }
-    //        catch (Exception e)
-    //        {
-    //            Debug.LogError("Error retrieving Advertising ID: " + e.Message);
-    //        }
-    //#endif
-
-    //        return null;
-    //    }
-
-    //    public static bool VerifyAdvertID(string id)
-    //    {
-    //        if (string.IsNullOrEmpty(id) || id.Equals("00000000-0000-0000-0000-000000000000"))
-    //            return false;
-    //        else
-    //            return true;
-    //    }
-    #endregion
 }
 
 #region Enums
 public enum BannerWidth { Full, Half }
-#endregion
-
-#region AdsManagerEditor
-#if UNITY_EDITOR
-[CustomEditor(typeof(AdsManager), true)]
-public class AdsManagerEditor : Editor
-{
-    public override void OnInspectorGUI()
-    {
-        serializedObject.Update();
-        DrawColoredBox(delegate
-        {
-            EditorGUILayout.LabelField("Version", AdsManager.Version);
-            EditorGUILayout.LabelField("Release Date", AdsManager.Release_Date);
-        });
-        DrawPropertiesExcluding(serializedObject, "m_Script");
-
-        serializedObject.ApplyModifiedProperties();
-    }
-
-    //private void DrawLineSeparator(Color color)
-    //{
-    //    Rect rect = EditorGUILayout.GetControlRect(false, 2f);
-    //    EditorGUI.DrawRect(rect, color);
-    //}
-
-    private void DrawColoredBox(System.Action content)
-    {
-        GUIStyle boxStyle = new GUIStyle(GUI.skin.box);
-        boxStyle.normal.background = MakeTex(2, 10, new Color(0.175f, 0.175f, 0.175f));
-
-        EditorGUILayout.BeginVertical(boxStyle);
-        content.Invoke();
-        EditorGUILayout.EndVertical();
-    }
-
-    private Texture2D MakeTex(int width, int height, Color col)
-    {
-        Color[] pix = new Color[width * height];
-        for (int i = 0; i < pix.Length; ++i)
-        {
-            pix[i] = col;
-        }
-        Texture2D result = new Texture2D(width, height);
-        result.SetPixels(pix);
-        result.Apply();
-        return result;
-    }
-
-}
-#endif
 #endregion
