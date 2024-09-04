@@ -26,7 +26,7 @@ namespace TapEmpire.CoreSystems
                 {
                     Container.Bind(systemInterface).FromInstance(system);
                 }
-                if (typeof(ITickable).IsAssignableFrom(systemType))
+                /*if (typeof(ITickable).IsAssignableFrom(systemType))
                 {
                     Container.Bind<ITickable>().To(systemType).FromInstance(system);
                 }
@@ -37,7 +37,7 @@ namespace TapEmpire.CoreSystems
                 if (typeof(ILateTickable).IsAssignableFrom(systemType))
                 {
                     Container.Bind<ILateTickable>().To(systemType).FromInstance(system);
-                }
+                }*/
             }
 
             Container.Bind<ICoreSystem[]>().FromInstance(_systems);

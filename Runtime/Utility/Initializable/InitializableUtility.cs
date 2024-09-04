@@ -43,5 +43,51 @@ namespace TapEmpire.Services
             }
             return UniTask.WaitUntil(() => initializables.All(initializable => initializable.Initialized), cancellationToken: cancellationToken);
         }
+
+        public static void InitializeTicks<T>(T[] initializables, DiContainer diContainer) where T : IInitializable
+        {
+            var tickableManager = diContainer.Resolve<TickableManager>();
+
+            foreach (var system in initializables)
+            {
+                var systemType = system.GetType();
+
+                if (typeof(ITickable).IsAssignableFrom(systemType))
+                {
+                    tickableManager.Add(system as ITickable);
+                }
+                if (typeof(IFixedTickable).IsAssignableFrom(systemType))
+                {
+                    tickableManager.AddFixed(system as IFixedTickable);
+                }
+                if (typeof(ILateTickable).IsAssignableFrom(systemType))
+                {
+                    tickableManager.AddLate(system as ILateTickable);
+                }
+            }
+        }
+
+        public static void ReleaseTicks<T>(T[] initializables, DiContainer diContainer) where T : IInitializable
+        {
+            var tickableManager = diContainer.Resolve<TickableManager>();
+
+            foreach (var system in initializables)
+            {
+                var systemType = system.GetType();
+
+                if (typeof(ITickable).IsAssignableFrom(systemType))
+                {
+                    tickableManager.Remove(system as ITickable);
+                }
+                if (typeof(IFixedTickable).IsAssignableFrom(systemType))
+                {
+                    tickableManager.RemoveFixed(system as IFixedTickable);
+                }
+                if (typeof(ILateTickable).IsAssignableFrom(systemType))
+                {
+                    tickableManager.RemoveLate(system as ILateTickable);
+                }
+            }
+        }
     }
 }
