@@ -52,7 +52,7 @@ namespace TapEmpire.Services
             if (!isLoaded) return;
 
             // _disposable.Dispose();
-#if !UNITY_EDITOR
+#if UNITY_EDITOR
             _progressService.SetRemoteConfigName("unityEditor");
 #else
             _progressService.SetRemoteConfigName(_firebaseService.RemoteConfiguration.GetString(ConfigNameKey, string.Empty));
