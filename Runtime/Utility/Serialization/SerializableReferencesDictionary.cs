@@ -5,36 +5,91 @@ using UnityEngine;
 namespace TapEmpire.Utility
 {
     [Serializable]
-    public sealed class SerializableReferencesDictionary<TKey, TValue> : Dictionary<TKey, TValue>, ISerializationCallbackReceiver
+    public sealed partial class SerializableReferencesDictionary<TKey, TValue> : Dictionary<TKey, TValue>, ISerializationCallbackReceiver
     {
+        [HideInInspector]
         [SerializeField]
-        private List<TKey> _keys = new List<TKey>();
+        private Entry[] _entries = Array.Empty<Entry>();
 
-        [SerializeReference]
-        private List<TValue> _values = new List<TValue>();
+        #region ISerializationCallbackReceiver
 
         public void OnAfterDeserialize()
         {
             Clear();
 
-            if (_keys.Count != _values.Count)
-                throw new InvalidOperationException($"There are {_keys.Count} keys and {_values.Count} values after deserialization. Make sure that both key and value types are serializable.");
-
-            for (int i = 0; i < _keys.Count; i++)
+            foreach (var entry in _entries)
             {
-                this[_keys[i]] = _values[i];
+                this[entry.Key] = entry.Value;
             }
         }
 
         public void OnBeforeSerialize()
         {
-            _keys.Clear();
-            _values.Clear();
-
-            foreach (var kvp in this)
+            using (ListScope<Entry>.Create(out var entries))
             {
-                _keys.Add(kvp.Key);
-                _values.Add(kvp.Value);
+                foreach (var (key, value) in this)
+                {
+                    entries.Add(new Entry
+                    {
+                        Key = key,
+                        Value = value
+                    });
+                }
+
+#if UNITY_EDITOR
+                if (typeof(TKey).IsEnum)
+                {
+                    entries.Sort((x, y) => Comparer<int>.Default.Compare((int)(object)x.Key, (int)(object)y.Key));
+                }
+                else if (typeof(IComparable<TKey>).IsAssignableFrom(typeof(TKey)))
+                {
+                    entries.Sort((x, y) => Comparer<TKey>.Default.Compare(x.Key, y.Key));
+                }
+#endif
+
+                _entries = entries.ToArray();
+            }
+        }
+
+        #endregion
+        
+        public void SetFromDictionary(Dictionary<TKey, TValue> dictionary)
+        {
+            Clear();
+
+            foreach (var kvp in dictionary)
+            {
+                this[kvp.Key] = kvp.Value;
+            }
+
+            UpdateSerializedEntries();
+        }
+
+        private void UpdateSerializedEntries()
+        {
+            using (ListScope<Entry>.Create(out var entries))
+            {
+                foreach (var (key, value) in this)
+                {
+                    entries.Add(new Entry
+                    {
+                        Key = key,
+                        Value = value
+                    });
+                }
+
+#if UNITY_EDITOR
+                if (typeof(TKey).IsEnum)
+                {
+                    entries.Sort((x, y) => Comparer<int>.Default.Compare((int)(object)x.Key, (int)(object)y.Key));
+                }
+                else if (typeof(IComparable<TKey>).IsAssignableFrom(typeof(TKey)))
+                {
+                    entries.Sort((x, y) => Comparer<TKey>.Default.Compare(x.Key, y.Key));
+                }
+#endif
+
+                _entries = entries.ToArray();
             }
         }
     }
