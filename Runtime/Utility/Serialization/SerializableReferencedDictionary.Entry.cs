@@ -1,7 +1,7 @@
 ﻿using System;
 using UnityEngine;
 
-namespace TapEmpire.Utility
+namespace TapEmpire.Utility.Experimental
 {
     public sealed partial class SerializableReferencesDictionary<TKey, TValue>
     {

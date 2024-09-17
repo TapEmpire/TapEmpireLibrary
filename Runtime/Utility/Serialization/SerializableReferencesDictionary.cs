@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace TapEmpire.Utility
+namespace TapEmpire.Utility.Experimental
 {
     [Serializable]
     public sealed partial class SerializableReferencesDictionary<TKey, TValue> : Dictionary<TKey, TValue>, ISerializationCallbackReceiver
