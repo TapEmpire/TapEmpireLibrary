@@ -5,6 +5,7 @@ using DG.Tweening;
 using UnityEngine;
 using System.Linq;
 using Zenject;
+using GoogleMobileAds.Ump.Api;
 
 namespace TapEmpire.Services
 {
@@ -155,6 +156,8 @@ namespace TapEmpire.Services
             var firebaseService = _diContainer.Resolve<IFirebaseService>();
 
             firebaseService.UpdateConsentStatus(isPersonalized);
+
+            GameAnalyticsSDK.GameAnalytics.SetCustomDimension01(ConsentInformation.ConsentStatus.ToString());
         }
 
         private void ResetInterstitialByTimer()

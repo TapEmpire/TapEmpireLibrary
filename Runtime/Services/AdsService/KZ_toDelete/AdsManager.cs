@@ -125,7 +125,7 @@ public class AdsManager : MonoBehaviour
         Screen.sleepTimeout = SleepTimeout.NeverSleep;
         ThreadDispatcher.Initialize();
         AdsRemoteSettings.Initialize();
-        GameAnalyticsSDK.GameAnalytics.Initialize();
+        // GameAnalyticsSDK.GameAnalytics.Initialize();
     }
 
     public async UniTask Initialize_AdNetworks()
@@ -172,7 +172,7 @@ public class AdsManager : MonoBehaviour
 
         #endregion
 
-        ReportDeviceInfo();
+        // ReportDeviceInfo();
         OnBarrierDone();
     }
 
@@ -228,8 +228,8 @@ public class AdsManager : MonoBehaviour
             AnalyticsManager.ReportCustomEvent(AnalyticsType.Extras, "Consent", ConsentManager.isPersonalized ? "Accepted" : "Denied");
 
         //GameAnalyticsSDK.GameAnalytics.NewDesignEvent($"{AnalyticsType.Extras.ToString()}:Ram:{RamInGB}");
-        GameAnalyticsSDK.GameAnalytics.SetCustomDimension01(RamInGB);
-        GameAnalyticsSDK.GameAnalytics.SetCustomDimension02(ConsentInformation.ConsentStatus.ToString());
+        // GameAnalyticsSDK.GameAnalytics.SetCustomDimension01(RamInGB);
+        // GameAnalyticsSDK.GameAnalytics.SetCustomDimension02(ConsentInformation.ConsentStatus.ToString());
     }
     #endregion
 

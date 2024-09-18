@@ -7,6 +7,7 @@ using UnityEngine;
 using TapEmpire.Utility;
 using Zenject;
 using Object = UnityEngine.Object;
+using Sirenix.OdinInspector;
 
 namespace TapEmpire.Services
 {
@@ -16,22 +17,31 @@ namespace TapEmpire.Services
         private static readonly Dictionary<string, object> EmptyDictionary = new();
 
         [SerializeField]
-        private string _amplitudeKey = "";
-
-        [SerializeField]
         private MonoCallbacksService _monoCallbackServicePrefab = null;
 
         [SerializeField]
+        private AnalyticsType _analyticsType = AnalyticsType.Amplitude;
+
+        [SerializeField]
+        [ShowIf("@_analyticsType == AnalyticsType.Amplitude")]
+        private string _amplitudeKey = "";
+
+        [SerializeField]
+        [ShowIf("@_analyticsType == AnalyticsType.Amplitude")]
         private bool _logAmplitude;
+
+        [SerializeField]
+        [ShowIf("@_analyticsType == AnalyticsType.GameAnalytics")]
+        private GameAnalyticsSDK.GameAnalytics _gameAnalyticsPrefab;
 
         private DiContainer _diContainer = null;
         private IProgressService _progressService = null;
 
-        private Amplitude _amplitude = null;
         private bool _isInitialized = false;
         private List<Action> _delayedEvents = new();
         private MonoCallbacksService _monoCallbackService = null;
         private Adjust _adjust = null;
+        private IAnalyticsService _innerService = null;
 
         // [NonSerialized]
         // private AnalyticsGlobalModule _globalModule;
@@ -45,8 +55,11 @@ namespace TapEmpire.Services
 
         protected override UniTask OnInitializeAsync(CancellationToken cancellationToken)
         {
-            var amplitudeKey = _amplitudeKey; // settingsManager.BuildSettings.AmplitudeKey;
-            InitializeBasic(amplitudeKey);
+            _innerService = _analyticsType == AnalyticsType.Amplitude ?
+                new AmplitudeService(_amplitudeKey, _logAmplitude) : new GameAnalyticsService(_gameAnalyticsPrefab);
+
+            _innerService.InitializeAsync(cancellationToken);
+            _diContainer.Resolve<IABTestingService>().OnGroupAssigned += onGroupAssigned;
 
             if (_monoCallbackService == null)
             {
@@ -73,6 +86,8 @@ namespace TapEmpire.Services
             if (_adjust != null)
                 _adjust.OnConfigChanged -= OnConfigChanged;
 
+            _innerService.Release();
+
             //_globalModule = null;
         }
 
@@ -83,32 +98,32 @@ namespace TapEmpire.Services
 
         public void SetUserProperty(string propertyName, int value)
         {
-            SetUserIntProperty(propertyName, value);
+            if (_isInitialized)
+            {
+                _innerService.SetUserProperty(propertyName, value);
+            }
+        }
+
+        public void SetUserProperty(string propertyName, string value)
+        {
+            if (_isInitialized)
+            {
+                _innerService.SetUserProperty(propertyName, value);
+            }
         }
 
         public void SetUserProperties(IDictionary<string, object> properties)
         {
             if (_isInitialized)
             {
-                _amplitude.setUserProperties(properties);
+                _innerService.SetUserProperties(properties);
             }
         }
 
         private void onGroupAssigned()
         {
-            InitializeDeferred();
             _diContainer.Resolve<IABTestingService>().OnGroupAssigned -= onGroupAssigned;
-        }
-
-        private void InitializeBasic(string amplitudeKey)
-        {
-            _amplitude = Amplitude.getInstance();
-            _amplitude.setServerUrl("https://api2.amplitude.com");
-            _amplitude.logging = _logAmplitude;
-            _amplitude.trackSessionEvents(true);
-            _amplitude.init(amplitudeKey);
-
-            _diContainer.Resolve<IABTestingService>().OnGroupAssigned += onGroupAssigned;
+            InitializeDeferred();
         }
 
         private void InitializeDeferred()
@@ -122,7 +137,7 @@ namespace TapEmpire.Services
             var cyclesCompleted = progressService.GetCyclesProgress();
             var adsWatchedCount = progressService.GetAdsWatchedProgress();
 
-            _amplitude.setUserProperties(new Dictionary<string, object>{
+            _innerService.SetUserProperties(new Dictionary<string, object>{
                 { AnalyticsParameters.InstallYear, launchDate.Year },
                 { AnalyticsParameters.InstallDate, launchDate.DayOfYear },
                 { AnalyticsParameters.DaysAfterInstall, daysAfterInstall.Days },
@@ -136,7 +151,7 @@ namespace TapEmpire.Services
 
             if (isFirstLaunch)
             {
-                _amplitude.logEvent(AnalyticsEvents.LaunchFirstTime);
+                _innerService.LogEvent(AnalyticsEvents.LaunchFirstTime, null);
             }
 
             // AdsService.Initialize();
@@ -153,29 +168,26 @@ namespace TapEmpire.Services
 
         private void OnConfigChanged(AdjustAttribution attribution)
         {
-            _amplitude.setUserProperty(AnalyticsParameters.AdjustAttribution, attribution.network);
+            _innerService.SetUserProperty(AnalyticsParameters.AdjustAttribution, attribution.network);
         }
 
         public void logEventDelayed(string eventName, Dictionary<string, object> parameters = null)
         {
-            Action delayedEvent = () => this._amplitude.logEvent(eventName, parameters);
+            Action delayedEvent = () => _innerService.LogEvent(eventName, parameters);
             Action action = _isInitialized ? delayedEvent : () => _delayedEvents.Add(delayedEvent);
             action.Invoke();
         }
 
-        public static void LogEventStatic(string eventName, Dictionary<string, object> details = null)
+        public void FlushEvents()
+        {
+            _innerService.FlushEvents();
+        }
+
+        /*public static void LogEventStatic(string eventName, Dictionary<string, object> details = null)
         {
             Amplitude amplitude = Amplitude.getInstance();
             amplitude.logEvent(eventName, details ?? EmptyDictionary);
-        }
-
-        private void SetUserIntProperty(string propertyName, int value)
-        {
-            if (_isInitialized)
-            {
-                _amplitude.setUserProperty(propertyName, value);
-            }
-        }
+        }*/
 
         private void OnApplicationFocus(bool hasFocus)
         {
@@ -189,7 +201,7 @@ namespace TapEmpire.Services
             {
                 PlayerPrefsUtility.SetSessionEnd();
                 logEventDelayed(AnalyticsEvents.SessionEnd);
-                _amplitude.uploadEvents();
+                FlushEvents();
             }
         }
     }
