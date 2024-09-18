@@ -3,6 +3,7 @@ using System.Threading;
 using Cysharp.Threading.Tasks;
 using GameAnalyticsSDK;
 using UnityEngine;
+using UnityEngine.Video;
 
 namespace TapEmpire.Services
 {
@@ -29,22 +30,53 @@ namespace TapEmpire.Services
 
         public void LogEvent(string eventName, Dictionary<string, object> eventParams)
         {
+            if (eventName.StartsWith("ADS") || eventName.StartsWith("SESSION"))
+            {
+                return;
+            }
+
+            if (eventName == "Level_started")
+            {
+                var cycle = eventParams["cycle"];
+                var level = eventParams["level"];
+                GameAnalytics.NewProgressionEvent(GAProgressionStatus.Start, $"cycle_{cycle}", $"level_{level}");
+                return;
+            }
+
+            if (eventName == "Level_completed")
+            {
+                var cycle = eventParams["cycle"];
+                var level = eventParams["level"];
+                var reason = eventParams["reason"].ToString();
+                var status = reason == "win" ? GAProgressionStatus.Complete :
+                             reason == "lost" ? GAProgressionStatus.Fail : GAProgressionStatus.Undefined;
+                if (status != GAProgressionStatus.Undefined)
+                {
+                    GameAnalytics.NewProgressionEvent(status, $"cycle_{cycle}", $"level_{level}");
+                }
+                return;
+            }
+
             GameAnalytics.NewDesignEvent(eventName, eventParams);
         }
 
         public void SetUserProperty(string propertyName, int value)
         {
-            GameAnalytics.SetGlobalCustomEventFields( new Dictionary<string, object>() { { propertyName, value} });
+            // GameAnalytics.SetGlobalCustomEventFields( new Dictionary<string, object>() { { propertyName, value} });
         }
 
         public void SetUserProperty(string propertyName, string value)
         {
-            GameAnalytics.SetGlobalCustomEventFields( new Dictionary<string, object>() { { propertyName, value} });
+            // GameAnalytics.SetGlobalCustomEventFields( new Dictionary<string, object>() { { propertyName, value} });
         }
 
         public void SetUserProperties(IDictionary<string, object> properties)
         {
-            GameAnalytics.SetGlobalCustomEventFields(properties);
+            if (properties.TryGetValue("RemoteConfig", out var remoteConfig))
+            {
+                GameAnalytics.SetCustomDimension02(remoteConfig.ToString());
+            }
+            // GameAnalytics.SetGlobalCustomEventFields(properties);
         }
 
         public void FlushEvents()
