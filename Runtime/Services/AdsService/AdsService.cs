@@ -79,6 +79,7 @@ namespace TapEmpire.Services
             _analyticsModule?.OnRelease();
             _analyticsModule = null;
             _interstitialTimerTween?.Kill();
+            _currentAdPlacement = "";
 
             global::AdsManager.Instance?.OnRelease();
         }

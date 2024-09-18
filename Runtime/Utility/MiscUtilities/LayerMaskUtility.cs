@@ -23,6 +23,26 @@ namespace TapEmpire.Utility
         //     }
         // }
 
+        public static LayerMask CreateResultMask<T>(params T[] components) where T : Component
+        {
+            LayerMask resultMask = 0;
+            foreach (var component in components)
+            {
+                resultMask |= 1 << component.gameObject.layer;
+            }
+            return resultMask;
+        }
+        
+        public static LayerMask CreateResultMask(params GameObject[] gameObjects)
+        {
+            LayerMask resultMask = 0;
+            foreach (var gameObject in gameObjects)
+            {
+                resultMask |= 1 << gameObject.layer;
+            }
+            return resultMask;
+        }
+
         public static void SetLayerMask(this GameObject obj, LayerMask layerMask)
         {
             obj.layer = LayerMaskToIntLayer(layerMask);
