@@ -31,6 +31,7 @@ namespace TapEmpire.Services
             _progressService = progressService;
             _firebaseService = firebaseService;
 
+            _serializables.Clear();
             _serializables.ForEach(serializable => _serializableDictionary.Add(serializable.TokenName, serializable));
 
             // _disposable = _firebaseService.IsLoaded.Subscribe(OnLoaded);

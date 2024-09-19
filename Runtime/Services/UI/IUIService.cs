@@ -7,7 +7,7 @@ using TapEmpire.Services;
 
 namespace TapEmpire.UI
 {
-    public interface IUIService : IService
+    public partial interface IUIService : IService
     {
         bool TryGetModel<T>(out T model)
             where T : IUIViewModel;
@@ -19,6 +19,9 @@ namespace TapEmpire.UI
 
         UniTask CloseViewAsync(IUIViewModel viewModel, CancellationToken cancellationToken,
             bool tryUseDefaultFadeOut = true);
+
+        UniTask CloseAllViewsExcept<T>(CancellationToken cancellationToken,
+            bool tryUseDefaultFadeOut = true) where T : IUIViewModel;
 
         // ивенты в тестовом режиме
         event Action<IUIViewModel> OnBeforeOpenView;

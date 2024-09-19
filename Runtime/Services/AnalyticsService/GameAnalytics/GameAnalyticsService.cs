@@ -35,6 +35,8 @@ namespace TapEmpire.Services
                 return;
             }
 
+            return;
+
             if (eventName == "Level_started")
             {
                 var cycle = eventParams["cycle"];

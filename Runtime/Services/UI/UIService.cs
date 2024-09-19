@@ -7,6 +7,7 @@ using TapEmpire.Services;
 using TapEmpire.Utility;
 using Zenject;
 using Object = UnityEngine.Object;
+using System.Linq;
 
 namespace TapEmpire.UI
 {
@@ -24,13 +25,13 @@ namespace TapEmpire.UI
 
         [Inject]
         private ISceneContextsService _sceneContextsService;
-        
+
         [NonSerialized]
         private Dictionary<IUIViewModel, UIView> _views = new();
-        
+
         private IUIViewModel _currentPopupModel;
         private DiContainer _coreDiContainer;
-        
+
         public Dictionary<string, RectTransform> ShibariContext { get; private set; } = new();
 
         public void SetViewsCanvasesInteractionState(bool state)
@@ -46,7 +47,7 @@ namespace TapEmpire.UI
         }
 
         #region Initializable
-        
+
         protected override UniTask OnInitializeAsync(CancellationToken cancellationToken)
         {
             var canvas = Object.Instantiate(_canvasPrefab);
@@ -89,7 +90,7 @@ namespace TapEmpire.UI
         }
 
         public bool TryGetView(IUIViewModel model, out UIView view)
-        {            
+        {
             if (_views.TryGetFirst(keyValue => keyValue.Key == model, out var keyValuePair))
             {
                 view = keyValuePair.Value;
@@ -99,7 +100,7 @@ namespace TapEmpire.UI
             return false;
         }
 
-        public async UniTask OpenViewAsync(UIView viewPrefab, IUIViewModel viewModel, CancellationToken cancellationToken, bool tryUseDefaultFadeIn = true, 
+        public async UniTask OpenViewAsync(UIView viewPrefab, IUIViewModel viewModel, CancellationToken cancellationToken, bool tryUseDefaultFadeIn = true,
             bool openAsPopup = false)
         {
             if (viewPrefab == null)
@@ -148,11 +149,11 @@ namespace TapEmpire.UI
             if (tryUseDefaultFadeOut && view is IFadeAbleView fadeAbleView)
             {
                 //DoTweenUtility.Fade(fadeAbleView.CanvasGroup, 0, _defaultFadeOutData);
-                
+
                 using (ListScope<UniTask>.Create(out var tasks))
                 {
                     //tasks.Add(UniTask.WaitForSeconds(_defaultFadeOutData.Duration, cancellationToken:cancellationToken));
-                    
+
                     tasks.Add(view.CloseAsync(cancellationToken));
 
                     await UniTask.WhenAll(tasks);
@@ -178,6 +179,16 @@ namespace TapEmpire.UI
             OnAfterCloseView?.Invoke(viewModel);
         }
 
+        public async UniTask CloseAllViewsExcept<T>(CancellationToken cancellationToken,
+            bool tryUseDefaultFadeOut = true) where T : IUIViewModel
+        {
+            var tasks = _views
+                .Where(view => view.Key is not T)
+                .Select(view => CloseViewAsync(view.Key, cancellationToken, tryUseDefaultFadeOut)).ToList();
+
+            await UniTask.WhenAll(tasks);
+        }
+
         public event Action<IUIViewModel> OnBeforeOpenView;
         public event Action<IUIViewModel> OnAfterOpenView;
         public event Action<IUIViewModel> OnBeforeCloseView;
@@ -192,5 +203,7 @@ namespace TapEmpire.UI
         {
             ShibariContext.Remove(name);
         }
+
+        public Whaledevelop.UI.UILocker UILocker => null;
     }
 }

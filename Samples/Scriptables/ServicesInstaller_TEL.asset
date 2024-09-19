@@ -9,89 +9,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 146e99d41e0142488d929d8203d1f007, type: 3}
+  m_Script: {fileID: 11500000, guid: da22bf3f4bf89481ab67c25a931b9508, type: 3}
   m_Name: ServicesInstaller_TEL
   m_EditorClassIdentifier: 
-  _orderedServices:
-  - rid: 4555595095505108992
-  - rid: 4555595095505108993
-  - rid: 4555595095566450690
-  - rid: 7822438748139290624
-  - rid: 7822438748139290625
-  _services:
-  - rid: 4555595095566450691
-  - rid: 4555595095505108994
-  - rid: 4555595095566450692
-  - rid: 4555595095505108995
-  - rid: 4555595095566450694
-  - rid: 4555595095566450688
-  - rid: 5710223935996690432
+  _orderedServices: []
+  _services: []
   references:
     version: 2
-    RefIds:
-    - rid: 4555595095505108992
-      type: {class: SceneContextsService, ns: TapEmpire.Services, asm: Assembly-CSharp}
-      data: 
-    - rid: 4555595095505108993
-      type: {class: ProgressService, ns: TapEmpire.Services, asm: Assembly-CSharp}
-      data: 
-    - rid: 4555595095505108994
-      type: {class: ABTestingService, ns: TapEmpire.Services, asm: Assembly-CSharp}
-      data:
-        _defaultExecutingGroup: Main
-    - rid: 4555595095505108995
-      type: {class: AudioService, ns: TapEmpire.Services, asm: Assembly-CSharp}
-      data:
-        _audioMixer: {fileID: 24100000, guid: 3d140f1907bd34da594001db17e2f77b, type: 2}
-        _audioBank: {fileID: 11400000, guid: 2986f162f6c7b0d48afb53eee0cb4c31, type: 2}
-        _soundSourcePrefab: {fileID: 5360967486770318989, guid: a15ebbfa51f41446799ba8fc854ac3ca, type: 3}
-        _soundAudio3DPrefab: {fileID: 5360967486770318989, guid: e10b0cac0ac294927b798c934ed2fa7c, type: 3}
-        _musicAudioSourcePrefab: {fileID: 5360967486770318989, guid: 6bf0c14f93fa7cb478d759055488176b, type: 3}
-    - rid: 4555595095566450688
-      type: {class: HapticService, ns: Game.Game, asm: Assembly-CSharp}
-      data:
-        _isDefaultVibration: 1
-        _defaultHapticType: 9
-    - rid: 4555595095566450690
-      type: {class: UIService, ns: TapEmpire.UI, asm: Assembly-CSharp}
-      data:
-        _canvasPrefab: {fileID: 2564928480905462982, guid: 9a3515176d28f4320a0d93d8fd1be1ea, type: 3}
-    - rid: 4555595095566450691
-      type: {class: AdsService, ns: TapEmpire.Services, asm: Assembly-CSharp}
-      data:
-        _adsManagerPrefab: {fileID: 2400435674390480400, guid: 03c42850a08ab4ec6bd7aab059613a7e, type: 3}
-        _adjustPrefab: {fileID: 6426405441543013334, guid: ac371c66d453e453b99fffbcf2353301, type: 3}
-        _adsSettings: {fileID: 11400000, guid: f7c528994ec0c4760a1db7c86c0fc03e, type: 2}
-        _adsDisabled: 0
-    - rid: 4555595095566450692
-      type: {class: AnalyticsService, ns: TapEmpire.Services, asm: Assembly-CSharp}
-      data:
-        _amplitudeKey: 
-        _monoCallbackServicePrefab: {fileID: 4749522250195636066, guid: 20dd72a1c03a0460a8cc15ef336d70ab, type: 3}
-        _logAmplitude: 0
-    - rid: 4555595095566450694
-      type: {class: RateMeService, ns: TapEmpire.Services, asm: Assembly-CSharp}
-      data: 
-    - rid: 5158157677108396032
-      type: {class: LevelSortTableSerializable, ns: TapEmpire.Services, asm: Assembly-CSharp}
-      data:
-        _levelSortTable: {fileID: 11400000, guid: ae14a050e81f74f8b916461db0f8474b, type: 2}
-    - rid: 5710223935996690432
-      type: {class: SceneManagementService, ns: TapEmpire.Services, asm: Assembly-CSharp}
-      data:
-        _sceneLoadingUIPrefab: {fileID: 8754181514228052190, guid: 86d0574a341adaa419d5f894de13138f, type: 3}
-        _animationDurationPerFullProgress: 2
-        _initialProgress: 0.3
-    - rid: 7822438748139290624
-      type: {class: FirebaseService, ns: TapEmpire.Services, asm: Assembly-CSharp}
-      data: 
-    - rid: 7822438748139290625
-      type: {class: SerializationService, ns: TapEmpire.Services, asm: Assembly-CSharp}
-      data:
-        _serializables:
-        - rid: 7822438748139290626
-        - rid: 5158157677108396032
-    - rid: 7822438748139290626
-      type: {class: AdsSettingsSerializable, ns: TapEmpire.Services, asm: Assembly-CSharp}
-      data:
-        _adsSettings: {fileID: 11400000, guid: f7c528994ec0c4760a1db7c86c0fc03e, type: 2}
+    RefIds: []
