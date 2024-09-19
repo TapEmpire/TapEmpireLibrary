@@ -42,12 +42,17 @@ namespace TapEmpire.Services
         private bool _adsDisabled = false;
         private string _currentAdPlacement = "";
 
+        [Inject]
+        private IProgressService _progressService;
+
         private Tween _interstitialTimerTween = null;
         private float _interstitialTimer = 30.0f;
         private bool _isInitialized = false;
         private AdsAnalyticsModule _analyticsModule = null;
 
         public bool AdsDisabled => _adsDisabled;
+
+        private const string AdsDisabledKey = "debug_ads_disabled";
 
         protected override UniTask OnInitializeAsync(CancellationToken cancellationToken)
         {
@@ -67,6 +72,10 @@ namespace TapEmpire.Services
                 global::AdsManager.Instance.EnableAppOpen = _adsSettings.EnableAppOpen;
                 global::AdsManager.Instance.OnConsentObtained += OnConsentObtained;
                 global::AdsManager.Instance.Initialize_AdNetworks().ContinueWith(() => PeriodicAdCheck()).Forget();
+                if (_progressService.TryLoad<bool>(AdsDisabledKey, out var adsDisabled))
+                {
+                    _adsDisabled = adsDisabled;
+                }
                 _isInitialized = true;
             }
 
@@ -105,6 +114,12 @@ namespace TapEmpire.Services
 
         public void ShowInterstitial()
         {
+            if (_adsDisabled)
+            {
+                OnAdReceivedReward();
+                return;
+            }
+
             if (_currentAdPlacement != "" || !_isInitialized)
             {
                 ResetInterstitialByTimer();
@@ -120,6 +135,12 @@ namespace TapEmpire.Services
 
         public void ShowRewarded(string adPlacement)
         {
+            if (_adsDisabled)
+            {
+                OnAdReceivedReward();
+                return;
+            }
+
             _currentAdPlacement = adPlacement;
             OnAdClickedEvent?.Invoke(_currentAdPlacement);
 
@@ -134,6 +155,7 @@ namespace TapEmpire.Services
         public void DisableAds(bool shouldDisable)
         {
             _adsDisabled = shouldDisable;
+            _progressService.Save(AdsDisabledKey, shouldDisable);
             // ProgressManager.SetDisableAds(_adsDisabled);
         }
 
