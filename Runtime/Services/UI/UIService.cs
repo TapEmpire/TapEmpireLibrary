@@ -204,6 +204,6 @@ namespace TapEmpire.UI
             ShibariContext.Remove(name);
         }
 
-        public Whaledevelop.UI.UILocker UILocker => null;
+        public IUILocker UILocker => null;
     }
 }
