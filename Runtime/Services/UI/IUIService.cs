@@ -37,5 +37,9 @@ namespace TapEmpire.UI
 
         // Should be ReactiveDictionary, but R3 has none.
         Dictionary<string, RectTransform> ShibariContext { get; }
+
+        IUILocker UILocker { get; }
+
+        void SetViewsCanvasesInteractionState(bool state);
     }
 }
