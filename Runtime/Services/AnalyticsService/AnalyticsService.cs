@@ -96,6 +96,11 @@ namespace TapEmpire.Services
             logEventDelayed(eventName, eventParams);
         }
 
+        public void LogEvent(string eventName, int value)
+        {
+            logEventDelayed(eventName, value);
+        }
+
         public void SetUserProperty(string propertyName, int value)
         {
             if (_isInitialized)
@@ -174,6 +179,13 @@ namespace TapEmpire.Services
         public void logEventDelayed(string eventName, Dictionary<string, object> parameters = null)
         {
             Action delayedEvent = () => _innerService.LogEvent(eventName, parameters);
+            Action action = _isInitialized ? delayedEvent : () => _delayedEvents.Add(delayedEvent);
+            action.Invoke();
+        }
+
+        public void logEventDelayed(string eventName, int value)
+        {
+            Action delayedEvent = () => _innerService.LogEvent(eventName, value);
             Action action = _isInitialized ? delayedEvent : () => _delayedEvents.Add(delayedEvent);
             action.Invoke();
         }

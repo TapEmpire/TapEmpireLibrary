@@ -35,8 +35,6 @@ namespace TapEmpire.Services
                 return;
             }
 
-            return;
-
             if (eventName == "Level_started")
             {
                 var cycle = eventParams["cycle"];
@@ -60,6 +58,11 @@ namespace TapEmpire.Services
             }
 
             GameAnalytics.NewDesignEvent(eventName, eventParams);
+        }
+
+        public void LogEvent(string eventName, int value)
+        {
+            GameAnalytics.NewDesignEvent(eventName, value);
         }
 
         public void SetUserProperty(string propertyName, int value)

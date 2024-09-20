@@ -34,6 +34,11 @@ namespace TapEmpire.Services
             _amplitude.logEvent(eventName, eventParams);
         }
 
+        public void LogEvent(string eventName, int value)
+        {
+            _amplitude.logEvent(eventName, new Dictionary<string, object>() { { "value", value } });
+        }
+
         public void SetUserProperty(string propertyName, int value)
         {
             _amplitude.setUserProperty(propertyName, value);
