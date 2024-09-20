@@ -52,8 +52,6 @@ namespace TapEmpire.Services
 
         public bool AdsDisabled => _adsDisabled;
 
-        private const string AdsDisabledKey = "debug_ads_disabled";
-
         protected override UniTask OnInitializeAsync(CancellationToken cancellationToken)
         {
             if (_isInitialized)
@@ -72,10 +70,6 @@ namespace TapEmpire.Services
                 global::AdsManager.Instance.EnableAppOpen = _adsSettings.EnableAppOpen;
                 global::AdsManager.Instance.OnConsentObtained += OnConsentObtained;
                 global::AdsManager.Instance.Initialize_AdNetworks().ContinueWith(() => PeriodicAdCheck()).Forget();
-                if (_progressService.TryLoad<bool>(AdsDisabledKey, out var adsDisabled))
-                {
-                    _adsDisabled = adsDisabled;
-                }
                 _isInitialized = true;
             }
 
@@ -155,7 +149,6 @@ namespace TapEmpire.Services
         public void DisableAds(bool shouldDisable)
         {
             _adsDisabled = shouldDisable;
-            _progressService.Save(AdsDisabledKey, shouldDisable);
             // ProgressManager.SetDisableAds(_adsDisabled);
         }
 
