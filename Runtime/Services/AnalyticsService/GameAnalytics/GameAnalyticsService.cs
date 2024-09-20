@@ -50,9 +50,10 @@ namespace TapEmpire.Services
                 var reason = eventParams["reason"].ToString();
                 var status = reason == "win" ? GAProgressionStatus.Complete :
                              reason == "lost" ? GAProgressionStatus.Fail : GAProgressionStatus.Undefined;
+                var layer = eventParams.TryGetValue("layer", out var value) ? (int)value : 0;
                 if (status != GAProgressionStatus.Undefined)
                 {
-                    GameAnalytics.NewProgressionEvent(status, $"cycle_{cycle}", $"level_{level}");
+                    GameAnalytics.NewProgressionEvent(status, $"cycle_{cycle}", $"level_{level}", layer);
                 }
                 return;
             }
