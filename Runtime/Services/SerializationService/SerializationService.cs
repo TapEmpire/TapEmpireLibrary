@@ -17,7 +17,7 @@ namespace TapEmpire.Services
 
         [SerializeReference]
         private List<IRemoteSerializable> _serializables = new();
-        
+
         private Dictionary<string, IRemoteSerializable> _serializableDictionary = new();
 
         private IFirebaseService _firebaseService = null;
