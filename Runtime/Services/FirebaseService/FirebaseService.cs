@@ -97,7 +97,7 @@ namespace TapEmpire.Services
         {
             var stopWatch = new Stopwatch();
             // stopWatch.Start();
-            await NetworkUtility.WaitNetworkAsync(cancellationToken);
+            // await NetworkUtility.WaitNetworkAsync(cancellationToken);
             // stopWatch.Stop();
             // Debug.Log($"firebase manager WaitInternetConnection took {stopWatch.Elapsed.TotalSeconds} total seconds");
 
@@ -133,14 +133,8 @@ namespace TapEmpire.Services
             stopWatch.Stop();
             Debug.Log($"firebase manager remoteConfig activate took {stopWatch.Elapsed.TotalSeconds} total seconds");
 
-            if (status)
-            {
-                OnConfigLoadingFinished(new RemoteConfiguration(FirebaseRemoteConfig.DefaultInstance.AllValues));
-            }
-            else
-            {
-                OnConfigLoadingFinished(new EmptyRemoteConfiguration());
-            }
+            // ignore status and give firebase stored config.
+            OnConfigLoadingFinished(new RemoteConfiguration(FirebaseRemoteConfig.DefaultInstance.AllValues));
         }
 
         private void OnConfigLoadingFinished(IRemoteConfiguration remoteConfiguration)
