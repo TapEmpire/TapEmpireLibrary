@@ -53,5 +53,28 @@ namespace TapEmpire.Utility
             var newSize = new Vector2(worldScreenWidth / boundsSize.x, worldScreenHeight / boundsSize.y);
             self.transform.localScale = new Vector2(newSize.x, newSize.y);
         }
+
+        public static Vector2 GetSize(this SpriteRenderer self)
+        {
+            return self.sprite.bounds.size;
+        }
+
+        public static bool IsFullyInView(this SpriteRenderer self, Camera camera)
+        {
+            Bounds spriteBounds = self.bounds;
+            Plane[] cameraPlanes = GeometryUtility.CalculateFrustumPlanes(camera);
+
+            foreach (Plane plane in cameraPlanes)
+            {
+                if (plane.GetSide(spriteBounds.min) && plane.GetSide(spriteBounds.max))
+                {
+                    continue;
+                }
+
+                return false;
+            }
+
+            return true;
+        }
     }
 }

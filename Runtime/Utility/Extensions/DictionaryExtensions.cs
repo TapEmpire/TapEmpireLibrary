@@ -41,5 +41,10 @@ namespace TapEmpire.Utility
                 self.RemoveAll(keysToRemove);
             }
         }
+
+        public static TValue TryGetValue<TKey, TValue>(this Dictionary<TKey, TValue> self, TKey key)
+        {
+            return self.TryGetValue(key, out var value) ? value : default(TValue);
+        }
     }
 }
