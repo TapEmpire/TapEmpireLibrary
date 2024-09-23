@@ -2,14 +2,12 @@
 using System.Collections;
 using System.Threading;
 using Cysharp.Threading.Tasks;
-using RagDoll.UI;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using TapEmpire.Services;
-using TapEmpire;
 using TapEmpire.UI;
 using TapEmpire.Utility;
 using Zenject;
+using TapEmpire.Settings;
 
 namespace TapEmpire.Game
 {

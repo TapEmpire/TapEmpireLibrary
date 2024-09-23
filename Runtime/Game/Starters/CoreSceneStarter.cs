@@ -1,16 +1,13 @@
 ﻿using System.Threading;
 using Cysharp.Threading.Tasks;
-using RagDoll.CoreSystems;
-using RagDoll.Level;
-using RagDoll.UI;
 using UnityEngine;
 using TapEmpire.Services;
 using TapEmpire.CoreSystems;
-using TapEmpire;
 using TapEmpire.UI;
 using Zenject;
-using TapEmpire.Utility;
 using TEL.Services;
+using TapEmpire.Settings;
+using Game.Services;
 
 namespace TapEmpire.Game
 {
@@ -24,19 +21,19 @@ namespace TapEmpire.Game
         [SerializeField]
         private SceneContext _coreSceneContext;
 
-        [Header("UI")]
-        [SerializeField]
-        private CoreDebugUIView _coreDebugUIView;
+        // [Header("UI")]
+        // [SerializeField]
+        // private CoreDebugUIView _coreDebugUIView;
 
-        [SerializeField]
-        private CoreHudUIView _coreHudUIView;
+        // [SerializeField]
+        // private CoreHudUIView _coreHudUIView;
         
         private IService[] _services;
         private ICoreSystem[] _systems;
         private DiContainer _diContainer;
         
         private ISceneContextsService _sceneContextsService;
-        private ILevelExecutionCoreSystem _levelExecutionCoreSystem;
+        // private ILevelExecutionCoreSystem _levelExecutionCoreSystem;
         private IUIService _uiService;
         private IProgressService _progressService;
         private IAudioService _audioService;
@@ -44,7 +41,7 @@ namespace TapEmpire.Game
         
         [Inject]
         private void Construct(IService[] services, ICoreSystem[] systems, ISceneContextsService sceneContextsService, DiContainer diContainer,
-            ILevelExecutionCoreSystem levelExecutionCoreSystem, IUIService uiService, IProgressService progressService, 
+            IUIService uiService, IProgressService progressService, 
             IAudioService audioService, IHapticService hapticService)
         {
             _services = services;
@@ -52,7 +49,7 @@ namespace TapEmpire.Game
             _sceneContextsService = sceneContextsService;
             _diContainer = diContainer;
 
-            _levelExecutionCoreSystem = levelExecutionCoreSystem;
+            // _levelExecutionCoreSystem = levelExecutionCoreSystem;
             _progressService = progressService;
 
             _uiService = uiService;
@@ -73,25 +70,25 @@ namespace TapEmpire.Game
             _sceneContextsService.AddInstalledSceneContext("Core", _coreSceneContext);
 
             _audioService.InitializeMixer();
-            _audioService.WarmUpSources(true, false, false);
+            // _audioService.WarmUpSources(true, false, false);
             _hapticService.SetHapticsActive(true, false);
             
 #if UNITY_EDITOR
-            var levelsOnScene = FindObjectsOfType<LevelView>();
-            foreach (var levelOnScene in levelsOnScene)
-            {
-                Destroy(levelOnScene.gameObject);
-            }
+            // var levelsOnScene = FindObjectsOfType<LevelView>();
+            // foreach (var levelOnScene in levelsOnScene)
+            // {
+            //     Destroy(levelOnScene.gameObject);
+            // }
 #endif
 
-            if (_startSettings.Debug)
+            /*if (_startSettings.Debug)
             {
                 _uiService.OpenViewAsync(_coreDebugUIView, new CoreDebugUIViewModel(), CancellationToken.None).Forget();
             }
-            _uiService.OpenViewAsync(_coreHudUIView, new CoreHudUIViewModel(), CancellationToken.None).Forget();
+            _uiService.OpenViewAsync(_coreHudUIView, new CoreHudUIViewModel(), CancellationToken.None).Forget();*/
             
-            var level = GetStartLevelIndex();
-            _levelExecutionCoreSystem.StartLevel(level);
+            // var level = GetStartLevelIndex();
+            // _levelExecutionCoreSystem.StartLevel(level);
         }
 
         private int GetStartLevelIndex()
