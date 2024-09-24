@@ -8,6 +8,7 @@ using Zenject;
 using TEL.Services;
 using TapEmpire.Settings;
 using Game.Services;
+using TapEmpire.Utility;
 
 namespace TapEmpire.Game
 {
@@ -66,7 +67,7 @@ namespace TapEmpire.Game
         {
             await InitializableUtility.InitializeAsync(_services, _diContainer, cancellationToken);
             await InitializableUtility.InitializeAsync(_systems, _diContainer, cancellationToken);
-            InitializableUtility.InitializeTicks(_systems, _diContainer);
+            _diContainer.InitializeTicks(_systems);
             _sceneContextsService.AddInstalledSceneContext("Core", _coreSceneContext);
 
             _audioService.InitializeMixer();
@@ -106,7 +107,7 @@ namespace TapEmpire.Game
         {
             try
             {
-                InitializableUtility.ReleaseTicks(_systems, _diContainer);
+                _diContainer.ReleaseTicks(_systems);
                 foreach (var system in _systems)
                 {
                     system.Release();
