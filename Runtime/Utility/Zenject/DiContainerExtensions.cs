@@ -32,15 +32,15 @@ namespace TapEmpire.Utility
             {
                 if (target is ITickable tickable)
                 {
-                    tickableManager.Add(tickable);
+                    tickableManager.Remove(tickable);
                 }
                 if (target is IFixedTickable fixedTickable)
                 {
-                    tickableManager.AddFixed(fixedTickable);
+                    tickableManager.RemoveFixed(fixedTickable);
                 }
                 if (target is ILateTickable lateTickable)
                 {
-                    tickableManager.AddLate(lateTickable);
+                    tickableManager.RemoveLate(lateTickable);
                 }
             }
         }
