@@ -39,10 +39,10 @@ namespace TapEmpire.Services
 
         public async UniTask WaitNetworkAsync(CancellationToken cancellationToken, bool withUI)
         {
-            // if (HasConnection)
-            // {
-            //     return;
-            // }
+            if (HasConnection)
+            {
+                return;
+            }
             if (withUI)
             {
                 if (_popupPrefab == null)
@@ -55,13 +55,11 @@ namespace TapEmpire.Services
                     await _uiService.OpenViewAsync(_popupPrefab, popupModel, cancellationToken);
                 }
             }
-
-            await UniTask.WaitUntil(() => false);
-            //await UniTask.WaitUntil(() => HasConnection, cancellationToken: cancellationToken);
-            // if (withUI && _popupPrefab != null)
-            // {
-            //     await _uiService.TryCloseViewAsync<NoInternetPopupUIViewModel>(cancellationToken);
-            // }
+            await UniTask.WaitUntil(() => HasConnection, cancellationToken: cancellationToken);
+             if (withUI && _popupPrefab != null)
+             {
+                 await _uiService.TryCloseViewAsync<NoInternetPopupUIViewModel>(cancellationToken);
+             }
         }
     }
 }
