@@ -6,19 +6,6 @@ namespace TapEmpire.Utility
 {
     public static class NetworkUtility
     {
-        public static UniTask WaitNetworkAsync(CancellationToken cancellationToken)
-        {
-            var network = HasConnection();
-            return network
-                ? UniTask.CompletedTask
-                : UniTask.WaitUntil(HasConnection, cancellationToken: cancellationToken);
-        }
-
-        public static bool HasConnection()
-        {
-            return Application.internetReachability != NetworkReachability.NotReachable;
-        }
-
         public static async UniTask WaitNetworkAsyncReliable(System.Action<int> syncResult = null)
         {
             bool result;
