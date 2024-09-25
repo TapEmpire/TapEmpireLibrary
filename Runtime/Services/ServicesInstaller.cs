@@ -28,7 +28,7 @@ namespace TapEmpire.Services
         {
             _runtimeServices.Clear();
 
-            _orderedServices.ForEachIndexed((service, index) => ConfigureService(service, index));
+            _orderedServices.ForEachIndexed(ConfigureService);
             _services.ForEach(service => ConfigureService(service, -1));
 
             Container.Bind<IService[]>().FromInstance(_runtimeServices.ToArray()).AsSingle();
@@ -54,10 +54,7 @@ namespace TapEmpire.Services
             {
                 Container.Bind(serviceInterface).FromInstance(service).AsSingle();
             }
-            if (typeof(ITickable).IsAssignableFrom(serviceType))
-            {
-                Container.Bind<ITickable>().To(serviceType).FromInstance(service).AsSingle();
-            }
+            Container.InitializeTicks(service);
         }
 
         private void SubscribeToApplicationExit(CancellationToken cancellationToken)
