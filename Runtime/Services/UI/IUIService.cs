@@ -14,8 +14,8 @@ namespace TapEmpire.UI
 
         bool TryGetView(IUIViewModel model, out UIView view);
 
-        UniTask OpenViewAsync(UIView viewPrefab, IUIViewModel viewModel, CancellationToken cancellationToken,
-            bool tryUseDefaultFadeIn = true, bool openAsPopup = false);
+        UniTask OpenViewAsync<T>(UIView viewPrefab, T viewModel, CancellationToken cancellationToken,
+            bool tryUseDefaultFadeIn = true, bool openAsPopup = false) where T : IUIViewModel;
 
         UniTask CloseViewAsync(IUIViewModel viewModel, CancellationToken cancellationToken,
             bool tryUseDefaultFadeOut = true);
