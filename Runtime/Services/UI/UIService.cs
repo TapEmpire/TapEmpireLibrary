@@ -100,8 +100,8 @@ namespace TapEmpire.UI
             return false;
         }
 
-        public async UniTask OpenViewAsync(UIView viewPrefab, IUIViewModel viewModel, CancellationToken cancellationToken, bool tryUseDefaultFadeIn = true,
-            bool openAsPopup = false)
+        public async UniTask OpenViewAsync<T>(UIView viewPrefab, T viewModel, CancellationToken cancellationToken, bool tryUseDefaultFadeIn = true,
+            bool openAsPopup = false) where T : IUIViewModel
         {
             if (viewPrefab == null)
             {
@@ -111,6 +111,12 @@ namespace TapEmpire.UI
             if (_views.ContainsKey(viewModel))
             {
                 Debug.Log("View already opened");
+                return;
+            }
+
+            if (_views.Any(kvp => kvp.Key is T))
+            {
+                Debug.Log("View model with this type already opened");
                 return;
             }
             OnBeforeOpenView?.Invoke(viewModel);
