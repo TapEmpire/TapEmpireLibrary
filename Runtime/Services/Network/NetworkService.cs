@@ -18,7 +18,7 @@ namespace TapEmpire.Services
         private bool _waitInInitializeWithUI = true;
         
         [SerializeField]
-        private NoInternetPopupUIView _popupPrefab;
+        private NoInternetUIView _noInternetUIViewPrefab;
 
         public bool HasConnection => Application.internetReachability != NetworkReachability.NotReachable;
 
@@ -45,20 +45,20 @@ namespace TapEmpire.Services
             }
             if (withUI)
             {
-                if (_popupPrefab == null)
+                if (_noInternetUIViewPrefab == null)
                 {
                     Debug.Log($"No NoInternetPopupUIView prefab in NetworkService");
                 }
                 else
                 {
-                    var popupModel = new NoInternetPopupUIViewModel();
-                    await _uiService.OpenViewAsync(_popupPrefab, popupModel, cancellationToken);
+                    var popupModel = new NoInternetUIViewModel();
+                    await _uiService.OpenViewAsync(_noInternetUIViewPrefab, popupModel, cancellationToken);
                 }
             }
             await UniTask.WaitUntil(() => HasConnection, cancellationToken: cancellationToken);
-             if (withUI && _popupPrefab != null)
+             if (withUI && _noInternetUIViewPrefab != null)
              {
-                 await _uiService.TryCloseViewAsync<NoInternetPopupUIViewModel>(cancellationToken);
+                 await _uiService.TryCloseViewAsync<NoInternetUIViewModel>(cancellationToken);
              }
         }
     }

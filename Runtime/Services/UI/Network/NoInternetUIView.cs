@@ -6,7 +6,7 @@ using UnityEngine.UI;
 
 namespace TapEmpire.UI
 {
-    public class NoInternetPopupUIView : UIView<NoInternetPopupUIViewModel>
+    public class NoInternetUIView : UIView<NoInternetUIViewModel>, IFadeAbleView
     {
         [SerializeField]
         private Transform _bounceRoot;
@@ -16,6 +16,11 @@ namespace TapEmpire.UI
 
         [SerializeField]
         private DoTweenExplodeBounceData _bounceData;
+
+        [SerializeField]
+        private CanvasGroup _canvasGroup;
+
+        public CanvasGroup CanvasGroup => _canvasGroup;
         
         protected override UniTask OnOpenAsync(CancellationToken cancellationToken)
         {
