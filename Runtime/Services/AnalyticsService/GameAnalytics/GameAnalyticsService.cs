@@ -53,7 +53,7 @@ namespace TapEmpire.Services
                 var layer = eventParams.TryGetValue("layer", out var value) ? (int)value : 0;
                 if (status != GAProgressionStatus.Undefined)
                 {
-                    GameAnalytics.NewProgressionEvent(status, $"cycle_{cycle}", $"level_{level}", layer);
+                    GameAnalytics.NewProgressionEvent(status, $"cycle_{cycle}", $"level_{level}", $"layer_{layer}");
                 }
                 return;
             }
