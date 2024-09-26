@@ -56,6 +56,11 @@ namespace TapEmpire.UI
             }
         }
 
+        public event Action<IUIViewModel> OnOpenPopup;
+        public event Action<IUIViewModel> OnClosePopup;
+
+        public IUIViewModel CurrentPopup => _currentPopupModel;
+
         #region Initializable
 
         protected override UniTask OnInitializeAsync(CancellationToken cancellationToken)
@@ -147,9 +152,9 @@ namespace TapEmpire.UI
                 }
             }
             await TryExecuteWithFadeAsync(view.OpenAsync(cancellationToken), view, true, cancellationToken, tryUseFade);
-            
             if (asPopup)
             {
+                OnOpenPopup?.Invoke(viewModel);
                 _currentPopupModel = viewModel;
             }
             OnAfterOpenView?.Invoke(viewModel);
@@ -189,6 +194,7 @@ namespace TapEmpire.UI
             
             if (_currentPopupModel != null && _currentPopupModel == viewModel)
             {
+                OnClosePopup?.Invoke(viewModel);
                 _currentPopupModel = null;
             }
             try
@@ -212,7 +218,7 @@ namespace TapEmpire.UI
 
             await UniTask.WhenAll(tasks);
         }
-
+        
         public event Action<IUIViewModel> OnBeforeOpenView;
         public event Action<IUIViewModel> OnAfterOpenView;
         public event Action<IUIViewModel> OnBeforeCloseView;

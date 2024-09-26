@@ -6,11 +6,12 @@ using UnityEngine.UI;
 
 namespace TapEmpire.UI
 {
-    public class SettingsPopupView : UIView<SettingsUIViewModel>, IFadeAbleView
+    public class SettingsUIView : UIView<SettingsUIViewModel>, IFadeAbleView
     {
         [SerializeField]
         private CanvasGroup _canvasGroup;
         
+        [Header("Buttons")]
         [SerializeField]
         private Button _backgroundButton;
 
@@ -24,15 +25,9 @@ namespace TapEmpire.UI
         [SerializeField]
         private string _versionFormat = "version {0}";
 
-        [Header("Settings")]
+        [Header("Toggles")]
         [SerializeField]
         private SerializableDictionary<SettingsToggleCode, ToggleUIView> _togglesDict;
-        
-        [SerializeField]
-        private ToggleUIView _musicToggle;
-        
-        [SerializeField]
-        private ToggleUIView _soundToggle;
 
         public CanvasGroup CanvasGroup => _canvasGroup;
         

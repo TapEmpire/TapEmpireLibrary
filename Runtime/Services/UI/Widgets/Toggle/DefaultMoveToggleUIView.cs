@@ -1,17 +1,25 @@
 ﻿using System;
 using DG.Tweening;
+using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace TapEmpire.UI
 {
-    public class ToggleUIView : MonoBehaviour
+    public class DefaultMoveToggleUIView : ToggleUIView
     {
         [SerializeField]
-        private Image _turnOnFillImage;
+        private Button _toggleButton;
+
+        [Header("Color")]
+        [SerializeField]
+        private Image _toggleImage;
 
         [SerializeField]
-        private Button _toggleButton;
+        private Color _onColor;
+
+        [SerializeField]
+        private Color _offColor;
         
         [Header("Toggle move")]
         [SerializeField]
@@ -32,25 +40,24 @@ namespace TapEmpire.UI
         
         private bool _state;
         private bool _isAnimating;
-        private Tween _moveTween;
-        private Tween _fillTween;
+        private Tween _tween;
 
         private Action<bool> _onSetState;
         
-        public void Initialize(Action<bool> onSetState, bool initialState)
+        public override void Initialize(Action<bool> onSetState, bool initialState)
         {
             _toggleButton.onClick.AddListener(OnToggleClick);
             _onSetState = onSetState;
             ChangeState(initialState, true);
         }
 
-        public void Release()
+        public override void Release()
         {
             _toggleButton.onClick.RemoveListener(OnToggleClick);
             _onSetState = null;
             StopAnimation();
         }
-
+        
         private void OnToggleClick()
         {
             if (_isAnimating)
@@ -66,19 +73,18 @@ namespace TapEmpire.UI
             {
                 return;
             }
-            _moveTween?.Kill(complete);
-            _moveTween = null;
-            _fillTween?.Kill(complete);
-            _fillTween = null;
+            _tween?.Kill(complete);
+            _tween = null;
         }
         
+        [Button]
         private void ChangeState(bool state, bool force)
         {
             if (force)
             {
                 _state = state;
                 _toggleTransform.position = _state ? _turnOnPoint.position : _turnOffPoint.position;
-                _turnOnFillImage.fillAmount = _state ? 1 : 0;
+                _toggleImage.color = _state ? _onColor : _offColor;
                 _onSetState?.Invoke(_state);
             }
             else
@@ -89,17 +95,12 @@ namespace TapEmpire.UI
                 }
                 _state = state;
                 _onSetState?.Invoke(_state);
-                
                 StopAnimation();
-
                 _isAnimating = true;
-                _fillTween = _turnOnFillImage
-                    .DOFillAmount(_state ? 1 : 0, _duration)
-                    .SetEase(_ease)
-                    .OnComplete(() => _isAnimating = false);
-                _moveTween = _toggleTransform
-                    .DOMove(state ? _turnOnPoint.position : _turnOffPoint.position, _duration)
-                    .SetEase(_ease)
+
+                _tween = DOTween.Sequence()
+                    .Join(_toggleTransform.DOMove(state ? _turnOnPoint.position : _turnOffPoint.position, _duration).SetEase(_ease))
+                    .Join(_toggleImage.DOColor(state ? _onColor : _offColor, _duration))
                     .OnComplete(() => _isAnimating = false);
             }
         }

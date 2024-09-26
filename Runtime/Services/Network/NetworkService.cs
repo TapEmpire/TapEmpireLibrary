@@ -52,7 +52,7 @@ namespace TapEmpire.Services
                 else
                 {
                     var popupModel = new NoInternetUIViewModel();
-                    await _uiService.OpenViewAsync(_noInternetUIViewPrefab, popupModel, cancellationToken);
+                    await _uiService.OpenViewAsync(_noInternetUIViewPrefab, popupModel, cancellationToken, asPopup: true);
                 }
             }
             await UniTask.WaitUntil(() => HasConnection, cancellationToken: cancellationToken);
