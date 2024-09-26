@@ -26,6 +26,14 @@ namespace TapEmpire.Utility
                 return keyValueTuple;
             }
         }
+
+        public static void AddIfNone<TKey, TValue>(this Dictionary<TKey, TValue> self, TKey key, TValue value)
+        {
+            if (!self.ContainsKey(key))
+            {
+                self.Add(key, value);
+            }
+        }
         
         public static void RemoveAll<TKey, TValue>(this Dictionary<TKey, TValue> self, Func<TValue, bool> conditionToRemove)
         {
