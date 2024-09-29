@@ -31,16 +31,13 @@ namespace TapEmpire.Game
         private IService[] _services;
         private DiContainer _diContainer;
         private ISceneManagementService _sceneManagementService;
-        private INetworkService _networkService;
         
         [Inject]
-        private void Construct(IService[] services, DiContainer diContainer, ISceneManagementService sceneManagementService,
-            INetworkService networkService)
+        private void Construct(IService[] services, DiContainer diContainer, ISceneManagementService sceneManagementService)
         {
             _services = services;
             _diContainer = diContainer;
             _sceneManagementService = sceneManagementService;
-            _networkService = networkService;
         }
 
         private void Awake()
