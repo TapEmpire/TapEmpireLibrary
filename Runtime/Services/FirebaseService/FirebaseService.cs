@@ -8,6 +8,7 @@ using Debug = UnityEngine.Debug;
 using System.Diagnostics;
 using System;
 using TapEmpire.Utility;
+using System.Collections.Generic;
 
 namespace TapEmpire.Services
 {
@@ -18,6 +19,8 @@ namespace TapEmpire.Services
         public ReadOnlyReactiveProperty<bool> IsLoaded => _isLoaded;
 
         public IRemoteConfiguration RemoteConfiguration { get; private set; } = null;
+
+        private bool _isFirebaseAvailable = false;
 
         protected override async UniTask OnInitializeAsync(CancellationToken cancellationToken)
         {
@@ -34,6 +37,7 @@ namespace TapEmpire.Services
 
             if (dependencyStatus == Firebase.DependencyStatus.Available)
             {
+                _isFirebaseAvailable = true;
                 FirebaseAnalytics.SetAnalyticsCollectionEnabled(true);
 
                 global::FirebaseManager.hasInitialized = true;
@@ -72,11 +76,28 @@ namespace TapEmpire.Services
             throw new System.Exception("Crashlytics test exception");
         }
 
+        public void UpdateConsentStatus(bool isPersonalized)
+        {
+            if (_isFirebaseAvailable)
+            {
+                var status = isPersonalized ? ConsentStatus.Granted : ConsentStatus.Denied;
+                var consent = new Dictionary<ConsentType, ConsentStatus>()
+                {
+                    {ConsentType.AdStorage, status },
+                    {ConsentType.AnalyticsStorage, status },
+                    {ConsentType.AdUserData, status },
+                    {ConsentType.AdPersonalization, status },
+                };
+
+                FirebaseAnalytics.SetConsent(consent);
+            }
+        }
+
         private async UniTask FetchRemoteConfig(CancellationToken cancellationToken)
         {
             var stopWatch = new Stopwatch();
             // stopWatch.Start();
-            await NetworkUtility.WaitNetworkAsync(cancellationToken);
+            // await NetworkUtility.WaitNetworkAsync(cancellationToken);
             // stopWatch.Stop();
             // Debug.Log($"firebase manager WaitInternetConnection took {stopWatch.Elapsed.TotalSeconds} total seconds");
 
@@ -112,14 +133,8 @@ namespace TapEmpire.Services
             stopWatch.Stop();
             Debug.Log($"firebase manager remoteConfig activate took {stopWatch.Elapsed.TotalSeconds} total seconds");
 
-            if (status)
-            {
-                OnConfigLoadingFinished(new RemoteConfiguration(FirebaseRemoteConfig.DefaultInstance.AllValues));
-            }
-            else
-            {
-                OnConfigLoadingFinished(new EmptyRemoteConfiguration());
-            }
+            // ignore status and give firebase stored config.
+            OnConfigLoadingFinished(new RemoteConfiguration(FirebaseRemoteConfig.DefaultInstance.AllValues));
         }
 
         private void OnConfigLoadingFinished(IRemoteConfiguration remoteConfiguration)

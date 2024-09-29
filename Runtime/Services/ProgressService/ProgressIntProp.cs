@@ -3,8 +3,9 @@
     public enum ProgressIntProp
     {
         Undefined = 0,
-        CompletedLevelCount = 1,
-        CyclesCompleted = 2,
-        TotalAdsWatched = 3,
+        SessionsStarted = 1,
+        CompletedLevelCount = 2,
+        CyclesCompleted = 3,
+        TotalAdsWatched = 4,
     }
 }

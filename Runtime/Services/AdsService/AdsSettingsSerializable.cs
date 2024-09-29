@@ -16,12 +16,14 @@ namespace TapEmpire.Services
 
         public class AdsRemoteModel
         {
+            public bool EnableAppOpen = true;
             public List<int> InterstitialAfterLevels = new();
 
             public AdsRemoteModel() {}
 
             public AdsRemoteModel(AdsSettings settings)
             {
+                EnableAppOpen = settings.EnableAppOpen;
                 InterstitialAfterLevels = settings.InterstitialAfterLevels.ToList();
             }
         }
@@ -31,6 +33,7 @@ namespace TapEmpire.Services
         public void DeserializeJson(JToken token)
         {
             var model = token.ToObject<AdsRemoteModel>();
+            _adsSettings.EnableAppOpen = model.EnableAppOpen;
             _adsSettings.InterstitialAfterLevels = model.InterstitialAfterLevels;
         }
 

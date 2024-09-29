@@ -31,14 +31,16 @@ namespace TapEmpire.Services
             _progressService = progressService;
             _firebaseService = firebaseService;
 
+            _serializableDictionary.Clear();
             _serializables.ForEach(serializable => _serializableDictionary.Add(serializable.TokenName, serializable));
 
-            _disposable = _firebaseService.IsLoaded.Subscribe(OnLoaded);
+            // _disposable = _firebaseService.IsLoaded.Subscribe(OnLoaded);
         }
 
         protected override async UniTask OnInitializeAsync(CancellationToken cancellationToken)
         {
-            // return UniTask.CompletedTask;
+            OnLoaded(true);
+            await UniTask.CompletedTask;
         }
 
         public string GetSerializedConfig(string configName)
@@ -48,11 +50,13 @@ namespace TapEmpire.Services
 
         private void OnLoaded(bool isLoaded)
         {
-            _disposable.Dispose();
+            if (!isLoaded) return;
+
+            // _disposable.Dispose();
 #if UNITY_EDITOR
             _progressService.SetRemoteConfigName("unityEditor");
 #else
-            _progressService.SetRemoteConfigName(_firebaseService.RemoteConfiguration.GetString(ConfigNameKey, string.Empty));
+            _progressService.SetRemoteConfigName(_firebaseService.RemoteConfiguration.GetString(ConfigNameKey, "default"));
             _serializableDictionary.ForEach(x =>
             {
                 try
@@ -74,7 +78,7 @@ namespace TapEmpire.Services
         protected override void OnRelease()
         {
             base.OnRelease();
-            _disposable.Dispose();
+            // _disposable.Dispose();
             _serializableDictionary.Clear();
         }
     }

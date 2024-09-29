@@ -5,6 +5,7 @@ using DG.Tweening;
 using UnityEngine;
 using System.Linq;
 using Zenject;
+using GoogleMobileAds.Ump.Api;
 
 namespace TapEmpire.Services
 {
@@ -41,6 +42,9 @@ namespace TapEmpire.Services
         private bool _adsDisabled = false;
         private string _currentAdPlacement = "";
 
+        [Inject]
+        private IProgressService _progressService;
+
         private Tween _interstitialTimerTween = null;
         private float _interstitialTimer = 30.0f;
         private bool _isInitialized = false;
@@ -63,8 +67,9 @@ namespace TapEmpire.Services
                 _analyticsModule.Initialize();
 
                 // global::AdsManager.Instance.OnInitialized += OnInitialized;
-                global::AdsManager.Instance.Initialize_AdNetworks();
-                PeriodicAdCheck();
+                global::AdsManager.Instance.EnableAppOpen = _adsSettings.EnableAppOpen;
+                global::AdsManager.Instance.OnConsentObtained += OnConsentObtained;
+                global::AdsManager.Instance.Initialize_AdNetworks().ContinueWith(() => PeriodicAdCheck()).Forget();
                 _isInitialized = true;
             }
 
@@ -77,11 +82,14 @@ namespace TapEmpire.Services
             _analyticsModule?.OnRelease();
             _analyticsModule = null;
             _interstitialTimerTween?.Kill();
+            _currentAdPlacement = "";
+
+            global::AdsManager.Instance?.OnRelease();
         }
 
         public void ShowInterstitial(int levelIndex, System.Action callback)
         {
-            bool shouldShow = _adsSettings.InterstitialAfterLevels.Any(interstitialLevel => interstitialLevel == levelIndex + 1);
+            bool shouldShow = ShouldShowInterstital(levelIndex);
 
             if (shouldShow && IsInterstitialReady)
             {
@@ -100,6 +108,12 @@ namespace TapEmpire.Services
 
         public void ShowInterstitial()
         {
+            if (_adsDisabled)
+            {
+                OnAdReceivedReward();
+                return;
+            }
+
             if (_currentAdPlacement != "" || !_isInitialized)
             {
                 ResetInterstitialByTimer();
@@ -115,10 +129,21 @@ namespace TapEmpire.Services
 
         public void ShowRewarded(string adPlacement)
         {
+            if (_adsDisabled)
+            {
+                OnAdReceivedReward();
+                return;
+            }
+
             _currentAdPlacement = adPlacement;
             OnAdClickedEvent?.Invoke(_currentAdPlacement);
 
             global::AdsManager.Instance.ShowRewarded(() => OnAdReceivedReward(), adPlacement);
+        }
+
+        public void ShowAppOpen()
+        {
+            global::AdsManager.Instance.ShowAppOpen();
         }
 
         public void DisableAds(bool shouldDisable)
@@ -139,6 +164,16 @@ namespace TapEmpire.Services
             // global::AdsManager.Instance.OnInitialized -= OnInitialized;
             _isInitialized = true;
             ResetInterstitialByTimer();
+        }
+
+        private void OnConsentObtained(bool isPersonalized)
+        {
+            global::AdsManager.Instance.OnConsentObtained += OnConsentObtained;
+            var firebaseService = _diContainer.Resolve<IFirebaseService>();
+
+            firebaseService.UpdateConsentStatus(isPersonalized);
+
+            GameAnalyticsSDK.GameAnalytics.SetCustomDimension01(ConsentInformation.ConsentStatus.ToString());
         }
 
         private void ResetInterstitialByTimer()
@@ -176,6 +211,13 @@ namespace TapEmpire.Services
             }
 
             DOVirtual.DelayedCall(1.0f, () => PeriodicAdCheck());
+        }
+
+        private bool ShouldShowInterstital(int levelIndex)
+        {
+            bool shouldShow = _adsSettings.InterstitialAfterLevels.Any(interstitialLevel => interstitialLevel == levelIndex + 1);
+
+            return shouldShow;
         }
     }
 }

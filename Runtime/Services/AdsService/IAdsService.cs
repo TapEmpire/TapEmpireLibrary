@@ -18,6 +18,7 @@ namespace TapEmpire.Services
         void ShowRewarded(string adType);
         void DisableAds(bool shouldDisable);
         void ShowInterstitialByTimer();
+        void ShowAppOpen();
 
         bool AdsDisabled { get; }
     }
