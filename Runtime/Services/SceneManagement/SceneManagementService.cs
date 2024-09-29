@@ -50,6 +50,12 @@ namespace TapEmpire.Services
             _sceneLoadingUIViewModel.SetProgressCallback(initialProgress, initialTime);
         }
 
+        public async UniTask CloseLoadingScreen(CancellationToken cancellationToken)
+        {
+            _sceneLoadingUIViewModel = null;
+            await _uiService.TryCloseViewAsync<SceneLoadingUIViewModel>(cancellationToken);
+        }
+
         public async UniTask LoadSceneAsync(SceneName sceneName, CancellationToken cancellationToken)
         {
             var initialProgress = _sceneLoadingUIViewModel != null ? _initialProgress : 0.0f;
