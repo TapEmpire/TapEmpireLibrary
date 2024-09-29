@@ -17,6 +17,13 @@ namespace TapEmpire.Utility
             list = PoolUtility<List<T>>.Pull();
             return new(list);
         }
+        
+        public static ListScope<T> CreateFromEnumerable(IEnumerable<T> enumerable, out List<T> list)
+        {
+            list = PoolUtility<List<T>>.Pull();
+            list.AddRange(enumerable);
+            return new ListScope<T>(list);
+        }
 
         #region IDisposable
 
