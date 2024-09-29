@@ -80,10 +80,7 @@ namespace TapEmpire.Game
             {
                 await _sceneManagementService.CreateLoadingScreen(_cancellationTokenSource.Token);
             }
-
             await UniTask.WaitUntil(() => _isInitialized, cancellationToken: _cancellationTokenSource.Token);
-            await _networkService.WaitNetworkAsync(Application.exitCancellationToken);
-
             if (_autoLoadSceneOnStart)
             {
                 _sceneManagementService.LoadSceneAsync(_sceneName, _cancellationTokenSource.Token).Forget();

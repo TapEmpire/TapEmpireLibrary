@@ -105,17 +105,16 @@ namespace TapEmpire.Game
         
         private void OnDestroy()
         {
-            try
+            _diContainer.ReleaseTicks(_systems);
+            foreach (var system in _systems)
             {
-                _diContainer.ReleaseTicks(_systems);
-                foreach (var system in _systems)
-                {
-                    system.Release();
-                }
+                system.Release();
             }
-            catch
+                
+            _diContainer.ReleaseTicks(_services);
+            foreach (var service in _services)
             {
-                // ignored
+                service.Release();
             }
         }
     }
