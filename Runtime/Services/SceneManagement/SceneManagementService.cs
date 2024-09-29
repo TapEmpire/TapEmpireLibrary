@@ -84,7 +84,7 @@ namespace TapEmpire.Services
             {
                 var progressChange = 1 - currentProgress;
                 var duration = progressChange * _animationDurationPerFullProgress / 2;
-                _sceneLoadingUIViewModel.SetProgressCallback(1, duration);
+                _sceneLoadingUIViewModel?.SetProgressCallback(1, duration);
                 await UniTask.WaitForSeconds(duration, cancellationToken: cancellationToken);
             }
 

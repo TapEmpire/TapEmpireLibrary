@@ -23,17 +23,15 @@ namespace TapEmpire.Game
         [Header("Settings")]
         [SerializeField]
         private GameStartSettings _startSettings;
-
+        
+        private SceneLoadingUIViewModel _sceneLoadingUIViewModel;
+        private CancellationTokenSource _cancellationTokenSource;
+        private bool _isInitialized = false;
+        
         private IService[] _services;
         private DiContainer _diContainer;
         private ISceneManagementService _sceneManagementService;
-
-        private SceneLoadingUIViewModel _sceneLoadingUIViewModel;
-
-        private CancellationTokenSource _cancellationTokenSource;
-
-        private bool _isInitialized = false;
-
+        
         [Inject]
         private void Construct(IService[] services, DiContainer diContainer, ISceneManagementService sceneManagementService)
         {
@@ -79,10 +77,7 @@ namespace TapEmpire.Game
             {
                 await _sceneManagementService.CreateLoadingScreen(_cancellationTokenSource.Token);
             }
-
             await UniTask.WaitUntil(() => _isInitialized, cancellationToken: _cancellationTokenSource.Token);
-            await NetworkUtility.WaitNetworkAsync(Application.exitCancellationToken);
-
             if (_autoLoadSceneOnStart)
             {
                 _sceneManagementService.LoadSceneAsync(_sceneName, _cancellationTokenSource.Token).Forget();

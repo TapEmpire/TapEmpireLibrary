@@ -8,6 +8,7 @@ using TapEmpire.Utility;
 using Zenject;
 using Object = UnityEngine.Object;
 using System.Linq;
+using DG.Tweening;
 
 namespace TapEmpire.UI
 {
@@ -17,22 +18,31 @@ namespace TapEmpire.UI
         [SerializeField]
         private GameObject _canvasPrefab;
 
+        [Header("Fade")]
+        [SerializeField]
+        private float _fadeDuration = 0.5f;
+
+        [SerializeField]
+        private Ease _fadeEase;
+        
         [NonSerialized]
         private RectTransform _canvasRectTransform;
-
-        [Inject]
-        private DiContainer _servicesContainer;
-
-        [Inject]
-        private ISceneContextsService _sceneContextsService;
-
+        
         [NonSerialized]
         private Dictionary<IUIViewModel, UIView> _views = new();
 
+        private ISceneContextsService _sceneContextsService;
+        
         private IUIViewModel _currentPopupModel;
         private DiContainer _coreDiContainer;
 
         public Dictionary<string, RectTransform> ShibariContext { get; private set; } = new();
+
+        [Inject]
+        private void Construct(ISceneContextsService sceneContextsService)
+        {
+            _sceneContextsService = sceneContextsService;
+        }
 
         public void SetViewsCanvasesInteractionState(bool state)
         {
@@ -45,6 +55,11 @@ namespace TapEmpire.UI
                 }
             }
         }
+
+        public event Action<IUIViewModel> OnOpenPopup;
+        public event Action<IUIViewModel> OnClosePopup;
+
+        public IUIViewModel CurrentPopup => _currentPopupModel;
 
         #region Initializable
 
@@ -100,8 +115,7 @@ namespace TapEmpire.UI
             return false;
         }
 
-        public async UniTask OpenViewAsync(UIView viewPrefab, IUIViewModel viewModel, CancellationToken cancellationToken, bool tryUseDefaultFadeIn = true,
-            bool openAsPopup = false)
+        public async UniTask OpenViewAsync<T>(UIView viewPrefab, T viewModel, CancellationToken cancellationToken, bool tryUseFade = true, bool asPopup = false) where T : IUIViewModel
         {
             if (viewPrefab == null)
             {
@@ -113,58 +127,74 @@ namespace TapEmpire.UI
                 Debug.Log("View already opened");
                 return;
             }
+            if (_views.Any(kvp => kvp.Key is T))
+            {
+                return;
+            }
             OnBeforeOpenView?.Invoke(viewModel);
-            if (openAsPopup && _currentPopupModel != null)
+            if (asPopup && _currentPopupModel != null)
             {
                 CloseViewAsync(_currentPopupModel, cancellationToken, false).Forget();
                 _currentPopupModel = null;
             }
             var view = Object.Instantiate(viewPrefab, _canvasRectTransform);
-            if (view is IInjectableView && _coreDiContainer != null)
-            {
-                _coreDiContainer.Inject(view);
-            }
             view.Model = viewModel;
             _views.Add(viewModel, view);
-            if (tryUseDefaultFadeIn && view is IFadeAbleView fadeAbleView)
+            if ( _coreDiContainer != null)
             {
-                fadeAbleView.CanvasGroup.alpha = 0;
-                //DoTweenUtility.Fade(fadeAbleView.CanvasGroup, 1, _defaultFadeInData);
+                if (view is IInjectable)
+                {
+                    _coreDiContainer.Inject(view);
+                }
+                if (viewModel is IInjectable)
+                {
+                    _coreDiContainer.Inject(viewModel);
+                }
             }
-            await view.OpenAsync(cancellationToken);
-            if (openAsPopup)
+            await TryExecuteWithFadeAsync(view.OpenAsync(cancellationToken), view, true, cancellationToken, tryUseFade);
+            if (asPopup)
             {
+                OnOpenPopup?.Invoke(viewModel);
                 _currentPopupModel = viewModel;
             }
             OnAfterOpenView?.Invoke(viewModel);
         }
 
-        public async UniTask CloseViewAsync(IUIViewModel viewModel, CancellationToken cancellationToken, bool tryUseDefaultFadeOut = true)
+        private async UniTask TryExecuteWithFadeAsync(UniTask task, UIView view, bool fadeIn, CancellationToken cancellationToken, bool tryUseFade = true)
         {
-            if (!_views.TryGetValue(viewModel, out var view))
+            if (tryUseFade && view is IFadeAbleView fadeAbleView)
             {
-                return;
-            }
-            OnBeforeCloseView?.Invoke(viewModel);
-            if (tryUseDefaultFadeOut && view is IFadeAbleView fadeAbleView)
-            {
-                //DoTweenUtility.Fade(fadeAbleView.CanvasGroup, 0, _defaultFadeOutData);
+                fadeAbleView.CanvasGroup.alpha = fadeIn ? 0 : 1;
+                DoTweenUtility.Fade(fadeAbleView.CanvasGroup, fadeIn ? 1 : 0, _fadeDuration, _fadeEase);
 
                 using (ListScope<UniTask>.Create(out var tasks))
                 {
-                    //tasks.Add(UniTask.WaitForSeconds(_defaultFadeOutData.Duration, cancellationToken:cancellationToken));
+                    tasks.Add(UniTask.WaitForSeconds(_fadeDuration, cancellationToken:cancellationToken));
 
-                    tasks.Add(view.CloseAsync(cancellationToken));
+                    tasks.Add(task);
 
                     await UniTask.WhenAll(tasks);
                 }
             }
             else
             {
-                await view.CloseAsync(cancellationToken);
+                await task;
             }
+        }
+
+        public async UniTask CloseViewAsync(IUIViewModel viewModel, CancellationToken cancellationToken, bool tryUseFade = true)
+        {
+            if (!_views.TryGetValue(viewModel, out var view))
+            {
+                return;
+            }
+            OnBeforeCloseView?.Invoke(viewModel);
+
+            await TryExecuteWithFadeAsync(view.CloseAsync(cancellationToken), view, false, cancellationToken, tryUseFade);
+            
             if (_currentPopupModel != null && _currentPopupModel == viewModel)
             {
+                OnClosePopup?.Invoke(viewModel);
                 _currentPopupModel = null;
             }
             try
@@ -180,15 +210,15 @@ namespace TapEmpire.UI
         }
 
         public async UniTask CloseAllViewsExcept<T>(CancellationToken cancellationToken,
-            bool tryUseDefaultFadeOut = true) where T : IUIViewModel
+            bool tryUseFade = true) where T : IUIViewModel
         {
             var tasks = _views
                 .Where(view => view.Key is not T)
-                .Select(view => CloseViewAsync(view.Key, cancellationToken, tryUseDefaultFadeOut)).ToList();
+                .Select(view => CloseViewAsync(view.Key, cancellationToken, tryUseFade)).ToList();
 
             await UniTask.WhenAll(tasks);
         }
-
+        
         public event Action<IUIViewModel> OnBeforeOpenView;
         public event Action<IUIViewModel> OnAfterOpenView;
         public event Action<IUIViewModel> OnBeforeCloseView;
