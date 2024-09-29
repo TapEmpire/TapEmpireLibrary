@@ -4,6 +4,11 @@ namespace TapEmpire.Utility
 {
     public static class VectorExtensions
     {
+        public static float MaxAbsValue(this Vector3 vector)
+        {
+            return Mathf.Max(Mathf.Abs(vector.x), Mathf.Abs(vector.y), Mathf.Abs(vector.z));
+        }
+
         public static Vector3 Divide(this Vector3 self, Vector3 other)
         {
             return new Vector3(self.x / other.x, self.y / other.y, self.z / other.z);
