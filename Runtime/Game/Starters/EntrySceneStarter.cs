@@ -39,6 +39,7 @@ namespace TapEmpire.Game
             _services = services;
             _diContainer = diContainer;
             _sceneManagementService = sceneManagementService;
+            _ticksContainer = ticksContainer;
         }
 
         private void Awake()

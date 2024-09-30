@@ -57,6 +57,7 @@ namespace TapEmpire.Game
             _uiService = uiService;
             _audioService = audioService;
             _hapticService = hapticService;
+            _ticksContainer = ticksContainer;
         }
 
         private void Awake()
