@@ -68,9 +68,9 @@ namespace TapEmpire.Game
         private async UniTask InstallSceneAsync(CancellationToken cancellationToken)
         {
             await InitializableUtility.InitializeAsync(_services, _diContainer, cancellationToken);
-            _ticksContainer.InitializeTicks(_services);
+            _ticksContainer.TryAddTicks(_services);
             await InitializableUtility.InitializeAsync(_systems, _diContainer, cancellationToken);
-            _ticksContainer.InitializeTicks(_systems);
+            _ticksContainer.TryAddTicks(_systems);
             _sceneContextsService.AddInstalledSceneContext("Core", _coreSceneContext);
 
             _audioService.InitializeMixer();
@@ -108,13 +108,13 @@ namespace TapEmpire.Game
         
         private void OnDestroy()
         {
-            _ticksContainer.ReleaseTicks(_systems);
+            _ticksContainer.TryRemoveTicks(_systems);
             foreach (var system in _systems)
             {
                 system.Release();
             }
                 
-            _ticksContainer.ReleaseTicks(_services);
+            _ticksContainer.TryRemoveTicks(_services);
             foreach (var service in _services)
             {
                 service.Release();

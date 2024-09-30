@@ -1,14 +1,20 @@
-﻿namespace TapEmpire.Utility
+﻿using Zenject;
+
+namespace TapEmpire.Utility
 {
     public interface ITicksContainer
     {
-        void InitializeTicks<T>(T[] targets) where T : class;
-        
-        void InitializeTicks<T>(T target) where T : class;
+        bool TryAddToTickableManager(TickableManager tickableManager);
 
-        void ReleaseTicks<T>(T target) where T : class;
+        bool TryRemoveFromTickableManager();
         
-        void ReleaseTicks<T>(T[] targets) where T : class;
+        void TryAddTicks<T>(T[] targets) where T : class;
+        
+        void TryAddTicks<T>(T target) where T : class;
+
+        void TryRemoveTicks<T>(T target) where T : class;
+        
+        void TryRemoveTicks<T>(T[] targets) where T : class;
 
     }
 }
