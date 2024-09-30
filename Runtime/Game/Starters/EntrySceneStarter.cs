@@ -31,9 +31,10 @@ namespace TapEmpire.Game
         private IService[] _services;
         private DiContainer _diContainer;
         private ISceneManagementService _sceneManagementService;
+        private ITicksContainer _ticksContainer;
         
         [Inject]
-        private void Construct(IService[] services, DiContainer diContainer, ISceneManagementService sceneManagementService)
+        private void Construct(IService[] services, DiContainer diContainer, ISceneManagementService sceneManagementService, ITicksContainer ticksContainer)
         {
             _services = services;
             _diContainer = diContainer;
@@ -59,6 +60,7 @@ namespace TapEmpire.Game
         private async UniTask InstallServices(CancellationToken cancellationToken)
         {
             await InitializableUtility.InitializeAsync(_services, _diContainer, cancellationToken);
+            _ticksContainer.InitializeTicks(_services);
             _isInitialized = true;
         }
 

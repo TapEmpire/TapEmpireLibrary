@@ -33,6 +33,8 @@ namespace TapEmpire.Services
 
             Container.Bind<IService[]>().FromInstance(_runtimeServices.ToArray()).AsSingle();
             
+            Container.Bind<ITicksContainer>().FromInstance(new TicksContainer(Container));
+            
             SubscribeToApplicationExit(Application.exitCancellationToken);
         }
         
@@ -54,7 +56,6 @@ namespace TapEmpire.Services
             {
                 Container.Bind(serviceInterface).FromInstance(service).AsSingle();
             }
-            Container.InitializeTicks(service);
         }
 
         private void SubscribeToApplicationExit(CancellationToken cancellationToken)
