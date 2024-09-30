@@ -6,9 +6,9 @@ namespace TapEmpire.Utility
     {
         bool Initialized { get; }
         
-        void Initialize(TickableManager tickableManager);
+        void TryInitialize(TickableManager tickableManager);
 
-        void Release();
+        void TryRelease();
 
         void TryAddTicks<T>(T target);
 

@@ -59,7 +59,7 @@ namespace TapEmpire.Services
                     Debug.LogError($"Error resolving TickableManager");
                     return;
                 }
-                _ticksContainer.Initialize(tickableManager);
+                _ticksContainer.TryInitialize(tickableManager);
             }
             
             _gameEventsContainer.OnApplicationQuitEvent += GameEventsContainer_OnApplicationQuitEvent;
@@ -89,6 +89,8 @@ namespace TapEmpire.Services
                 initializable.Release();
             }
             _runtimeList.Clear();
+            
+            _ticksContainer.TryRelease();
             
             _gameEventsContainer.OnApplicationQuitEvent -= GameEventsContainer_OnApplicationQuitEvent;
             

@@ -1,15 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using UnityEngine;
+﻿using System.Collections.Generic;
 using Zenject;
 
 namespace TapEmpire.Utility
 {
     public class TicksContainer : ITicksContainer, ITickable, IFixedTickable, ILateTickable
     {
-        private DiContainer _diContainer;
-        
         private readonly List<ITickable> _tickables = new();
         private readonly List<IFixedTickable> _fixedTickables = new();
         private readonly List<ILateTickable> _lateTickables = new();
@@ -20,7 +15,7 @@ namespace TapEmpire.Utility
 
         public bool Initialized => _initialized;
 
-        public void Initialize(TickableManager tickableManager)
+        public void TryInitialize(TickableManager tickableManager)
         {
             if (_initialized || _tickableManager != null)
             {
@@ -33,9 +28,9 @@ namespace TapEmpire.Utility
             _initialized = true;
         }
 
-        public void Release()
+        public void TryRelease()
         {
-            if (_tickableManager == null || !_initialized)
+            if (!_initialized || _tickableManager == null)
             {
                 return;
             }

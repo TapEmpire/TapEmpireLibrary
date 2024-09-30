@@ -13,7 +13,7 @@ namespace TapEmpire.Utility
                 Debug.LogError("Cant resolve tickableManager");
                 return;
             }
-            self.Initialize(tickableManager);
+            self.TryInitialize(tickableManager);
         }
     }
 }
