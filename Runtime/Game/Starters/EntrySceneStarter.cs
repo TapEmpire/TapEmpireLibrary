@@ -61,7 +61,7 @@ namespace TapEmpire.Game
         private async UniTask InstallServices(CancellationToken cancellationToken)
         {
             await InitializableUtility.InitializeAsync(_services, _diContainer, cancellationToken);
-            _ticksContainer.InitializeTicks(_services);
+            _ticksContainer.TryAddTicks(_services);
             _isInitialized = true;
         }
 

@@ -24,6 +24,8 @@ namespace TapEmpire.Services
         [NonSerialized]
         private IDisposable _subscription;
 
+        private TicksContainer _ticksContainer;
+
         public override void InstallBindings()
         {
             _runtimeServices.Clear();
@@ -32,8 +34,9 @@ namespace TapEmpire.Services
             _services.ForEach(service => ConfigureService(service, -1));
 
             Container.Bind<IService[]>().FromInstance(_runtimeServices.ToArray()).AsSingle();
-            
-            Container.Bind<ITicksContainer>().FromInstance(new TicksContainer(Container));
+
+            _ticksContainer = new TicksContainer();
+            Container.Bind<ITicksContainer>().FromInstance(_ticksContainer);
             
             SubscribeToApplicationExit(Application.exitCancellationToken);
         }
@@ -62,6 +65,10 @@ namespace TapEmpire.Services
         {
             cancellationToken.Register(() =>
             {
+                if (_ticksContainer != null)
+                {
+                    _ticksContainer.TryRemoveFromTickableManager();
+                }
                 foreach (var service in _runtimeServices)
                 {
                     if (service.Initialized)
@@ -69,6 +76,7 @@ namespace TapEmpire.Services
                         service.Release();
                     }
                 }
+                
             });
         }
     }

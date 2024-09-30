@@ -15,94 +15,81 @@ namespace TapEmpire.Utility
         private readonly List<ILateTickable> _lateTickables = new();
 
         private TickableManager _tickableManager;
-        
-        private TickableManager Manager
-        {
-            get
-            {
-                if (_tickableManager == null)
-                {
-                    _tickableManager = _diContainer.Resolve<TickableManager>();
-                }
 
-                return _tickableManager;
-            }
-        }
-        
-        public TicksContainer(DiContainer diContainer)
+        private bool _initialized;
+
+        public bool TryAddToTickableManager(TickableManager tickableManager)
         {
-            _diContainer = diContainer;
+            if (_initialized || _tickableManager != null)
+            {
+                return false;
+            }
+            _tickableManager = tickableManager;
+            _tickableManager.Add(this as ITickable);
+            _tickableManager.AddFixed(this as IFixedTickable);
+            _tickableManager.AddLate(this as ILateTickable);
+            _initialized = true;
+            return true;
+        }
+
+        public bool TryRemoveFromTickableManager()
+        {
+            if (_tickableManager == null || !_initialized)
+            {
+                return false;
+            }
+            _tickableManager.Remove(this as ITickable);
+            _tickableManager.RemoveFixed(this as IFixedTickable);
+            _tickableManager.RemoveLate(this as ILateTickable);
+            _initialized = false;
+            return true;
         }
         
-        public void InitializeTicks<T>(T[] targets) where T : class
+        public void TryAddTicks<T>(T[] targets) where T : class
         {
             foreach (var target in targets)
             {
-                InitializeTicks(target);
+                TryAddTicks(target);
             }
         }
 
-        public void InitializeTicks<T>(T target) where T : class
+        public void TryAddTicks<T>(T target) where T : class
         {
             if (target is ITickable tickable && !_tickables.Contains(tickable))
             {
-                if (_tickables.Count == 0)
-                {
-                    Manager.Add(this);
-                }
                 _tickables.Add(tickable);
             }
             if (target is IFixedTickable fixedTickable && !_fixedTickables.Contains(fixedTickable))
             {
-                if (_fixedTickables.Count == 0)
-                {
-                    Manager.AddFixed(this);
-                }
                 _fixedTickables.Add(fixedTickable);
             }
             if (target is ILateTickable lateTickable && !_lateTickables.Contains(lateTickable))
             {
-                if (_lateTickables.Count == 0)
-                {
-                    Manager.AddLate(this);
-                }
                 _lateTickables.Add(lateTickable);
             }
         }
         
-        public void ReleaseTicks<T>(T[] targets) where T : class
+        public void TryRemoveTicks<T>(T[] targets) where T : class
         {
             foreach (var target in targets)
             {
-                ReleaseTicks(target);
+                TryRemoveTicks(target);
             }
         }
         
-        public void ReleaseTicks<T>(T target) where T : class
+        public void TryRemoveTicks<T>(T target) where T : class
         {
             if (target is ITickable tickable && _tickables.Contains(tickable))
             {
                 _tickables.Remove(tickable);
-                if (_tickables.Count == 0)
-                {
-                    Manager.Remove(this);
-                }
             }
             if (target is IFixedTickable fixedTickable && _fixedTickables.Contains(fixedTickable))
             {
                 _fixedTickables.Remove(fixedTickable);
-                if (_fixedTickables.Count == 0)
-                {
-                    Manager.RemoveFixed(this);
-                }
             }
             if (target is ILateTickable lateTickable && _lateTickables.Contains(lateTickable))
             {
                 _lateTickables.Remove(lateTickable);
-                if (_lateTickables.Count == 0)
-                {
-                    Manager.RemoveLate(this);
-                }
             }
         }
 
