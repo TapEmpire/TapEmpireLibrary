@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.ComponentModel.Design;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
@@ -27,19 +28,15 @@ namespace TapEmpire.Game
         private SceneLoadingUIViewModel _sceneLoadingUIViewModel;
         private CancellationTokenSource _cancellationTokenSource;
         private bool _isInitialized = false;
-        
-        private IService[] _services;
-        private DiContainer _diContainer;
+
+        private ServicesContainer _servicesContainer;
         private ISceneManagementService _sceneManagementService;
-        private ITicksContainer _ticksContainer;
         
         [Inject]
-        private void Construct(IService[] services, DiContainer diContainer, ISceneManagementService sceneManagementService, ITicksContainer ticksContainer)
+        private void Construct(ServicesContainer servicesContainer, ISceneManagementService sceneManagementService)
         {
-            _services = services;
-            _diContainer = diContainer;
+            _servicesContainer = servicesContainer;
             _sceneManagementService = sceneManagementService;
-            _ticksContainer = ticksContainer;
         }
 
         private void Awake()
@@ -60,8 +57,7 @@ namespace TapEmpire.Game
 
         private async UniTask InstallServices(CancellationToken cancellationToken)
         {
-            await InitializableUtility.InitializeAsync(_services, _diContainer, cancellationToken);
-            _ticksContainer.TryAddTicks(_services);
+            await _servicesContainer.InitializeAsync(cancellationToken);
             _isInitialized = true;
         }
 

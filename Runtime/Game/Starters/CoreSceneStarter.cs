@@ -29,10 +29,8 @@ namespace TapEmpire.Game
         // [SerializeField]
         // private CoreHudUIView _coreHudUIView;
         
-        private IService[] _services;
-        private ICoreSystem[] _systems;
-        private DiContainer _diContainer;
-        private ITicksContainer _ticksContainer;
+        private ServicesContainer _servicesContainer;
+        private CoreSystemsContainer _coreSystemsContainer;
         
         private ISceneContextsService _sceneContextsService;
         // private ILevelExecutionCoreSystem _levelExecutionCoreSystem;
@@ -40,24 +38,25 @@ namespace TapEmpire.Game
         private IProgressService _progressService;
         private IAudioService _audioService;
         private IHapticService _hapticService;
+
+
         
         [Inject]
-        private void Construct(IService[] services, ICoreSystem[] systems, ISceneContextsService sceneContextsService, DiContainer diContainer,
-            IUIService uiService, IProgressService progressService, IAudioService audioService, IHapticService hapticService,
-            ITicksContainer ticksContainer)
+        private void Construct(ServicesContainer servicesContainer, CoreSystemsContainer coreSystemsContainer, 
+            ISceneContextsService sceneContextsService, IUIService uiService, IProgressService progressService, 
+            IAudioService audioService, IHapticService hapticService)
         {
-            _services = services;
-            _systems = systems;
+            _servicesContainer = servicesContainer;
+            _coreSystemsContainer = coreSystemsContainer;
+            
             _sceneContextsService = sceneContextsService;
-            _diContainer = diContainer;
 
             // _levelExecutionCoreSystem = levelExecutionCoreSystem;
+            
             _progressService = progressService;
-
             _uiService = uiService;
             _audioService = audioService;
             _hapticService = hapticService;
-            _ticksContainer = ticksContainer;
         }
 
         private void Awake()
@@ -67,10 +66,9 @@ namespace TapEmpire.Game
 
         private async UniTask InstallSceneAsync(CancellationToken cancellationToken)
         {
-            await InitializableUtility.InitializeAsync(_services, _diContainer, cancellationToken);
-            _ticksContainer.TryAddTicks(_services);
-            await InitializableUtility.InitializeAsync(_systems, _diContainer, cancellationToken);
-            _ticksContainer.TryAddTicks(_systems);
+            await _servicesContainer.InitializeAsync(cancellationToken);
+            await _coreSystemsContainer.InitializeAsync(cancellationToken);
+            
             _sceneContextsService.AddInstalledSceneContext("Core", _coreSceneContext);
 
             _audioService.InitializeMixer();
@@ -106,19 +104,20 @@ namespace TapEmpire.Game
             return _progressService.GetLevelProgress();
         }
         
-        private void OnDestroy()
-        {
-            _ticksContainer.TryRemoveTicks(_systems);
-            foreach (var system in _systems)
-            {
-                system.Release();
-            }
-                
-            _ticksContainer.TryRemoveTicks(_services);
-            foreach (var service in _services)
-            {
-                service.Release();
-            }
-        }
+        // TODO убалить комменты, пока оставил, чтобы подсветить, что нужно убрать в других стартерах (релиз внутри самого контейнера)
+        // private void OnDestroy()
+        // {
+        //     _ticksContainer.TryRemoveTicks(_systems);
+        //     foreach (var system in _systems)
+        //     {
+        //         system.Release();
+        //     }
+        //         
+        //     _ticksContainer.TryRemoveTicks(_services);
+        //     foreach (var service in _services)
+        //     {
+        //         service.Release();
+        //     }
+        // }
     }
 }

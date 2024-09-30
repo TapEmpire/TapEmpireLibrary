@@ -4,17 +4,14 @@ namespace TapEmpire.Utility
 {
     public interface ITicksContainer
     {
-        bool TryAddToTickableManager(TickableManager tickableManager);
-
-        bool TryRemoveFromTickableManager();
+        bool Initialized { get; }
         
-        void TryAddTicks<T>(T[] targets) where T : class;
-        
-        void TryAddTicks<T>(T target) where T : class;
+        void Initialize(TickableManager tickableManager);
 
-        void TryRemoveTicks<T>(T target) where T : class;
-        
-        void TryRemoveTicks<T>(T[] targets) where T : class;
+        void Release();
 
+        void TryAddTicks<T>(T target);
+
+        void TryRemoveTicks<T>(T target);
     }
 }

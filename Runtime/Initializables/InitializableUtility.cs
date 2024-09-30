@@ -9,6 +9,7 @@ namespace TapEmpire.Services
 {
     public static class InitializableUtility
     {
+        // TODO remove - deprecated, use InitializablesContainer instead
         public static async UniTask InitializeAsync<T>(T[] initializables, DiContainer diContainer, CancellationToken cancellationToken) where T : IInitializable
         {
             if (initializables.All(initializable => initializable.Initialized))

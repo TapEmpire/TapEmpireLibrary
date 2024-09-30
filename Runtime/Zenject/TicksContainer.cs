@@ -18,42 +18,34 @@ namespace TapEmpire.Utility
 
         private bool _initialized;
 
-        public bool TryAddToTickableManager(TickableManager tickableManager)
+        public bool Initialized => _initialized;
+
+        public void Initialize(TickableManager tickableManager)
         {
             if (_initialized || _tickableManager != null)
             {
-                return false;
+                return;
             }
             _tickableManager = tickableManager;
             _tickableManager.Add(this as ITickable);
             _tickableManager.AddFixed(this as IFixedTickable);
             _tickableManager.AddLate(this as ILateTickable);
             _initialized = true;
-            return true;
         }
 
-        public bool TryRemoveFromTickableManager()
+        public void Release()
         {
             if (_tickableManager == null || !_initialized)
             {
-                return false;
+                return;
             }
             _tickableManager.Remove(this as ITickable);
             _tickableManager.RemoveFixed(this as IFixedTickable);
             _tickableManager.RemoveLate(this as ILateTickable);
             _initialized = false;
-            return true;
-        }
-        
-        public void TryAddTicks<T>(T[] targets) where T : class
-        {
-            foreach (var target in targets)
-            {
-                TryAddTicks(target);
-            }
         }
 
-        public void TryAddTicks<T>(T target) where T : class
+        void ITicksContainer.TryAddTicks<T>(T target)
         {
             if (target is ITickable tickable && !_tickables.Contains(tickable))
             {
@@ -68,16 +60,8 @@ namespace TapEmpire.Utility
                 _lateTickables.Add(lateTickable);
             }
         }
-        
-        public void TryRemoveTicks<T>(T[] targets) where T : class
-        {
-            foreach (var target in targets)
-            {
-                TryRemoveTicks(target);
-            }
-        }
-        
-        public void TryRemoveTicks<T>(T target) where T : class
+
+        void ITicksContainer.TryRemoveTicks<T>(T target)
         {
             if (target is ITickable tickable && _tickables.Contains(tickable))
             {
