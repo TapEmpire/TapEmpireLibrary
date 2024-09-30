@@ -32,6 +32,7 @@ namespace TapEmpire.Game
         private IService[] _services;
         private ICoreSystem[] _systems;
         private DiContainer _diContainer;
+        private ITicksContainer _ticksContainer;
         
         private ISceneContextsService _sceneContextsService;
         // private ILevelExecutionCoreSystem _levelExecutionCoreSystem;
@@ -42,8 +43,8 @@ namespace TapEmpire.Game
         
         [Inject]
         private void Construct(IService[] services, ICoreSystem[] systems, ISceneContextsService sceneContextsService, DiContainer diContainer,
-            IUIService uiService, IProgressService progressService, 
-            IAudioService audioService, IHapticService hapticService)
+            IUIService uiService, IProgressService progressService, IAudioService audioService, IHapticService hapticService,
+            ITicksContainer ticksContainer)
         {
             _services = services;
             _systems = systems;
@@ -66,8 +67,9 @@ namespace TapEmpire.Game
         private async UniTask InstallSceneAsync(CancellationToken cancellationToken)
         {
             await InitializableUtility.InitializeAsync(_services, _diContainer, cancellationToken);
+            _ticksContainer.InitializeTicks(_services);
             await InitializableUtility.InitializeAsync(_systems, _diContainer, cancellationToken);
-            _diContainer.InitializeTicks(_systems);
+            _ticksContainer.InitializeTicks(_systems);
             _sceneContextsService.AddInstalledSceneContext("Core", _coreSceneContext);
 
             _audioService.InitializeMixer();
@@ -105,13 +107,13 @@ namespace TapEmpire.Game
         
         private void OnDestroy()
         {
-            _diContainer.ReleaseTicks(_systems);
+            _ticksContainer.ReleaseTicks(_systems);
             foreach (var system in _systems)
             {
                 system.Release();
             }
                 
-            _diContainer.ReleaseTicks(_services);
+            _ticksContainer.ReleaseTicks(_services);
             foreach (var service in _services)
             {
                 service.Release();
