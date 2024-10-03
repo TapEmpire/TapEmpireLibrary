@@ -23,6 +23,19 @@ namespace TapEmpire.Utility
             }
         }
 
+        public static void AddToPrivateField<TClass, TValue>(TClass target, string privateFieldName, TValue value)
+        {
+            var type = typeof(TClass);
+            FieldInfo fieldInfo = type.GetField(privateFieldName, BindingFlags.NonPublic | BindingFlags.Instance);
+
+            if (fieldInfo != null)
+            {
+                var list = fieldInfo.GetValue(target) as List<TValue>;
+                list.Add(value);
+                // fieldInfo.SetValue(target, value);
+            }
+        }
+
         /*public static T GetFieldValue<T>(System.Type type, string fieldName)
         {
             var type = 
