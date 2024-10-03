@@ -14,8 +14,13 @@ namespace TapEmpire.CoreSystems
         [NonSerialized]
         private IDisposable _subscription;
 
+        private CoreSystemsContainer _coreSystemsContainer;
+
         public override void InstallBindings()
         {
+            _coreSystemsContainer = new CoreSystemsContainer(Container);
+            Container.Bind<CoreSystemsContainer>().FromInstance(_coreSystemsContainer).AsSingle();
+            
             foreach (var system in _systems)
             {
                 var systemType = system.GetType();
@@ -26,21 +31,8 @@ namespace TapEmpire.CoreSystems
                 {
                     Container.Bind(systemInterface).FromInstance(system);
                 }
-                /*if (typeof(ITickable).IsAssignableFrom(systemType))
-                {
-                    Container.Bind<ITickable>().To(systemType).FromInstance(system);
-                }
-                if (typeof(IFixedTickable).IsAssignableFrom(systemType))
-                {
-                    Container.Bind<IFixedTickable>().To(systemType).FromInstance(system);
-                }
-                if (typeof(ILateTickable).IsAssignableFrom(systemType))
-                {
-                    Container.Bind<ILateTickable>().To(systemType).FromInstance(system);
-                }*/
+                _coreSystemsContainer.AddToRuntimeList(system);
             }
-
-            Container.Bind<ICoreSystem[]>().FromInstance(_systems);
         }
     }
 }
