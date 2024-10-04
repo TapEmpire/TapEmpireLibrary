@@ -12,6 +12,14 @@ namespace TapEmpire.Utility
                 .GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
         }
 
+        public static bool IsFieldNull<TClass>(TClass target, string privateFieldName)
+        {
+            var type = typeof(TClass);
+            FieldInfo fieldInfo = type.GetField(privateFieldName, BindingFlags.NonPublic | BindingFlags.Instance);
+
+            return fieldInfo.GetValue(target) == null;
+        }
+
         public static void SetPrivateField<TClass, TValue>(TClass target, string privateFieldName, TValue value)
         {
             var type = typeof(TClass);
