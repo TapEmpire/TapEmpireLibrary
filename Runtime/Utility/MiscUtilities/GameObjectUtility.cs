@@ -5,6 +5,14 @@ namespace TapEmpire.Utility
 {
     public static class GameObjectsUtility
     {
+        public static GameObject CreateSubObject(Transform parent)
+        {
+            var newGameObject = new GameObject("SubObject");
+            newGameObject.transform.SetParent(parent);
+            newGameObject.transform.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity);
+            return newGameObject;
+        }
+
         public static GameObject CreateSiblingDuplicate(GameObject origin)
         {
             GameObject duplicate = GameObject.Instantiate(origin, origin.transform.parent);
