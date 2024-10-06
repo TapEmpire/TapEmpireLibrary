@@ -106,6 +106,14 @@ namespace TapEmpire.Utility
             }
         }
 
+        public static void AddIfNone<T>(this List<T> list, T value)
+        {
+            if (!list.Contains(value))
+            {
+                list.Add(value);
+            }
+        }
+
         public static void Swap<T>(this List<T> list, int first, int second)
         {
             if (first == second)
