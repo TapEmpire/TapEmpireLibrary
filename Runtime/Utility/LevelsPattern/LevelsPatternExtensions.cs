@@ -6,7 +6,7 @@ namespace TapEmpireLibrary.Utility
 {
     public static class LevelsPatternExtensions
     {
-        public static List<int> GetLevelsIndexes(this LevelsPattern pattern, int totalLevels)
+        public static List<int> GetLevels(this LevelsPattern pattern, int totalLevels)
         {
             return pattern switch
             {
@@ -19,30 +19,30 @@ namespace TapEmpireLibrary.Utility
         
         private static List<int> GeneratePattern_4_8_11_Plus3(int totalLevels)
         {
-            var indexes = new List<int> { 4, 8, 11 };
+            var levels = new List<int> { 4, 8, 11 };
             var nextValue = 11;
 
             while (nextValue + 3 < totalLevels)
             {
                 nextValue += 3;
-                indexes.Add(nextValue);
+                levels.Add(nextValue);
             }
 
-            return indexes.Where(index => index < totalLevels).ToList();
+            return levels.Where(index => index < totalLevels).ToList();
         }
 
         private static List<int> GeneratePattern_Each(int totalLevels, int each)
         {
-            var indexes = new List<int>();
+            var levels = new List<int>();
             var nextValue = each;
 
             while (nextValue < totalLevels)
             {
-                indexes.Add(nextValue);
+                levels.Add(nextValue);
                 nextValue += each;
             }
 
-            return indexes;
+            return levels;
         }
     }
 }

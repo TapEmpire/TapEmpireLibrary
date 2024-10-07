@@ -25,7 +25,7 @@ namespace TapEmpire.Services
         [Button]
         public void AddLevelsBasedOnPattern(LevelsPattern pattern, LevelsTable levelsTable)
         {
-            var levelIndexes = pattern.GetLevelsIndexes(levelsTable.UnsortedLevels.Length);
+            var levelIndexes = pattern.GetLevels(levelsTable.UnsortedLevels.Length);
             InterstitialAfterLevels.AddRange(levelIndexes);
             InterstitialAfterLevels = RemoveDuplicatesAndSort(InterstitialAfterLevels);
         }
