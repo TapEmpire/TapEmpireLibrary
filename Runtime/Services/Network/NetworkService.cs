@@ -20,7 +20,17 @@ namespace TapEmpire.Services
         [SerializeField]
         private NoInternetUIView _noInternetUIViewPrefab;
 
-        public bool HasConnection => Application.internetReachability != NetworkReachability.NotReachable;
+        public bool HasConnection
+        {
+            get
+            {
+#if UNITY_EDITOR
+                return true;
+#else
+                return Application.internetReachability != NetworkReachability.NotReachable;
+#endif
+            }
+        }
 
         private IUIService _uiService;
         
