@@ -87,8 +87,9 @@ namespace TapEmpire.Utility
 
             importer.filterMode = FilterMode.Trilinear;
 
-            var platformSettings = importer.GetImporterPlatformSettings(EditorUserBuildSettings.activeBuildTarget);
-            platformSettings.maxTextureSize = 4096;
+            var platformSettings = importer.GetImporterPlatformSettings(BuildTarget.NoTarget);
+            platformSettings.maxTextureSize = 8192;
+            platformSettings.textureCompression = TextureImporterCompression.Uncompressed;
             importer.SetImporterPlatformSettings(platformSettings);
 
             var textureImporterSettings = (TextureImporterSettings)typeof(PSDImporter).GetField("m_TextureImporterSettings", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(importer);
