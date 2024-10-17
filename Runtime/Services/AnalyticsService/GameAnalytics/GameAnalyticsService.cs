@@ -66,6 +66,12 @@ namespace TapEmpire.Services
             GameAnalytics.NewDesignEvent(eventName, value);
         }
 
+        public void LogProgressionEvent(ProgressionState state, string progression01, string progression02, string progression03)
+        {
+            var status = (GAProgressionStatus)state;
+            GameAnalytics.NewProgressionEvent(status, progression01, progression02, progression03);
+        }
+
         public void SetUserProperty(string propertyName, int value)
         {
             // GameAnalytics.SetGlobalCustomEventFields( new Dictionary<string, object>() { { propertyName, value} });
