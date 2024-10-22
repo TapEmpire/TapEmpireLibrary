@@ -101,6 +101,11 @@ namespace TapEmpire.Services
             logEventDelayed(eventName, value);
         }
 
+        public void LogProgressionEvent(ProgressionState state, string progression01, string progression02, string progression03)
+        {
+            _innerService.LogProgressionEvent(state, progression01, progression02, progression03);
+        }
+
         public void SetUserProperty(string propertyName, int value)
         {
             if (_isInitialized)
