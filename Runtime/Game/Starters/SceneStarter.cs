@@ -13,7 +13,7 @@ namespace TapEmpire.Game
         protected DiContainer DiContainer;
 
         [Inject]
-        private List<IService> _services;
+        private ServicesContainer _servicesContainer;
         
         private void Awake()
         {
@@ -22,7 +22,7 @@ namespace TapEmpire.Game
 
         private async UniTask StartSceneAsync(CancellationToken cancellationToken)
         {
-            await InitializableUtility.InitializeAsync(_services.ToArray(), DiContainer, cancellationToken);
+            await _servicesContainer.InitializeAsync(cancellationToken);
             OnServicesInitialized();
         }
 
