@@ -95,9 +95,6 @@ namespace TapEmpire.Services
 
         private async UniTask FetchRemoteConfig(CancellationToken cancellationToken)
         {
-#if UNITY_EDITOR
-            return;
-#endif
             var stopWatch = new Stopwatch();
             // stopWatch.Start();
             // await NetworkUtility.WaitNetworkAsync(cancellationToken);

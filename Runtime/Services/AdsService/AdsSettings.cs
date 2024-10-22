@@ -1,6 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
-using RagDoll.Level;
 using Sirenix.OdinInspector;
 using TapEmpireLibrary.Utility;
 using UnityEngine;
@@ -23,9 +21,9 @@ namespace TapEmpire.Services
         }
         
         [Button]
-        public void AddLevelsBasedOnPattern(LevelsPattern pattern, LevelsTable levelsTable)
+        public void AddLevelsBasedOnPattern(LevelsPattern pattern, int length)
         {
-            var levelIndexes = pattern.GetLevels(levelsTable.UnsortedLevels.Length);
+            var levelIndexes = pattern.GetLevels(length);
             InterstitialAfterLevels.AddRange(levelIndexes);
             InterstitialAfterLevels = RemoveDuplicatesAndSort(InterstitialAfterLevels);
         }
