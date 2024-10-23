@@ -9,6 +9,7 @@ using Zenject;
 using Object = UnityEngine.Object;
 using System.Linq;
 using DG.Tweening;
+using ObservableCollections;
 
 namespace TapEmpire.UI
 {
@@ -36,7 +37,8 @@ namespace TapEmpire.UI
         private IUIViewModel _currentPopupModel;
         private DiContainer _coreDiContainer;
 
-        public Dictionary<string, RectTransform> ShibariContext { get; private set; } = new();
+        private ObservableDictionary<string, RectTransform> _shibariContext = new();
+        public ObservableDictionary<string, RectTransform> ShibariContext => _shibariContext;
 
         [Inject]
         private void Construct(ISceneContextsService sceneContextsService)
@@ -144,7 +146,7 @@ namespace TapEmpire.UI
             {
                 if (view is IInjectable)
                 {
-                    _coreDiContainer.Inject(view);
+                    _coreDiContainer.InjectGameObject(view.gameObject);
                 }
                 if (viewModel is IInjectable)
                 {
