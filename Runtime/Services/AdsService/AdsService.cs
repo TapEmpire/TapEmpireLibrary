@@ -160,7 +160,7 @@ namespace TapEmpire.Services
         public void ShowInterstitialByTimer()
         {
             _interstitialTimerTween?.Kill();
-            _interstitialTimerTween = DOVirtual.DelayedCall(_interstitialTimer, ShowInterstitial).SetLoops(-1);
+            _interstitialTimerTween = DOVirtual.DelayedCall(_interstitialTimer, () => ShowInterstitial()).SetLoops(-1);
         }
 
         // Later it might be needed for starting interstitials
@@ -186,7 +186,7 @@ namespace TapEmpire.Services
             if (_interstitialTimerTween == null) return;
 
             _interstitialTimerTween.Kill();
-            _interstitialTimerTween = DOVirtual.DelayedCall(_interstitialTimer, ShowInterstitial).SetLoops(-1);
+            _interstitialTimerTween = DOVirtual.DelayedCall(_interstitialTimer, () => ShowInterstitial()).SetLoops(-1);
         }
 
         private void OnAdReceivedReward()

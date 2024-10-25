@@ -13,7 +13,7 @@ namespace TapEmpire.Services
         bool IsRewardedAdReady { get; }
         bool IsInterstitialReady { get; }
 
-        void ShowInterstitial();
+        bool ShowInterstitial();
         void ShowInterstitial(int level, System.Action action);
         void ShowRewarded(string adType);
         void DisableAds(bool shouldDisable);
