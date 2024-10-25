@@ -34,9 +34,11 @@ namespace TapEmpire.Utility
             {
                 return;
             }
+
             _tickableManager.Remove(this as ITickable);
             _tickableManager.RemoveFixed(this as IFixedTickable);
             _tickableManager.RemoveLate(this as ILateTickable);
+            _tickableManager = null;
             _initialized = false;
         }
 

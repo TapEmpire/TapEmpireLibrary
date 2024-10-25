@@ -103,6 +103,11 @@ namespace TapEmpire.Game
             #endif
             return _progressService.GetLevelProgress();
         }
+
+        private void OnDestroy()
+        {
+            _coreSystemsContainer.Release();
+        }
         
         // TODO убалить комменты, пока оставил, чтобы подсветить, что нужно убрать в других стартерах (релиз внутри самого контейнера)
         // private void OnDestroy()

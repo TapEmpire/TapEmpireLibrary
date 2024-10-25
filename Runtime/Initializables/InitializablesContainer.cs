@@ -12,7 +12,7 @@ namespace TapEmpire.Services
     public abstract class InitializablesContainer<T> where T : IInitializable
     {
         private readonly List<T> _runtimeList = new();
-        
+
         private readonly DiContainer _diContainer;
         private IGameEventsContainer _gameEventsContainer;
         private ITicksContainer _ticksContainer;
@@ -61,9 +61,9 @@ namespace TapEmpire.Services
                 }
                 _ticksContainer.TryInitialize(tickableManager);
             }
-            
+
             _gameEventsContainer.OnApplicationQuitEvent += GameEventsContainer_OnApplicationQuitEvent;
-            
+
             var initializablesArray = _runtimeList.ToArray();
             await InitializeAsync(initializablesArray, cancellationToken);
 
@@ -89,11 +89,11 @@ namespace TapEmpire.Services
                 initializable.Release();
             }
             _runtimeList.Clear();
-            
+
             _ticksContainer.TryRelease();
-            
+
             _gameEventsContainer.OnApplicationQuitEvent -= GameEventsContainer_OnApplicationQuitEvent;
-            
+
             _initialized = false;
         }
 
