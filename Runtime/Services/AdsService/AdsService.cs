@@ -98,7 +98,11 @@ namespace TapEmpire.Services
                     OnAdReceivedOnceRewardEvent = null;
                     callback?.Invoke();
                 };
-                ShowInterstitial();
+                
+                if (!ShowInterstitial())
+                {
+                    OnAdReceivedOnceRewardEvent?.Invoke("");    
+                }
             }
             else
             {
@@ -106,18 +110,18 @@ namespace TapEmpire.Services
             }
         }
 
-        public void ShowInterstitial()
+        public bool ShowInterstitial()
         {
             if (_adsDisabled)
             {
                 OnAdReceivedReward();
-                return;
+                return true;
             }
 
             if (_currentAdPlacement != "" || !_isInitialized)
             {
                 ResetInterstitialByTimer();
-                return;
+                return false;
             }
 
             _currentAdPlacement = AdType_New.Interstital.ToString();
@@ -125,6 +129,7 @@ namespace TapEmpire.Services
             OnInterstitialAdShowRequested?.Invoke(global::AdsManager.Instance.HasInterstitial);
 
             global::AdsManager.Instance.ShowInterstitial(() => OnAdReceivedReward(), _currentAdPlacement);
+            return true;
         }
 
         public void ShowRewarded(string adPlacement)
