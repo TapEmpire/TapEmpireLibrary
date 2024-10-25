@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using Cysharp.Threading.Tasks;
+using ObservableCollections;
 using UnityEngine;
 using TapEmpire.Services;
 
@@ -25,7 +26,7 @@ namespace TapEmpire.UI
         void RemoveFromContext(string name);
 
         // Should be ReactiveDictionary, but R3 has none.
-        Dictionary<string, RectTransform> ShibariContext { get; }
+        public ObservableDictionary<string, RectTransform> ShibariContext { get; }
         
         IUILocker UILocker { get; }
 
