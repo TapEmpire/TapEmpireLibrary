@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.ComponentModel.Design;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
@@ -23,22 +24,18 @@ namespace TapEmpire.Game
         [Header("Settings")]
         [SerializeField]
         private GameStartSettings _startSettings;
-
-        private IService[] _services;
-        private DiContainer _diContainer;
-        private ISceneManagementService _sceneManagementService;
-
+        
         private SceneLoadingUIViewModel _sceneLoadingUIViewModel;
-
         private CancellationTokenSource _cancellationTokenSource;
-
         private bool _isInitialized = false;
 
+        private ServicesContainer _servicesContainer;
+        private ISceneManagementService _sceneManagementService;
+        
         [Inject]
-        private void Construct(IService[] services, DiContainer diContainer, ISceneManagementService sceneManagementService)
+        private void Construct(ServicesContainer servicesContainer, ISceneManagementService sceneManagementService)
         {
-            _services = services;
-            _diContainer = diContainer;
+            _servicesContainer = servicesContainer;
             _sceneManagementService = sceneManagementService;
         }
 
@@ -60,7 +57,7 @@ namespace TapEmpire.Game
 
         private async UniTask InstallServices(CancellationToken cancellationToken)
         {
-            await InitializableUtility.InitializeAsync(_services, _diContainer, cancellationToken);
+            await _servicesContainer.InitializeAsync(cancellationToken);
             _isInitialized = true;
         }
 
@@ -79,10 +76,7 @@ namespace TapEmpire.Game
             {
                 await _sceneManagementService.CreateLoadingScreen(_cancellationTokenSource.Token);
             }
-
             await UniTask.WaitUntil(() => _isInitialized, cancellationToken: _cancellationTokenSource.Token);
-            await NetworkUtility.WaitNetworkAsync(Application.exitCancellationToken);
-
             if (_autoLoadSceneOnStart)
             {
                 _sceneManagementService.LoadSceneAsync(_sceneName, _cancellationTokenSource.Token).Forget();

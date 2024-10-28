@@ -1,6 +1,6 @@
 ﻿namespace TapEmpire.UI
 {
-    public interface IInjectableView
+    public interface IInjectable
     {
     }
 }

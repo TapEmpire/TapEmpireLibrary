@@ -18,6 +18,16 @@ namespace TapEmpire.Utility
             return new HashSetScope<T>(hashSet);
         }
 
+        public static HashSetScope<T> CreateFromEnumerable(IEnumerable<T> enumerable, out HashSet<T> hashSet)
+        {
+            hashSet = PoolUtility<HashSet<T>>.Pull();
+            foreach (var item in enumerable)
+            {
+                hashSet.Add(item);
+            }
+            return new HashSetScope<T>(hashSet);
+        }
+
         #region IDisposable
 
         void IDisposable.Dispose()

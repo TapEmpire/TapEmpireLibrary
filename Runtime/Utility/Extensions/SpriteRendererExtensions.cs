@@ -34,7 +34,7 @@ namespace TapEmpire.Utility
         {
             var corners = new Vector3[4];
             var bounds = self.bounds;
-        
+
             corners[0] = new Vector3(bounds.min.x, bounds.min.y, bounds.min.z);
             corners[1] = new Vector3(bounds.min.x, bounds.max.y, bounds.min.z);
             corners[2] = new Vector3(bounds.max.x, bounds.max.y, bounds.min.z);
@@ -52,6 +52,51 @@ namespace TapEmpire.Utility
             var boundsSize = self.sprite.bounds.size;
             var newSize = new Vector2(worldScreenWidth / boundsSize.x, worldScreenHeight / boundsSize.y);
             self.transform.localScale = new Vector2(newSize.x, newSize.y);
+        }
+
+        public static Vector2 GetSize(this SpriteRenderer self)
+        {
+            return self.sprite.bounds.size;
+        }
+
+        public static bool IsFullyInView(this SpriteRenderer self, Camera camera)
+        {
+            Bounds spriteBounds = self.bounds;
+            Plane[] cameraPlanes = GeometryUtility.CalculateFrustumPlanes(camera);
+
+            foreach (Plane plane in cameraPlanes)
+            {
+                if (plane.GetSide(spriteBounds.min) && plane.GetSide(spriteBounds.max))
+                {
+                    continue;
+                }
+
+                return false;
+            }
+
+            return true;
+        }
+
+        public static void CopyTo(this SpriteRenderer self, GameObject target)
+        {
+            SpriteRenderer targetRenderer = target.GetComponent<SpriteRenderer>();
+            if (targetRenderer == null)
+            {
+                targetRenderer = target.AddComponent<SpriteRenderer>();
+            }
+
+            targetRenderer.sprite = self.sprite;
+            targetRenderer.color = self.color;
+            targetRenderer.flipX = self.flipX;
+            targetRenderer.flipY = self.flipY;
+            targetRenderer.sharedMaterial = self.sharedMaterial;
+            targetRenderer.sortingLayerID = self.sortingLayerID;
+            targetRenderer.sortingOrder = self.sortingOrder;
+            targetRenderer.drawMode = self.drawMode;
+            targetRenderer.size = self.size;
+            targetRenderer.tileMode = self.tileMode;
+            targetRenderer.maskInteraction = self.maskInteraction;
+            targetRenderer.enabled = self.enabled;
         }
     }
 }

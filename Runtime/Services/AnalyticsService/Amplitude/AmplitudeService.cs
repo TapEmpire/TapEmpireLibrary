@@ -39,6 +39,10 @@ namespace TapEmpire.Services
             _amplitude.logEvent(eventName, new Dictionary<string, object>() { { "value", value } });
         }
 
+        public void LogProgressionEvent(ProgressionState state, string progression01, string progression02, string progression03)
+        {
+        }
+
         public void SetUserProperty(string propertyName, int value)
         {
             _amplitude.setUserProperty(propertyName, value);

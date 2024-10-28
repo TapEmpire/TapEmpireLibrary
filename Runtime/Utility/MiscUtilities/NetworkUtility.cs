@@ -6,6 +6,7 @@ namespace TapEmpire.Utility
 {
     public static class NetworkUtility
     {
+        // TODO: Deprecated
         public static UniTask WaitNetworkAsync(CancellationToken cancellationToken)
         {
             var network = HasConnection();
@@ -14,6 +15,7 @@ namespace TapEmpire.Utility
                 : UniTask.WaitUntil(HasConnection, cancellationToken: cancellationToken);
         }
 
+        // TODO: Deprecated
         public static bool HasConnection()
         {
             return Application.internetReachability != NetworkReachability.NotReachable;

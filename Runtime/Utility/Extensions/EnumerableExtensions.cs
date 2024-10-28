@@ -79,6 +79,21 @@ namespace TapEmpire.Utility
             return false;
         }
         
+        public static bool TryGetFirstOfType<T1, T2>(this IEnumerable<T1> self, out T2 value)
+        {
+            foreach (var item in self)
+            {
+                if (item is not T2 itemOfType)
+                {
+                    continue;
+                }
+                value = itemOfType;
+                return true;
+            }
+            value = default;
+            return false;
+        }
+        
         public static T GetWithMax<T>(this IEnumerable<T> self, Func<T, float> getValueDelegate)
         {
             var max = float.NegativeInfinity;

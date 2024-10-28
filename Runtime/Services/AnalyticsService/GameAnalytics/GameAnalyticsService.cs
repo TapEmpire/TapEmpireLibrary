@@ -53,7 +53,7 @@ namespace TapEmpire.Services
                 var layer = eventParams.TryGetValue("layer", out var value) ? (int)value : 0;
                 if (status != GAProgressionStatus.Undefined)
                 {
-                    GameAnalytics.NewProgressionEvent(status, $"cycle_{cycle}", $"level_{level}", layer);
+                    GameAnalytics.NewProgressionEvent(status, $"cycle_{cycle}", $"level_{level}", $"layer_{layer}");
                 }
                 return;
             }
@@ -64,6 +64,12 @@ namespace TapEmpire.Services
         public void LogEvent(string eventName, int value)
         {
             GameAnalytics.NewDesignEvent(eventName, value);
+        }
+
+        public void LogProgressionEvent(ProgressionState state, string progression01, string progression02, string progression03)
+        {
+            var status = (GAProgressionStatus)state;
+            GameAnalytics.NewProgressionEvent(status, progression01, progression02, progression03);
         }
 
         public void SetUserProperty(string propertyName, int value)

@@ -155,6 +155,8 @@ public class AdsManager : MonoBehaviour
         Admob.Initialize();
         await UniTask.WaitUntil(() => IsAdmobInitSuccess);
 
+        await UniTask.WaitForSeconds(1);
+
 
         #region Applovin
 

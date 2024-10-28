@@ -8,6 +8,14 @@ namespace TapEmpire.Services
         GameAnalytics,
     }
 
+    public enum ProgressionState
+    {
+        Undefined = 0,
+		Start = 1,
+		Complete = 2,
+		Fail = 3
+    }
+
     public interface IAnalyticsService : IService
     {
         void LogEvent(string eventName, Dictionary<string,object> eventParams);
@@ -17,5 +25,7 @@ namespace TapEmpire.Services
         void FlushEvents();
         
         void LogEvent(string eventName, int value);
+
+        void LogProgressionEvent(ProgressionState state, string progression01, string progression02, string progression03);
     }
 }
