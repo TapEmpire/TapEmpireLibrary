@@ -76,7 +76,7 @@ namespace TapEmpire.UI
 
         private void SceneContextsService_OnSceneContextInstalled(string contextId, SceneContext context)
         {
-            if (contextId != "Core")
+            if (contextId != "Core" && contextId != "Menu")
             {
                 return;
             }
