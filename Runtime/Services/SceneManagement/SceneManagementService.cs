@@ -15,13 +15,13 @@ namespace TapEmpire.Services
     {
         [SerializeField]
         private SceneLoadingUIView _sceneLoadingUIPrefab;
-        
+
         [SerializeField]
         private float _animationDurationPerFullProgress = 2f;
 
         [SerializeField]
         private float _initialProgress = 0.3f;
-        
+
         private IUIService _uiService;
 
         private SceneLoadingUIViewModel _sceneLoadingUIViewModel;
@@ -30,7 +30,7 @@ namespace TapEmpire.Services
         private readonly float _initialProgressTime = 0.5f;
 
         private UniTaskCompletionSource _completionSource = null;
-        
+
         [Inject]
         private void Construct(IUIService uiService)
         {
@@ -56,7 +56,7 @@ namespace TapEmpire.Services
             await _uiService.TryCloseViewAsync<SceneLoadingUIViewModel>(cancellationToken);
         }
 
-        public async UniTask LoadSceneAsync(SceneName sceneName, CancellationToken cancellationToken)
+        public async UniTask LoadSceneAsync(SceneName sceneName, CancellationToken cancellationToken, bool manualLoadingClose = false)
         {
             var initialProgress = _sceneLoadingUIViewModel != null ? _initialProgress : 0.0f;
 
@@ -64,7 +64,7 @@ namespace TapEmpire.Services
             {
                 await CreateLoadingScreenInternal(0.0f, 0.0f, cancellationToken);
             }
-            
+
             var currentProgress = 0f;
             var startTime = Time.time;
             var koef = 1.0f - initialProgress;
@@ -78,7 +78,7 @@ namespace TapEmpire.Services
                     currentProgress = progress;
                     _sceneLoadingUIViewModel.SetProgressCallback(initialProgress + koef * progress, duration);
                 }), cancellationToken: cancellationToken);
-            
+
             var elapsedTime = Time.time - startTime;
             if (currentProgress < 1f && elapsedTime < _minDisplayTime)
             {
@@ -88,11 +88,14 @@ namespace TapEmpire.Services
                 await UniTask.WaitForSeconds(duration, cancellationToken: cancellationToken);
             }
 
-            sceneHandle.Result.ActivateAsync().completed += _ =>
-            {
-                _uiService.TryCloseViewAsync<SceneLoadingUIViewModel>(cancellationToken).Forget();
-                _sceneLoadingUIViewModel = null;
-            };
+            Action<AsyncOperation> onCompleted = manualLoadingClose ? (_) => { } :
+                (_) =>
+                {
+                    _uiService.TryCloseViewAsync<SceneLoadingUIViewModel>(cancellationToken).Forget();
+                    _sceneLoadingUIViewModel = null;
+                };
+
+            sceneHandle.Result.ActivateAsync().completed += onCompleted;
         }
     }
 }
