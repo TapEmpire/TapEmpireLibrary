@@ -76,7 +76,7 @@ namespace TapEmpire.Services
                     var progressChange = progress - currentProgress;
                     var duration = progressChange * _animationDurationPerFullProgress;
                     currentProgress = progress;
-                    _sceneLoadingUIViewModel.SetProgressCallback(initialProgress + koef * progress, duration);
+                    _sceneLoadingUIViewModel?.SetProgressCallback(initialProgress + koef * progress, duration);
                 }), cancellationToken: cancellationToken);
             
             var elapsedTime = Time.time - startTime;
