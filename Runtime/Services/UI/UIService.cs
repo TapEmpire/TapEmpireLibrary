@@ -215,6 +215,7 @@ namespace TapEmpire.UI
             bool tryUseFade = true) where T : IUIViewModel
         {
             var tasks = _views
+                .ToList()
                 .Where(view => view.Key is not T)
                 .Select(view => CloseViewAsync(view.Key, cancellationToken, tryUseFade)).ToList();
 
