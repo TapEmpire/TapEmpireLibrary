@@ -194,6 +194,10 @@ namespace TapEmpire.UI
 
             await TryExecuteWithFadeAsync(view.CloseAsync(cancellationToken), view, false, cancellationToken, tryUseFade);
             
+            if (!_views.TryGetValue(viewModel, out view)) // повторно проверяем вьюху после эвейта
+            {
+                return;
+            }
             if (_currentPopupModel != null && _currentPopupModel == viewModel)
             {
                 OnClosePopup?.Invoke(viewModel);
