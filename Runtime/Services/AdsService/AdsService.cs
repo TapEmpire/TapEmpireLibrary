@@ -90,7 +90,11 @@ namespace TapEmpire.Services
 
                 _cancellationTokenSource = new CancellationTokenSource();
                 UniTaskUtility.ExecuteAfterSeconds(MaxWaitingTime,
-                    () => _shouldWaitAppOpen.Value = false, _cancellationTokenSource.Token);
+                    () =>
+                    {
+                        _shouldWaitAppOpen.Value = false;
+                        global::AdsManager.Instance.ShouldWaitAppOpen.Value = false;
+                    }, _cancellationTokenSource.Token);
 
                 await UniTask.WaitUntil(() => ShouldWaitAppOpen.CurrentValue == false);
             }
@@ -123,10 +127,10 @@ namespace TapEmpire.Services
                     OnAdReceivedOnceRewardEvent = null;
                     callback?.Invoke();
                 };
-                
+
                 if (!ShowInterstitial())
                 {
-                    OnAdReceivedOnceRewardEvent?.Invoke("");    
+                    OnAdReceivedOnceRewardEvent?.Invoke("");
                 }
             }
             else
