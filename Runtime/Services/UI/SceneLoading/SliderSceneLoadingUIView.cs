@@ -29,6 +29,11 @@ namespace TapEmpire.UI
 
         protected override void OnSetProgressCallback(float progress, float duration)
         {
+            if (_progressBarFillSlider.value > progress)
+            {
+                return;
+            }
+
             _progressBarFillSlider.DOKill();
             _progressBarFillSlider.DOValue(progress, duration);
         }

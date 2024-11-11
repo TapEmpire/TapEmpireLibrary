@@ -17,6 +17,8 @@ namespace TapEmpire.Services
         public class AdsRemoteModel
         {
             public bool EnableAppOpen = true;
+            public bool ShouldWaitAppOpen = false;
+            public float AppOpenWaitTime = 10.0f;
             public List<int> InterstitialAfterLevels = new();
 
             public AdsRemoteModel() {}
@@ -24,6 +26,8 @@ namespace TapEmpire.Services
             public AdsRemoteModel(AdsSettings settings)
             {
                 EnableAppOpen = settings.EnableAppOpen;
+                ShouldWaitAppOpen = settings.ShouldWaitAppOpen;
+                AppOpenWaitTime = settings.AppOpenWaitTime;
                 InterstitialAfterLevels = settings.InterstitialAfterLevels.ToList();
             }
         }
@@ -34,6 +38,8 @@ namespace TapEmpire.Services
         {
             var model = token.ToObject<AdsRemoteModel>();
             _adsSettings.EnableAppOpen = model.EnableAppOpen;
+            _adsSettings.ShouldWaitAppOpen = model.ShouldWaitAppOpen;
+            _adsSettings.AppOpenWaitTime = model.AppOpenWaitTime;
             _adsSettings.InterstitialAfterLevels = model.InterstitialAfterLevels;
         }
 
