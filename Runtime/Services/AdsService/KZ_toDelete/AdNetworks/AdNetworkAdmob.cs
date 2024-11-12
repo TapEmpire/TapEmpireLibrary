@@ -35,7 +35,10 @@ public class AdNetworkAdmob : AdNetworkBase
     #region SDK Initialize
     public override void Initialize(bool shouldWaitAppOpen = false)
     {
-        ShouldWaitAppOpen.Value = shouldWaitAppOpen;
+        if (ShouldWaitAppOpen.Value == true)
+        {
+            ShouldWaitAppOpen.Value = shouldWaitAppOpen;
+        }
         MobileAds.SetiOSAppPauseOnBackground(true);
         //SetConfigurations();
         MobileAds.RaiseAdEventsOnUnityMainThread = false;

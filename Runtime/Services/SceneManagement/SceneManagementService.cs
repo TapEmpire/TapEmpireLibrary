@@ -29,6 +29,7 @@ namespace TapEmpire.Services
 
         private readonly float _minDisplayTime = 1.5f; // Minimum time to show the progress bar
         private readonly float _initialProgressTime = 0.5f;
+        private float _initialProgressDone = 0.0f;
 
         private UniTaskCompletionSource _completionSource = null;
 
@@ -51,6 +52,7 @@ namespace TapEmpire.Services
             {
                 await UniTask.WaitForSeconds(_initialProgressTime, cancellationToken: cancellationToken);
                 _sceneLoadingUIViewModel.SetProgressCallback(_adsProgress, _adsService.MaxWaitingTime);
+                _initialProgressDone = _adsProgress;
             }
         }
 
@@ -60,6 +62,7 @@ namespace TapEmpire.Services
             await _uiService.OpenViewAsync(_sceneLoadingUIPrefab, _sceneLoadingUIViewModel, cancellationToken);
 
             _sceneLoadingUIViewModel.SetProgressCallback(initialProgress, initialTime);
+            _initialProgressDone = initialProgress;
         }
 
         public async UniTask CloseLoadingScreen(CancellationToken cancellationToken)
@@ -70,7 +73,7 @@ namespace TapEmpire.Services
 
         public async UniTask LoadSceneAsync(SceneName sceneName, CancellationToken cancellationToken, bool manualLoadingClose = false)
         {
-            var initialProgress = _sceneLoadingUIViewModel != null ? _initialProgress : 0.0f;
+            var initialProgress = _initialProgressDone; // _sceneLoadingUIViewModel != null ? _initialProgress : 0.0f;
 
             if (_sceneLoadingUIViewModel == null)
             {
