@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
@@ -52,9 +53,25 @@ namespace TapEmpire.Utility
             }
         }
 
-        /*public static T GetFieldValue<T>(System.Type type, string fieldName)
+        public static object CreateInstanceByName(string typeName)
         {
-            var type = 
-        }*/
+            Type type = Type.GetType(typeName);
+
+            if (type == null)
+            {
+                Console.WriteLine($"Type '{typeName}' not found.");
+                return null;
+            }
+
+            try
+            {
+                return Activator.CreateInstance(type);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Failed to create an instance of '{typeName}': {ex.Message}");
+                return null;
+            }
+        }
     }
 }
