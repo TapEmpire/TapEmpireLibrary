@@ -10,6 +10,8 @@ using System.Threading;
 using Sirenix.OdinInspector;
 using Cysharp.Threading.Tasks;
 using System.Threading.Tasks;
+using TapEmpire.Services;
+using R3;
 
 [HideMonoScript]
 public class AdsManager : MonoBehaviour
@@ -87,8 +89,11 @@ public class AdsManager : MonoBehaviour
 
     public static bool IsAdmobInitSuccess { get; private set; }
     public static bool IsApplovinInitSuccess { get; private set; }
+    public bool ShowAppOpenOnLoad => Admob.ShowAppOpenOnLoad;
+    public ReactiveProperty<bool> ShouldWaitAppOpen => Admob.ShouldWaitAppOpen;
 
     Action OnRewardComplete;
+    private System.Action OnAppOpenShown = null;
 
     public MaxSdkBase.BannerPosition MaxBannerPos
     {
@@ -128,9 +133,9 @@ public class AdsManager : MonoBehaviour
         // GameAnalyticsSDK.GameAnalytics.Initialize();
     }
 
-    public async UniTask Initialize_AdNetworks()
+    public async UniTask Initialize_AdNetworks(bool shouldWaitAppOpen)
     {
-        await Initialize();
+        await Initialize(shouldWaitAppOpen);
     }
 
     public void OnRelease()
@@ -138,7 +143,7 @@ public class AdsManager : MonoBehaviour
         Admob.OnRelease();
     }
 
-    private async UniTask Initialize()
+    private async UniTask Initialize(bool shouldWaitAppOpen)
     {
         OnAdmobInitSuccess = () => { IsAdmobInitSuccess = true; };
         OnApplovinInitSuccess = () => { IsApplovinInitSuccess = true; };
@@ -150,32 +155,38 @@ public class AdsManager : MonoBehaviour
 
         PassAdjustConsentParameters();
 
-        await UniTask.WaitForSeconds(2);
-
-        Admob.Initialize();
+        Admob.Initialize(shouldWaitAppOpen);
         await UniTask.WaitUntil(() => IsAdmobInitSuccess);
+        await UniTask.WaitUntil(() => !ShouldWaitAppOpen.Value);
 
-        await UniTask.WaitForSeconds(1);
+        await InitializeApplovin();
 
+        await UniTask.Yield(PlayerLoopTiming.LastPostLateUpdate);
 
-        #region Applovin
+        global::AdsManager.Instance.ShowBanner();
+    }
 
+    private async UniTask InitializeApplovin()
+    {
         if (Ram() <= 2)
         {
             if (AdsRemoteSettings.Instance.ShowMediationOn2GB)
+            {
                 Applovin.Initialize();
+            }
+            else
+            {
+                OnApplovinInitSuccess?.Invoke();
+            }
         }
         else
+        {
             Applovin.Initialize();
+        }
 
         await UniTask.WaitUntil(() => IsApplovinInitSuccess);
 
         SubscribeToMaxBanners();
-
-        #endregion
-
-        // ReportDeviceInfo();
-        OnBarrierDone();
     }
 
     private async UniTask Retry_Consent()
@@ -214,11 +225,6 @@ public class AdsManager : MonoBehaviour
             else
                 Admob.HideBanner();
         };
-    }
-
-    private void OnBarrierDone()
-    {
-        UniTaskUtility.ExecuteNextFrame(() => global::AdsManager.Instance.ShowBanner(), CancellationToken.None).Forget();
     }
 
     void ReportDeviceInfo()
@@ -419,6 +425,12 @@ public class AdsManager : MonoBehaviour
         else ShowInterstitial(UserReward, placementName);
     }
 
+    public void AppOpenShown()
+    {
+        OnAppOpenShown?.Invoke();
+        OnAppOpenShown = null;
+    }
+
     public void InvokeReward()
     {
         OnRewardComplete?.Invoke();
@@ -444,20 +456,21 @@ public class AdsManager : MonoBehaviour
     public void OnAppStateChanged(AppState state)
     {
         if (EnableAppOpen && state == AppState.Foreground)
-             ThreadDispatcher.Enqueue(ShowAppOpen);
+            ThreadDispatcher.Enqueue(() => ShowAppOpen());
     }
 
-    public void ShowAppOpen()
+    public void ShowAppOpen(System.Action action = null)
     {
-        if (!AdConstants.AdsRemoved && !IsForFamily)
+        if (!AdConstants.AdsRemoved && !IsForFamily && Time.time > AppOpenTimer && Admob.CanShowAppOpen)
         {
-            if (Time.time > AppOpenTimer && Admob.IsReady)
-            {
-                ExtendAppOpenTime();
-                Admob.ShowAppOpen();
-            }
-            //MobileToast.Show_DevMode($"AppOpen Left : {(AppOpenTimer - Time.time).ToString("F2")}s");
+            AnalyticsManager.PlacementName = AdType_New.AppOpen.ToString();
+            OnAppOpenShown = action;
+            ExtendAppOpenTime();
+            Admob.ShowAppOpen();
+            return;
         }
+
+        action?.Invoke();
     }
 
     #endregion

@@ -19,27 +19,41 @@ namespace TapEmpire.Services
         [SerializeField]
         private float _animationDurationPerFullProgress = 2f;
 
-        [SerializeField]
-        private float _initialProgress = 0.3f;
+        [SerializeField] private float _initialProgress = 0.3f;
+        [SerializeField] private float _adsProgress = 0.8f;
 
         private IUIService _uiService;
+        private IAdsService _adsService;
 
         private SceneLoadingUIViewModel _sceneLoadingUIViewModel;
 
         private readonly float _minDisplayTime = 1.5f; // Minimum time to show the progress bar
         private readonly float _initialProgressTime = 0.5f;
+        private float _initialProgressDone = 0.0f;
 
         private UniTaskCompletionSource _completionSource = null;
 
         [Inject]
-        private void Construct(IUIService uiService)
+        private void Construct(IUIService uiService, IAdsService adsService)
         {
             _uiService = uiService;
+            _adsService = adsService;
         }
 
         public async UniTask CreateLoadingScreen(CancellationToken cancellationToken)
         {
             await CreateLoadingScreenInternal(_initialProgress, _initialProgressTime, cancellationToken);
+            WaitAdsService(cancellationToken).Forget();
+        }
+
+        private async UniTask WaitAdsService(CancellationToken cancellationToken)
+        {
+            if (_adsService.MaxWaitingTime > float.Epsilon)
+            {
+                await UniTask.WaitForSeconds(_initialProgressTime, cancellationToken: cancellationToken);
+                _sceneLoadingUIViewModel.SetProgressCallback(_adsProgress, _adsService.MaxWaitingTime);
+                _initialProgressDone = _adsProgress;
+            }
         }
 
         private async UniTask CreateLoadingScreenInternal(float initialProgress, float initialTime, CancellationToken cancellationToken)
@@ -48,6 +62,7 @@ namespace TapEmpire.Services
             await _uiService.OpenViewAsync(_sceneLoadingUIPrefab, _sceneLoadingUIViewModel, cancellationToken);
 
             _sceneLoadingUIViewModel.SetProgressCallback(initialProgress, initialTime);
+            _initialProgressDone = initialProgress;
         }
 
         public async UniTask CloseLoadingScreen(CancellationToken cancellationToken)
@@ -58,7 +73,7 @@ namespace TapEmpire.Services
 
         public async UniTask LoadSceneAsync(SceneName sceneName, CancellationToken cancellationToken, bool manualLoadingClose = false)
         {
-            var initialProgress = _sceneLoadingUIViewModel != null ? _initialProgress : 0.0f;
+            var initialProgress = _initialProgressDone; // _sceneLoadingUIViewModel != null ? _initialProgress : 0.0f;
 
             if (_sceneLoadingUIViewModel == null)
             {
@@ -88,11 +103,15 @@ namespace TapEmpire.Services
                 await UniTask.WaitForSeconds(duration, cancellationToken: cancellationToken);
             }
 
+            // await UniTask.WaitUntil(() => _adsService.ShouldWaitAppOpen == false);
+
             Action<AsyncOperation> onCompleted = manualLoadingClose ? (_) => { } :
                 (_) =>
                 {
-                    _uiService.TryCloseViewAsync<SceneLoadingUIViewModel>(cancellationToken).Forget();
-                    _sceneLoadingUIViewModel = null;
+                    _adsService.ShowAppOpen(() => {
+                        _uiService.TryCloseViewAsync<SceneLoadingUIViewModel>(cancellationToken).Forget();
+                        _sceneLoadingUIViewModel = null;
+                    });
                 };
 
             sceneHandle.Result.ActivateAsync().completed += onCompleted;
