@@ -1,92 +1,98 @@
 ﻿using System;
-using System.Collections;
 using System.Threading;
 using Cysharp.Threading.Tasks;
-using Firebase.Crashlytics;
-using Google.Play.Review;
-using TapEmpire.Services;
-using TapEmpire.Utility;
 using Zenject;
+using UnityEngine;
+using TapEmpire.UI;
+using R3;
 
 namespace TapEmpire.Services
 {
     [Serializable]
     public class RateMeService : Initializable, IRateMeService
     {
-        [NonSerialized] private ReviewManager _reviewManager;
-        [NonSerialized] private PlayReviewInfo _playReviewInfo;
+        [SerializeField] private RateMeSettings _rateMeSettings;
+        [SerializeField] private RateMeUIView _rateMeUiView;
 
         public bool HasRated => _progressService.GetRateMe();
 
         private IProgressService _progressService = null;
+        private IUIService _uiService = null;
+
+        private CancellationTokenSource _cancellationTokenSource;
+        private CompositeDisposable _disposables;
+        private RateMeUiViewModel _rateMeUiViewModel;
+        private IReviewManager _reviewManager;
 
         [Inject]
-        private void Construct(IProgressService progressService)
+        private void Construct(IProgressService progressService, IUIService uiService)
         {
             _progressService = progressService;
+            _uiService = uiService;
         }
-        
+
         protected override UniTask OnInitializeAsync(CancellationToken cancellationToken)
         {
-            _reviewManager = new ReviewManager();
-            return UniTask.CompletedTask;
+            _disposables = new CompositeDisposable();
+            _cancellationTokenSource = new CancellationTokenSource();
+            _rateMeUiViewModel = new RateMeUiViewModel();
+            _reviewManager = CreateReviewManager();
+            return base.OnInitializeAsync(cancellationToken);
         }
 
         protected override void OnRelease()
         {
+            _uiService.TryCloseViewAsync<RateMeUiViewModel>(_cancellationTokenSource.Token).Forget();
+
+            if (_cancellationTokenSource != null)
+            {
+                _cancellationTokenSource.Cancel();
+                _cancellationTokenSource = null;
+            }
+
+            _disposables?.Dispose();
+            _rateMeUiViewModel = null;
             _reviewManager = null;
         }
 
-        public async UniTask RateMeAsync(CancellationToken cancellationToken)
+        public void RateOnLevel(int level)
         {
-            await RateCoroutine().ToUniTask(cancellationToken: cancellationToken);
+            if (!_rateMeSettings.Enable || HasRated)
+            {
+                return;
+            }
+
+            var shouldShowRateMe = _rateMeSettings.Levels.Exists(rateLevel => rateLevel == level);
+
+            if (shouldShowRateMe)
+            {
+                _uiService.OpenViewAsync(_rateMeUiView, _rateMeUiViewModel, _cancellationTokenSource.Token).Forget();
+                _rateMeUiViewModel.AcceptCommand.Subscribe(_ => Accept()).AddTo(_disposables);
+                _rateMeUiViewModel.RejectCommand.Subscribe(_ => Reject()).AddTo(_disposables);
+            }
         }
 
-        private IEnumerator RateCoroutine()
+        private void Accept()
         {
-            yield return RequestFlowCoroutine();
-            
-            yield return PlayReviewFlowCoroutine();
+            _progressService.SetRateMe(true);
+            _reviewManager?.RateMeAsync(_cancellationTokenSource.Token).Forget();
+            _uiService.TryCloseViewAsync<RateMeUiViewModel>(_cancellationTokenSource.Token).Forget();
         }
 
-        private IEnumerator RequestFlowCoroutine()
+        private void Reject()
         {
-            var requestFlowOperation = _reviewManager.RequestReviewFlow();
-            yield return requestFlowOperation;
-            if (requestFlowOperation.Error != ReviewErrorCode.NoError)
-            {
-                _progressService.SetRateMe(false);
-                Crashlytics.LogException(new Exception(requestFlowOperation.Error.ToString()));
-                yield break;
-            }
-            
-            _playReviewInfo = requestFlowOperation.GetResult();
+            _uiService.TryCloseViewAsync<RateMeUiViewModel>(_cancellationTokenSource.Token).Forget();
         }
 
-        private IEnumerator PlayReviewFlowCoroutine()
+        private IReviewManager CreateReviewManager()
         {
-            if (_playReviewInfo != null)
-            {
-                var launchFlowOperation = _reviewManager.LaunchReviewFlow(_playReviewInfo);
-                yield return launchFlowOperation;
-                _playReviewInfo = null; // Reset the object
-                if (launchFlowOperation.Error != ReviewErrorCode.NoError)
-                {
-                    _progressService.SetRateMe(false);
-                    Crashlytics.LogException(new Exception(launchFlowOperation.Error.ToString()));
-                }
-                else
-                {
-                    _progressService.SetRateMe(true);
-                }
-            }
-            else
-            {
-                Crashlytics.LogException(new Exception($"RateMe PlayReviewInfo == null"));
-            }
-            // The flow has finished. The API does not indicate whether the user
-            // reviewed or not, or even whether the review dialog was shown. Thus, no
-            // matter the result, we continue our app flow.
+#if UNITY_ANDROID
+            return new AndroidReviewManager();
+#elif UNITY_IOS
+            return null;
+#else
+            return null;
+#endif
         }
     }
 }
