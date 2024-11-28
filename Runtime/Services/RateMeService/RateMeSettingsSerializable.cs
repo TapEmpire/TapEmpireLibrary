@@ -2,41 +2,40 @@
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Sirenix.OdinInspector;
-using TapEmpire.Services;
 using TapEmpire.Utility;
 using UnityEngine;
 
-namespace RagDoll.UI
+namespace TapEmpire.Services
 {
-    public class RateUsSettingsSerializable : IRemoteSerializable
+    public class RateMeSettingsSerializable : IRemoteSerializable
     {
-        [SerializeField] private RateUsSettings _rateUsSettings = null;
+        [SerializeField] private RateMeSettings _rateMeSettings = null;
         
-        public class RateUsRemoteModel
+        public class RateMeRemoteModel
         {
             public bool Enable = true;
-            public List<int> RateUsLevels = new();
-            public RateUsRemoteModel() {}
+            public List<int> Levels = new();
+            public RateMeRemoteModel() {}
 
-            public RateUsRemoteModel(RateUsSettings settings)
+            public RateMeRemoteModel(RateMeSettings settings)
             {
-                Enable = settings.DefaultNeedRateUs;
-                RateUsLevels = settings.Levels;
+                Enable = settings.Enable;
+                Levels = settings.Levels;
             }
         }
         
-        public string TokenName => "RateUsSettings";
+        public string TokenName => "RateMeSettings";
         
         public void DeserializeJson(JToken token)
         {
-            var model = token.ToObject<RateUsRemoteModel>();
-            _rateUsSettings.DefaultNeedRateUs = model.Enable;
-            _rateUsSettings.Levels = model.RateUsLevels;
+            var model = token.ToObject<RateMeRemoteModel>();
+            _rateMeSettings.Enable = model.Enable;
+            _rateMeSettings.Levels = model.Levels;
         }
 
         public string SerializeJson()
         {
-            var model = new RateUsRemoteModel(_rateUsSettings);
+            var model = new RateMeRemoteModel(_rateMeSettings);
             var result = JsonConvert.SerializeObject(model);
 
             return result;

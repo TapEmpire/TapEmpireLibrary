@@ -24,7 +24,7 @@ namespace TapEmpire.Utility
             PlayerPrefs.SetString(key, value);
             PlayerPrefs.Save();
         }
-        
+
         private static void SetBoolFast(string key, bool value) => SetIntFast(key, value ? 1 : 0);
 
         private static bool GetBool(string key, bool defaultValue = false) => PlayerPrefs.GetInt(key, defaultValue ? 1 : 0) > 0;
@@ -57,9 +57,9 @@ namespace TapEmpire.Utility
         #endregion
 
         #region Audio
-        
+
         public const string MusicSettingsKey = "MusicSettingsKey";
-        
+
         public const string SoundSettingsKey = "SoundSettingsKey";
 
         public static float GetSoundSettings(float defaultValue) => PlayerPrefs.GetFloat(SoundSettingsKey, defaultValue);
@@ -73,7 +73,7 @@ namespace TapEmpire.Utility
         #endregion
 
         #region Haptic
-        
+
         private const string HapticSettingsKey = "HapticSettingsKey";
 
         public static bool GetHapticSettings(bool defaultValue) => GetBool(HapticSettingsKey, defaultValue);
@@ -82,16 +82,6 @@ namespace TapEmpire.Utility
 
         #endregion
 
-        #region Rate me
-        
-        private const string RateMeKey = "RateMeKey";
-
-        public static bool GetRateMe(bool defaultValue) => GetBool(RateMeKey, defaultValue);
-
-        public static void SetRateMe(bool value) => SetBoolFast(RateMeKey, value);
-        
-        #endregion
-        
         #region Session + launch
 
         private const string FirstLaunchDateKey = "FirstLaunchDateKey";

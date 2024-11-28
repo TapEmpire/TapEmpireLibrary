@@ -12,6 +12,20 @@ namespace TapEmpire.Utility
                 self.Remove(key);
             }
         }
+
+        public static TValue GetFirstOrAdd<TKey, TValue>(this Dictionary<TKey, TValue> self, TKey key, Func<TKey, TValue> addDelegate)
+        {
+            if (self.TryGetValue(key, out var value))
+            {
+                return value;
+            }
+            else
+            {
+                var newValue = addDelegate.Invoke(key);
+                self.Add(key, newValue);
+                return newValue;
+            }
+        }
         
         public static (TKey key, TValue value) GetFirstOrAdd<TKey, TValue>(this Dictionary<TKey, TValue> self, Func<TValue, bool> getDelegate, Func<(TKey key, TValue value)> addDelegate)
         {

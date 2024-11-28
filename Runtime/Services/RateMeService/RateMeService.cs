@@ -6,6 +6,7 @@ using Firebase.Crashlytics;
 using Google.Play.Review;
 using TapEmpire.Services;
 using TapEmpire.Utility;
+using Zenject;
 
 namespace TapEmpire.Services
 {
@@ -15,7 +16,15 @@ namespace TapEmpire.Services
         [NonSerialized] private ReviewManager _reviewManager;
         [NonSerialized] private PlayReviewInfo _playReviewInfo;
 
-        public bool HasRated => PlayerPrefsUtility.GetRateMe(false);
+        public bool HasRated => _progressService.GetRateMe();
+
+        private IProgressService _progressService = null;
+
+        [Inject]
+        private void Construct(IProgressService progressService)
+        {
+            _progressService = progressService;
+        }
         
         protected override UniTask OnInitializeAsync(CancellationToken cancellationToken)
         {
@@ -46,7 +55,7 @@ namespace TapEmpire.Services
             yield return requestFlowOperation;
             if (requestFlowOperation.Error != ReviewErrorCode.NoError)
             {
-                PlayerPrefsUtility.SetRateMe(false);
+                _progressService.SetRateMe(false);
                 Crashlytics.LogException(new Exception(requestFlowOperation.Error.ToString()));
                 yield break;
             }
@@ -63,12 +72,12 @@ namespace TapEmpire.Services
                 _playReviewInfo = null; // Reset the object
                 if (launchFlowOperation.Error != ReviewErrorCode.NoError)
                 {
-                    PlayerPrefsUtility.SetRateMe(false);
+                    _progressService.SetRateMe(false);
                     Crashlytics.LogException(new Exception(launchFlowOperation.Error.ToString()));
                 }
                 else
                 {
-                    PlayerPrefsUtility.SetRateMe(true);
+                    _progressService.SetRateMe(true);
                 }
             }
             else
