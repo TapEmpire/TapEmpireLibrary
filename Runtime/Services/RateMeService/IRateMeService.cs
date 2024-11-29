@@ -1,9 +1,12 @@
-﻿namespace TapEmpire.Services
+﻿using Cysharp.Threading.Tasks;
+
+namespace TapEmpire.Services
 {
     public interface IRateMeService : IService
     {
         bool HasRated { get; }
 
-        void RateOnLevel(int level); // Human level, not levelIndex.
+        UniTask Rate();
+        UniTask RateOnLevel(int level); // Human level, not levelIndex.
     }
 }

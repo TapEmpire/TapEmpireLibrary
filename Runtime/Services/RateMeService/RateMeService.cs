@@ -24,6 +24,8 @@ namespace TapEmpire.Services
         private RateMeUiViewModel _rateMeUiViewModel;
         private IReviewManager _reviewManager;
 
+        private UniTaskCompletionSource<bool> _completionSource = null;
+
         [Inject]
         private void Construct(IProgressService progressService, IUIService uiService)
         {
@@ -55,7 +57,16 @@ namespace TapEmpire.Services
             _reviewManager = null;
         }
 
-        public void RateOnLevel(int level)
+        public async UniTask Rate()
+        {
+            _completionSource = new UniTaskCompletionSource<bool>();
+            _uiService.OpenViewAsync(_rateMeUiView, _rateMeUiViewModel, _cancellationTokenSource.Token).Forget();
+            _rateMeUiViewModel.AcceptCommand.Subscribe(_ => Accept()).AddTo(_disposables);
+            _rateMeUiViewModel.RejectCommand.Subscribe(_ => Reject()).AddTo(_disposables);
+            await _completionSource.Task;
+        }
+
+        public async UniTask RateOnLevel(int level)
         {
             if (!_rateMeSettings.Enable || HasRated)
             {
@@ -66,9 +77,7 @@ namespace TapEmpire.Services
 
             if (shouldShowRateMe)
             {
-                _uiService.OpenViewAsync(_rateMeUiView, _rateMeUiViewModel, _cancellationTokenSource.Token).Forget();
-                _rateMeUiViewModel.AcceptCommand.Subscribe(_ => Accept()).AddTo(_disposables);
-                _rateMeUiViewModel.RejectCommand.Subscribe(_ => Reject()).AddTo(_disposables);
+                await Rate();
             }
         }
 
@@ -77,11 +86,13 @@ namespace TapEmpire.Services
             _progressService.SetRateMe(true);
             _reviewManager?.RateMeAsync(_cancellationTokenSource.Token).Forget();
             _uiService.TryCloseViewAsync<RateMeUiViewModel>(_cancellationTokenSource.Token).Forget();
+            _completionSource.TrySetResult(true);
         }
 
         private void Reject()
         {
             _uiService.TryCloseViewAsync<RateMeUiViewModel>(_cancellationTokenSource.Token).Forget();
+            _completionSource.TrySetResult(false);
         }
 
         private IReviewManager CreateReviewManager()
