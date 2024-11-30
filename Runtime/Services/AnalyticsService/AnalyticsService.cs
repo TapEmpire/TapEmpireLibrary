@@ -23,12 +23,12 @@ namespace TapEmpire.Services
         private AnalyticsType _analyticsType = AnalyticsType.Amplitude;
 
         [SerializeField]
-        [ShowIf("@_analyticsType == AnalyticsType.Amplitude")]
-        private string _amplitudeKey = "";
+        [ShowIf("@_analyticsType == AnalyticsType.Amplitude || _analyticsType == AnalyticsType.AppMetrica")]
+        private string _analyticsKey = "";
 
         [SerializeField]
-        [ShowIf("@_analyticsType == AnalyticsType.Amplitude")]
-        private bool _logAmplitude;
+        [ShowIf("@_analyticsType == AnalyticsType.Amplitude || _analyticsType == AnalyticsType.AppMetrica")]
+        private bool _shouldEnableLogs = false;
 
         [SerializeField]
         [ShowIf("@_analyticsType == AnalyticsType.GameAnalytics")]
@@ -55,8 +55,7 @@ namespace TapEmpire.Services
 
         protected override UniTask OnInitializeAsync(CancellationToken cancellationToken)
         {
-            _innerService = _analyticsType == AnalyticsType.Amplitude ?
-                new AmplitudeService(_amplitudeKey, _logAmplitude) : new GameAnalyticsService(_gameAnalyticsPrefab);
+            _innerService = CreateAnalyticsInternalService(_analyticsType);
 
             _innerService.InitializeAsync(cancellationToken);
             _diContainer.Resolve<IABTestingService>().OnGroupAssigned += onGroupAssigned;
@@ -134,6 +133,17 @@ namespace TapEmpire.Services
         {
             _diContainer.Resolve<IABTestingService>().OnGroupAssigned -= onGroupAssigned;
             InitializeDeferred();
+        }
+
+        private IAnalyticsService CreateAnalyticsInternalService(AnalyticsType analyticsType)
+        {
+            switch (analyticsType)
+            {
+                case AnalyticsType.Amplitude: return new AmplitudeService(_analyticsKey, _shouldEnableLogs);
+                case AnalyticsType.GameAnalytics: return new GameAnalyticsService(_gameAnalyticsPrefab);
+                case AnalyticsType.AppMetrica: return new AppMetricaService(_analyticsKey, _shouldEnableLogs);
+                default: throw new ArgumentOutOfRangeException("Unknown analytics type");
+            }
         }
 
         private void InitializeDeferred()
