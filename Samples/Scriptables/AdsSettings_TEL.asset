@@ -13,4 +13,6 @@ MonoBehaviour:
   m_Name: AdsSettings_TEL
   m_EditorClassIdentifier: 
   EnableAppOpen: 1
+  ShouldWaitAppOpen: 0
+  AppOpenWaitTime: 10
   InterstitialAfterLevels: 

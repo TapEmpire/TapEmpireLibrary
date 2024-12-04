@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace TapEmpire.Services
 {
-    [CreateAssetMenu(menuName = "TapEmpire/RateMeSettings", fileName = "RateMeSettings")]
+    [CreateAssetMenu(menuName = "TapEmpire/Settings/RateMeSettings", fileName = "RateMeSettings")]
     public class RateMeSettings : ScriptableObject
     {
         [SerializeField]
