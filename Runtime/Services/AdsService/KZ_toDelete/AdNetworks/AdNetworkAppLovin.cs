@@ -27,9 +27,9 @@ public class AdNetworkAppLovin : AdNetworkBase
         if (AdConstants.IsDebugBuild)
             MaxSdk.SetVerboseLogging(true);
 
-        MaxSdk.SetIsAgeRestrictedUser(AdsManager.Instance.IsForFamily);
+        // MaxSdk.SetIsAgeRestrictedUser(AdsManager.Instance.IsForFamily);
         MaxSdk.SetHasUserConsent(ConsentManager.isPersonalized); // for PersonlizedAds
-        MaxSdk.SetSdkKey(AdsManager.Instance.MaxSDKKey);
+        // MaxSdk.SetSdkKey(AdsManager.Instance.MaxSDKKey);
         MaxSdk.InitializeSdk();
     }
 
