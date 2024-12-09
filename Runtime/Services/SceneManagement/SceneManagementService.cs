@@ -51,7 +51,7 @@ namespace TapEmpire.Services
             if (_adsService.MaxWaitingTime > float.Epsilon)
             {
                 await UniTask.WaitForSeconds(_initialProgressTime, cancellationToken: cancellationToken);
-                _sceneLoadingUIViewModel.SetProgressCallback(_adsProgress, _adsService.MaxWaitingTime);
+                _sceneLoadingUIViewModel?.SetProgressCallback(_adsProgress, _adsService.MaxWaitingTime);
                 _initialProgressDone = _adsProgress;
             }
         }
