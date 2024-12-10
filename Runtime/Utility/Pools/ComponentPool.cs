@@ -32,6 +32,20 @@ namespace TapEmpire.Utility
             return _pool.Get();
         }
 
+        public T GetSafe()
+        {
+            try
+            {
+                return _pool.Get();
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogWarning($"{e.Message} {e.StackTrace}");
+            }
+
+            return null;
+        }
+
         public void Release(T item)
         {
             _pool.Release(item);

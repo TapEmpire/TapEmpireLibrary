@@ -14,6 +14,11 @@ namespace TapEmpire.Utility
             return System.Enum.TryParse<TValue>(value, out result) ? result : null;
         }
 
+        public static TValue Parse<TValue>(int value) where TValue : System.Enum
+        {
+            return (TValue)System.Enum.ToObject(typeof(TValue), value);
+        }
+
         public static TValue GetRandomValue<TValue>() where TValue : System.Enum
         {
             return GetRandomValueInternal<TValue>(0);

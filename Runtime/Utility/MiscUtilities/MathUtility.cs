@@ -30,7 +30,7 @@ namespace TapEmpire.Utility
 
         public static T Max<T>(T enumValue1, T enumValue2) where T : Enum
         {
-            return (T)(object)Mathf.Max(enumValue1.EnumToInt(), enumValue2.EnumToInt());
+            return (T)(object)Mathf.Max(enumValue1.ToInt(), enumValue2.ToInt());
         }
 
         public static float RotationDistanceY(Quaternion from, Quaternion to)
