@@ -5,10 +5,7 @@ using TapEmpire.Services;
 using TapEmpire.CoreSystems;
 using TapEmpire.UI;
 using Zenject;
-using TEL.Services;
 using TapEmpire.Settings;
-using Game.Services;
-using TapEmpire.Utility;
 
 namespace TapEmpire.Game
 {
