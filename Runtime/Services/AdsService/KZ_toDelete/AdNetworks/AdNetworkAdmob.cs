@@ -79,7 +79,7 @@ public class AdNetworkAdmob : AdNetworkBase
             RequestVideoAds();
         });
 
-        if (!AdConstants.AdsRemoved && !AdsManager.Instance.IsForFamily)
+        if (!AdsManager.Instance.AreAdsRemoved && !AdsManager.Instance.IsForFamily)
         {
             RequestAppOpenAd();
         }
@@ -89,7 +89,7 @@ public class AdNetworkAdmob : AdNetworkBase
 
     private void RequestVideoAds()
     {
-        if (!AdConstants.AdsRemoved)
+        if (!AdsManager.Instance.AreAdsRemoved)
         {
             RequestInterstitial();
         }

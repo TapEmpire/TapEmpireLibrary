@@ -78,7 +78,7 @@ namespace TapEmpire.Services
                 global::AdsManager.Instance.EnableAppOpen = _adsSettings.EnableAppOpen;
                 global::AdsManager.Instance.SetAppOpenAutoShow(true);
                 global::AdsManager.Instance.OnConsentObtained += OnConsentObtained;
-                global::AdsManager.Instance.Initialize_AdNetworks(_adsSettings.ShouldWaitAppOpen)
+                global::AdsManager.Instance.Initialize_AdNetworks(_adsSettings)
                     .ContinueWith(() => PeriodicAdCheck()).Forget();
 
                 _shouldWaitAppOpen = new ReactiveProperty<bool>(_adsSettings.ShouldWaitAppOpen);

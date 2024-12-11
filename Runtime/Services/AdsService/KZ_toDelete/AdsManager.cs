@@ -12,6 +12,7 @@ using Cysharp.Threading.Tasks;
 using System.Threading.Tasks;
 using TapEmpire.Services;
 using R3;
+using System.Collections.Generic;
 
 [HideMonoScript]
 public class AdsManager : MonoBehaviour
@@ -48,7 +49,6 @@ public class AdsManager : MonoBehaviour
     [Header("References")]
     [SerializeField] AdNetworkAdmob Admob;
     [SerializeField] AdNetworkAppLovin Applovin;
-    [SerializeField] FetchAdsRemoteSettings RemoteSettings;
 
     [Header("Admob IDs")]
     public string AppID;
@@ -78,6 +78,8 @@ public class AdsManager : MonoBehaviour
 
     #region Properties
 
+    public bool IsInternetAvailable => Application.internetReachability != NetworkReachability.NotReachable;
+    public bool AreAdsRemoved => PlayerPrefs.GetInt("RemoveAds", 0) == 1;
     public string RateUsLink => "https://play.google.com/store/apps/details?id=" + Application.identifier;
     public bool HasInterstitial => (Applovin.HasInterstitial(false) || Admob.HasInterstitial(false)) && ReadyForNextInterstitial;
     public bool HasAnyRewarded => (Applovin.HasRewarded(false) || Admob.HasRewarded(false) || Applovin.HasInterstitial(false) || Admob.HasInterstitial(false));
@@ -91,6 +93,8 @@ public class AdsManager : MonoBehaviour
     public static bool IsApplovinInitSuccess { get; private set; }
     public bool ShowAppOpenOnLoad => Admob.ShowAppOpenOnLoad;
     public ReactiveProperty<bool> ShouldWaitAppOpen => Admob.ShouldWaitAppOpen;
+
+    private AdsSettings _adsSettings = null;
 
     Action OnRewardComplete;
     private System.Action OnAppOpenShown = null;
@@ -129,13 +133,13 @@ public class AdsManager : MonoBehaviour
     {
         Screen.sleepTimeout = SleepTimeout.NeverSleep;
         ThreadDispatcher.Initialize();
-        AdsRemoteSettings.Initialize();
         // GameAnalyticsSDK.GameAnalytics.Initialize();
     }
 
-    public async UniTask Initialize_AdNetworks(bool shouldWaitAppOpen)
+    public async UniTask Initialize_AdNetworks(AdsSettings adsSettings)
     {
-        await Initialize(shouldWaitAppOpen);
+        _adsSettings = adsSettings;
+        await Initialize();
     }
 
     public void OnRelease()
@@ -143,19 +147,19 @@ public class AdsManager : MonoBehaviour
         Admob.OnRelease();
     }
 
-    private async UniTask Initialize(bool shouldWaitAppOpen)
+    private async UniTask Initialize()
     {
         OnAdmobInitSuccess = () => { IsAdmobInitSuccess = true; };
         OnApplovinInitSuccess = () => { IsApplovinInitSuccess = true; };
 
-        await UniTask.WaitUntil(() => AdConstants.InternetAvailable);
+        await UniTask.WaitUntil(() => IsInternetAvailable);
         await Retry_Consent();
 
         OnConsentObtained?.Invoke(ConsentManager.isPersonalized);
 
         PassAdjustConsentParameters();
 
-        Admob.Initialize(shouldWaitAppOpen);
+        Admob.Initialize(_adsSettings.ShouldWaitAppOpen);
         await UniTask.WaitUntil(() => IsAdmobInitSuccess);
         await UniTask.WaitUntil(() => !ShouldWaitAppOpen.Value);
 
@@ -170,7 +174,7 @@ public class AdsManager : MonoBehaviour
     {
         if (Ram() <= 2)
         {
-            if (AdsRemoteSettings.Instance.ShowMediationOn2GB)
+            if (_adsSettings.ShowApplovinOn2GB)
             {
                 Applovin.Initialize();
             }
@@ -245,7 +249,7 @@ public class AdsManager : MonoBehaviour
 
     public void ShowBanner()
     {
-        if (!AdConstants.AdsRemoved)
+        if (!AreAdsRemoved)
         {
             BannerStatus = true;
             if (Applovin.HasBanner())
@@ -285,7 +289,7 @@ public class AdsManager : MonoBehaviour
     #region MREC
     public void ShowMREC()
     {
-        if (!AdConstants.AdsRemoved)
+        if (!AreAdsRemoved)
         {
             MrecStatus = true;
             Admob.ShowMREC();
@@ -354,7 +358,7 @@ public class AdsManager : MonoBehaviour
 
     void ShowInterstitial()
     {
-        if (!AdConstants.AdsRemoved && HasInterstitial)
+        if (!AreAdsRemoved && HasInterstitial)
         {
             ExtendAppOpenTime();
             ExtendInterstitialTime();
@@ -368,7 +372,7 @@ public class AdsManager : MonoBehaviour
     bool ReadyForNextInterstitial => true; // Time.time > InterstitialTimer;
     public void ExtendInterstitialTime()
     {
-        InterstitialTimer = Time.time + AdsRemoteSettings.Instance.NextInterstitialDelay;
+        InterstitialTimer = Time.time + _adsSettings.InterstitialDelay;
     }
     public void ResetInterstitialTime()
     {
@@ -380,7 +384,7 @@ public class AdsManager : MonoBehaviour
     {
         AnalyticsManager.PlacementName = placementName;
 
-        if (!AdConstants.AdsRemoved && ReadyForNextInterstitial)
+        if (!AreAdsRemoved && ReadyForNextInterstitial)
         {
             if (Admob.HasInterstitial(true))
             {
@@ -396,7 +400,7 @@ public class AdsManager : MonoBehaviour
         AnalyticsManager.PlacementName = placementName;
         OnRewardComplete = onReward;
 
-        if (!AdConstants.AdsRemoved && Admob.HasInterstitial(true))
+        if (!AreAdsRemoved && Admob.HasInterstitial(true))
         {
             ExtendAppOpenTime();
             ExtendInterstitialTime();
@@ -411,7 +415,7 @@ public class AdsManager : MonoBehaviour
 
     public void ShowRewarded(Action UserReward, string placementName)
     {
-        if (!AdConstants.InternetAvailable)
+        if (!IsInternetAvailable)
         {
             MobileToast.Show("Sorry, No Internet Connection!", true);
             return;
@@ -461,7 +465,7 @@ public class AdsManager : MonoBehaviour
 
     public void ShowAppOpen(System.Action action = null)
     {
-        if (!AdConstants.AdsRemoved && !IsForFamily && Time.time > AppOpenTimer && Admob.CanShowAppOpen)
+        if (!AreAdsRemoved && !IsForFamily && Time.time > AppOpenTimer && Admob.CanShowAppOpen)
         {
             AnalyticsManager.PlacementName = AdType_New.AppOpen.ToString();
             OnAppOpenShown = action;

@@ -47,7 +47,7 @@ public class AdNetworkAppLovin : AdNetworkBase
             AssignIDs();
 
             InitializeRewardedAds();
-            if (!AdConstants.AdsRemoved)
+            if (!AdsManager.Instance.AreAdsRemoved)
                 InitializeInterstitialAds();
 
             GameAnalyticsSDK.GameAnalyticsILRD.SubscribeMaxImpressions();

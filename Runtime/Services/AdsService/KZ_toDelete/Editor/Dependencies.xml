@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<dependencies>
+	<androidPackages>
+		<androidPackage spec="org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4"/>
+		<androidPackage spec="org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.6.4"/>
+	</androidPackages>
+</dependencies>
