@@ -63,6 +63,16 @@ namespace TapEmpire.Utility
 
             return result;
         }
+        
+        public static string GetSelectedPath()
+        {
+            foreach (var obj in Selection.GetFiltered(typeof(UnityEngine.Object), SelectionMode.Assets))
+            {
+                return AssetDatabase.GetAssetPath(obj);
+            }
+
+            return string.Empty;
+        }
 
         public static float GetPixelsPerUnitMultiplier(string path)
         {
