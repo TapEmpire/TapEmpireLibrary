@@ -22,8 +22,8 @@ namespace TapEmpire.Services
 
         public System.Action OnRewardedAdReady { get; set; } = null;
 
-        public bool IsRewardedAdReady => global::AdsManager.Instance.HasAnyRewarded;
-        public bool IsInterstitialReady => global::AdsManager.Instance.HasInterstitial;
+        public bool IsRewardedAdReady => global::AdsManager.Instance != null && global::AdsManager.Instance.HasAnyRewarded;
+        public bool IsInterstitialReady => global::AdsManager.Instance != null && global::AdsManager.Instance.HasInterstitial;
 
         [SerializeField]
         private AdsManager _adsManagerPrefab = null;
