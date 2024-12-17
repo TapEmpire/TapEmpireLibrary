@@ -77,15 +77,16 @@ namespace TapEmpire.Services
         protected override void OnRelease()
         {
             _isInitialized = false;
-            _diContainer.Resolve<IABTestingService>().OnGroupAssigned -= onGroupAssigned;
-            _monoCallbackService.OnApplicationFocusChange -= OnApplicationFocus;
+            
+            if (_diContainer != null) _diContainer.Resolve<IABTestingService>().OnGroupAssigned -= onGroupAssigned;
+            if (_monoCallbackService != null) _monoCallbackService.OnApplicationFocusChange -= OnApplicationFocus;
 
             // AdsModule.OnRelease();
 
             if (_adjust != null)
                 _adjust.OnConfigChanged -= OnConfigChanged;
 
-            _innerService.Release();
+            _innerService?.Release();
 
             //_globalModule = null;
         }
