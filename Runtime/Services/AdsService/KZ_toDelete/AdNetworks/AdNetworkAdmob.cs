@@ -54,9 +54,9 @@ public class AdNetworkAdmob : AdNetworkBase
 
     void SetConfigurations()
     {
-        RequestConfiguration config = new RequestConfiguration.Builder()
-        .SetTagForUnderAgeOfConsent(AdsManager.Instance.IsForFamily ? TagForUnderAgeOfConsent.True : TagForUnderAgeOfConsent.False)
-        .build();
+        RequestConfiguration config = new RequestConfiguration() {
+            TagForUnderAgeOfConsent = AdsManager.Instance.IsForFamily ? TagForUnderAgeOfConsent.True : TagForUnderAgeOfConsent.False,
+        };
 
         MobileAds.SetRequestConfiguration(config);
     }
@@ -513,9 +513,9 @@ public class AdNetworkAdmob : AdNetworkBase
     #region Others
     public AdRequest CreateAdRequest()
     {
-        return new AdRequest.Builder()
-            .AddExtra("npa", ConsentManager.isPersonalized ? "0" : "1")
-            .Build();
+        var adRequest = new AdRequest();
+        adRequest.Extras.Add("npa", ConsentManager.isPersonalized ? "0" : "1");
+        return adRequest;
     }
 
     #endregion
