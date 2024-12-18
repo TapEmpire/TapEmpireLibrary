@@ -74,9 +74,10 @@ public class AdNetworkAdmob : AdNetworkBase
     {
         _subscription = ShouldWaitAppOpen.Subscribe(value =>
         {
+            RequestVideoAds();
             _subscription.Dispose();
             _subscription = null;
-            RequestVideoAds();
+            //Весь код вставлять выше _subscription.Dispose(); все, что ниже не работает
         });
 
         if (!AdConstants.AdsRemoved && !AdsManager.Instance.IsForFamily)
