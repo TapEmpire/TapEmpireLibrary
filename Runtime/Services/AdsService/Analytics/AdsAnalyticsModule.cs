@@ -74,7 +74,7 @@ namespace TapEmpire.Services
                 { "placement", adPlacement },
                 { "network", adData.Network },
                 { "mediation", adData.Mediation },
-                { "format", adData.Format },
+                { "format", adData.Format.ToString() },
                 { "level", levelsCompleted },
             });
         }
@@ -87,7 +87,7 @@ namespace TapEmpire.Services
                 { "placement", adType },
                 { "network", network },
                 { "mediation", mediation },
-                { "format", format },
+                { "format", format.ToString() },
                 { "price", price },
                 { "level", levelsCompleted },
             });

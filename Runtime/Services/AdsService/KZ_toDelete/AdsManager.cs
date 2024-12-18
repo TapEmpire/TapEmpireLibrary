@@ -465,7 +465,7 @@ public class AdsManager : MonoBehaviour
 
     public void ShowAppOpen(System.Action action = null)
     {
-        if (!AreAdsRemoved && !IsForFamily && Time.time > AppOpenTimer && Admob.CanShowAppOpen)
+        if (!AreAdsRemoved && !IsForFamily && Time.time > AppOpenTimer && Admob.CanShowAppOpen && EnableAppOpen)
         {
             AnalyticsManager.PlacementName = AdType_New.AppOpen.ToString();
             OnAppOpenShown = action;
