@@ -100,7 +100,7 @@ namespace TapEmpire.Services
 #if UNITY_ANDROID
             return new AndroidReviewManager();
 #elif UNITY_IOS
-            return null;
+            return new IosReviewManager();
 #else
             return null;
 #endif
