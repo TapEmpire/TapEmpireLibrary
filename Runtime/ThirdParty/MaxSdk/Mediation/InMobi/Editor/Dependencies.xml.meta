@@ -1,8 +1,8 @@
 fileFormatVersion: 2
-guid: fba397d5cac8648fea9b0fe82e201e63
+guid: bc66a0ef4503843ee9b1bf1b1e867367
 labels:
 - al_max
-- al_max_export_path-MaxSdk/Mediation/BigoAds/Editor/Dependencies.xml
+- al_max_export_path-MaxSdk/Mediation/InMobi/Editor/Dependencies.xml
 TextScriptImporter:
   externalObjects: {}
   userData: 
