@@ -1,9 +1,9 @@
+#if TEL_GAMEANALYTICS
 using System.Collections.Generic;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using GameAnalyticsSDK;
 using UnityEngine;
-using UnityEngine.Video;
 
 namespace TapEmpire.Services
 {
@@ -101,3 +101,4 @@ namespace TapEmpire.Services
         }
     }
 }
+#endif

@@ -2,11 +2,8 @@
 using System.Collections;
 using GoogleMobileAds.Api;
 using System.Text;
-using UnityEngine;
 using Firebase.Analytics;
-using System.Collections.Generic;
 using com.adjust.sdk;
-using GameAnalyticsSDK;
 using Io.AppMetrica;
 
 public class AdData
@@ -157,23 +154,23 @@ public static class AnalyticsManager
         return (format == AdFormat.Interstitial || format == AdFormat.Rewarded || format == AdFormat.RewardedInt);
     }
 
-    static GAAdType GetAdType(AdFormat format)
-    {
-        switch (format)
-        {
-            case AdFormat.Interstitial:
-                return GAAdType.Interstitial;
-            case AdFormat.Rewarded:
-            case AdFormat.RewardedInt:
-                return GAAdType.RewardedVideo;
-            case AdFormat.Banner:
-                return GAAdType.Banner;
-            case AdFormat.AppOpen:
-                return GAAdType.OfferWall;
-            default:
-                return GAAdType.Undefined;
-        }
-    }
+    // static GAAdType GetAdType(AdFormat format)
+    // {
+    //     switch (format)
+    //     {
+    //         case AdFormat.Interstitial:
+    //             return GAAdType.Interstitial;
+    //         case AdFormat.Rewarded:
+    //         case AdFormat.RewardedInt:
+    //             return GAAdType.RewardedVideo;
+    //         case AdFormat.Banner:
+    //             return GAAdType.Banner;
+    //         case AdFormat.AppOpen:
+    //             return GAAdType.OfferWall;
+    //         default:
+    //             return GAAdType.Undefined;
+    //     }
+    // }
 
     static AdType GetAppMetricaAdType(AdFormat format)
     {

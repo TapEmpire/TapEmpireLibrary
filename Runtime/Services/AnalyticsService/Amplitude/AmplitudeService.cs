@@ -1,3 +1,4 @@
+#if TEL_AMPLITUDE
 using System.Collections.Generic;
 using System.Threading;
 using Cysharp.Threading.Tasks;
@@ -79,3 +80,4 @@ namespace TapEmpire.Services
         }
     }
 }
+#endif

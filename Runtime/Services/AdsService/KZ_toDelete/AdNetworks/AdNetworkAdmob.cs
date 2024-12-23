@@ -1,11 +1,7 @@
 ﻿using UnityEngine;
 using GoogleMobileAds.Api;
 using System;
-using GameAnalyticsSDK;
-using Cysharp.Threading.Tasks;
 using R3;
-using TapEmpire.Utility;
-using System.Threading;
 
 public class AdNetworkAdmob : AdNetworkBase
 {
@@ -125,7 +121,7 @@ public class AdNetworkAdmob : AdNetworkBase
 
         bannerImp = new AdImpressionData(adUnitId, AdFormat.Banner);
         bannerView = new BannerView(adUnitId, adSize, AdsManager.Instance.BannerPos);
-        GameAnalyticsILRD.SubscribeAdMobImpressions(adUnitId, bannerView);
+        // GameAnalyticsILRD.SubscribeAdMobImpressions(adUnitId, bannerView);
 
         bannerView.OnBannerAdLoaded += BannerView_OnBannerAdLoaded;
         bannerView.OnBannerAdLoadFailed += BannerView_OnBannerAdLoadFailed;
@@ -201,7 +197,7 @@ public class AdNetworkAdmob : AdNetworkBase
 
         mrecImp = new AdImpressionData(adUnitId, AdFormat.MREC);
         mrecView = new BannerView(adUnitId, new AdSize(300, 250), AdsManager.Instance.MrecPos);
-        GameAnalyticsILRD.SubscribeAdMobImpressions(adUnitId, mrecView);
+        // GameAnalyticsILRD.SubscribeAdMobImpressions(adUnitId, mrecView);
 
         mrecView.OnBannerAdLoadFailed += MrecView_OnBannerAdLoadFailed;
         mrecView.OnBannerAdLoaded += MrecView_OnBannerAdLoaded;
@@ -293,7 +289,7 @@ public class AdNetworkAdmob : AdNetworkBase
                 interstitialAd.OnAdPaid += InterstitialAd_OnAdPaid;
                 interstitialAd.OnAdImpressionRecorded += InterstitialAd_OnAdImpressionRecorded;
                 interstitialAd.OnAdFullScreenContentClosed += InterstitialAd_OnAdFullScreenContentClosed;
-                GameAnalyticsILRD.SubscribeAdMobImpressions(interAdUnitId, interstitialAd);
+                // GameAnalyticsILRD.SubscribeAdMobImpressions(interAdUnitId, interstitialAd);
             }
             //else Failed 
         });
@@ -369,7 +365,7 @@ public class AdNetworkAdmob : AdNetworkBase
                 rewardedAd.OnAdPaid += RewardedAd_OnAdPaid;
                 rewardedAd.OnAdImpressionRecorded += RewardedAd_OnAdImpressionRecorded;
                 rewardedAd.OnAdFullScreenContentClosed += RewardedAd_OnAdFullScreenContentClosed;
-                GameAnalyticsILRD.SubscribeAdMobImpressions(rewardAdUnitId, rewardedAd);
+                // GameAnalyticsILRD.SubscribeAdMobImpressions(rewardAdUnitId, rewardedAd);
             }
             //else Failed
         });
@@ -437,7 +433,7 @@ public class AdNetworkAdmob : AdNetworkBase
                 appOpenAd.OnAdFullScreenContentClosed += AppOpenAd_OnAdFullScreenContentClosed;
                 appOpenAd.OnAdFullScreenContentFailed += AppOpenAd_OnAdFullScreenContentFailed;
                 appOpenAd.OnAdPaid += AppOpenAd_OnAdPaid;
-                GameAnalyticsILRD.SubscribeAdMobImpressions(AdsManager.Instance.AppOpenID, appOpenAd);
+                // GameAnalyticsILRD.SubscribeAdMobImpressions(AdsManager.Instance.AppOpenID, appOpenAd);
 
                 ShouldWaitAppOpen.Value = false;
 

@@ -30,9 +30,9 @@ namespace TapEmpire.Services
         [ShowIf("@_analyticsType == AnalyticsType.Amplitude || _analyticsType == AnalyticsType.AppMetrica")]
         private bool _shouldEnableLogs = false;
 
-        [SerializeField]
-        [ShowIf("@_analyticsType == AnalyticsType.GameAnalytics")]
-        private GameAnalyticsSDK.GameAnalytics _gameAnalyticsPrefab;
+        // [SerializeField]
+        // [ShowIf("@_analyticsType == AnalyticsType.GameAnalytics")]
+        // private GameAnalyticsSDK.GameAnalytics _gameAnalyticsPrefab;
 
         private DiContainer _diContainer = null;
         private IProgressService _progressService = null;
@@ -140,8 +140,12 @@ namespace TapEmpire.Services
         {
             switch (analyticsType)
             {
+                #if TEL_AMPLITUDE
                 case AnalyticsType.Amplitude: return new AmplitudeService(_analyticsKey, _shouldEnableLogs);
+                #endif
+                #if TEL_GAMEANALYTICS
                 case AnalyticsType.GameAnalytics: return new GameAnalyticsService(_gameAnalyticsPrefab);
+                #endif
                 case AnalyticsType.AppMetrica: return new AppMetricaService(_analyticsKey, _shouldEnableLogs);
                 default: throw new ArgumentOutOfRangeException("Unknown analytics type");
             }
