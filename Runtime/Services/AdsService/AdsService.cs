@@ -241,7 +241,7 @@ namespace TapEmpire.Services
 
             firebaseService.UpdateConsentStatus(isPersonalized);
 
-            GameAnalyticsSDK.GameAnalytics.SetCustomDimension01(ConsentInformation.ConsentStatus.ToString());
+            // GameAnalyticsSDK.GameAnalytics.SetCustomDimension01(ConsentInformation.ConsentStatus.ToString());
         }
 
         private void ResetInterstitialByTimer()

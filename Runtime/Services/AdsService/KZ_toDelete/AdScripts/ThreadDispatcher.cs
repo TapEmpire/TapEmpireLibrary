@@ -1,5 +1,5 @@
-﻿using GameAnalyticsSDK.Events;
-using GameAnalyticsSDK;
+﻿// using GameAnalyticsSDK.Events;
+// using GameAnalyticsSDK;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -42,7 +42,7 @@ public class ThreadDispatcher : MonoBehaviour
                     else
                     {
                         //AppMetrica.Instance.ReportError(e, "Dispatcher");
-                        GA_Debug.HandleLog(message, e.StackTrace, LogType.Exception);
+                        // GA_Debug.HandleLog(message, e.StackTrace, LogType.Exception);
                     }
                 }
 

@@ -16,6 +16,9 @@ namespace TapEmpire.Settings
         private bool _skipInters;
 
         [SerializeField, ShowIf(nameof(Debug))]
+        private bool _hideRewardsAds;
+
+        [SerializeField, ShowIf(nameof(Debug))]
         private bool _editorStartFromPrefLevel;
         
         [SerializeField, ShowIf(nameof(Debug)), HideIf(nameof(_editorStartFromPrefLevel))]
@@ -38,6 +41,12 @@ namespace TapEmpire.Settings
             get => _skipInters;
             set => _skipInters = value;
         }
+
+        public bool HideRewardsAds
+        {
+            get => _hideRewardsAds;
+            set => _hideRewardsAds = value;
+        } 
 
         public int EditorDebugStartLevelIndex
         {

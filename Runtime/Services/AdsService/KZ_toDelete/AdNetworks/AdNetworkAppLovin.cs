@@ -50,7 +50,7 @@ public class AdNetworkAppLovin : AdNetworkBase
             if (!AdsManager.Instance.AreAdsRemoved)
                 InitializeInterstitialAds();
 
-            GameAnalyticsSDK.GameAnalyticsILRD.SubscribeMaxImpressions();
+            // GameAnalyticsSDK.GameAnalyticsILRD.SubscribeMaxImpressions();
             AdsManager.OnApplovinInitSuccess?.Invoke();
         });
     }
