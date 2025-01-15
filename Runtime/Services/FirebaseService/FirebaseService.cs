@@ -15,6 +15,8 @@ namespace TapEmpire.Services
     [System.Serializable]
     public class FirebaseService : Initializable, IFirebaseService
     {
+        public static bool IsInitializedDeprecated = false;
+
         private ReactiveProperty<bool> _isLoaded = new(false);
         public ReadOnlyReactiveProperty<bool> IsLoaded => _isLoaded;
 
@@ -40,7 +42,7 @@ namespace TapEmpire.Services
                 _isFirebaseAvailable = true;
                 FirebaseAnalytics.SetAnalyticsCollectionEnabled(true);
 
-                global::FirebaseManager.hasInitialized = true;
+                IsInitializedDeprecated = true;
 
                 // Create and hold a reference to your FirebaseApp,
                 // where app is a Firebase.FirebaseApp property of your application class.

@@ -34,6 +34,14 @@ namespace TapEmpire.UI
 
         protected override void OnSetProgressCallback(float progress, float duration)
         {
+            var currentProgress = Mathf.InverseLerp(_emptyTransform.sizeDelta.x, _filledTransform.sizeDelta.x,
+                _fillImage.rectTransform.sizeDelta.x);
+
+            if (currentProgress > progress)
+            {
+                return;
+            }
+
             var targetSizeDelta = Vector2.Lerp(_emptyTransform.sizeDelta, _filledTransform.sizeDelta, progress);
             var targetPosition = Vector3.Lerp(_emptyTransform.localPosition, _filledTransform.localPosition, progress);
             _fillImage.rectTransform.DOKill();

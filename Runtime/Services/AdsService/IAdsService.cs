@@ -1,3 +1,5 @@
+using R3;
+
 namespace TapEmpire.Services
 {
     public interface IAdsService : IService
@@ -13,13 +15,15 @@ namespace TapEmpire.Services
         bool IsRewardedAdReady { get; }
         bool IsInterstitialReady { get; }
 
-        void ShowInterstitial();
+        bool ShowInterstitial();
         void ShowInterstitial(int level, System.Action action);
         void ShowRewarded(string adType);
         void DisableAds(bool shouldDisable);
         void ShowInterstitialByTimer();
-        void ShowAppOpen();
+        void ShowAppOpen(System.Action action);
 
         bool AdsDisabled { get; }
+        float MaxWaitingTime { get; }
+        ReadOnlyReactiveProperty<bool> ShouldWaitAppOpen { get; }
     }
 }

@@ -1,7 +1,6 @@
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using DG.Tweening;
-using TEL.Services;
 using UnityEngine;
 using TapEmpire.Utility;
 using Zenject;
@@ -48,7 +47,7 @@ namespace TapEmpire.Services
 
         private void SceneContextsService_OnSceneContextInstalled(string contextId, SceneContext sceneContext)
         {
-            if (contextId != "Core")
+            if (contextId != "Core" && contextId != "Menu")
             {
                 return;
             }

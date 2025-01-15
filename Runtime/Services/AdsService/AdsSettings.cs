@@ -10,6 +10,11 @@ namespace TapEmpire.Services
     {
         [Header("On-Off")]
         public bool EnableAppOpen = true;
+        public bool ShouldWaitAppOpen = false;
+        public float AppOpenWaitTime = 10.0f;
+
+        public bool ShowApplovinOn2GB = false;
+        public float InterstitialDelay = 30.0f;
 
         [Space(5)]
         public List<int> InterstitialAfterLevels = new();

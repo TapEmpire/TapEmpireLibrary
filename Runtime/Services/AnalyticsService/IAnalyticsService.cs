@@ -6,6 +6,7 @@ namespace TapEmpire.Services
     {
         Amplitude,
         GameAnalytics,
+        AppMetrica,
     }
 
     public enum ProgressionState

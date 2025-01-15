@@ -23,16 +23,16 @@ namespace TapEmpire.Services
         private AnalyticsType _analyticsType = AnalyticsType.Amplitude;
 
         [SerializeField]
-        [ShowIf("@_analyticsType == AnalyticsType.Amplitude")]
-        private string _amplitudeKey = "";
+        [ShowIf("@_analyticsType == AnalyticsType.Amplitude || _analyticsType == AnalyticsType.AppMetrica")]
+        private string _analyticsKey = "";
 
         [SerializeField]
-        [ShowIf("@_analyticsType == AnalyticsType.Amplitude")]
-        private bool _logAmplitude;
+        [ShowIf("@_analyticsType == AnalyticsType.Amplitude || _analyticsType == AnalyticsType.AppMetrica")]
+        private bool _shouldEnableLogs = false;
 
-        [SerializeField]
-        [ShowIf("@_analyticsType == AnalyticsType.GameAnalytics")]
-        private GameAnalyticsSDK.GameAnalytics _gameAnalyticsPrefab;
+        // [SerializeField]
+        // [ShowIf("@_analyticsType == AnalyticsType.GameAnalytics")]
+        // private GameAnalyticsSDK.GameAnalytics _gameAnalyticsPrefab;
 
         private DiContainer _diContainer = null;
         private IProgressService _progressService = null;
@@ -55,8 +55,7 @@ namespace TapEmpire.Services
 
         protected override UniTask OnInitializeAsync(CancellationToken cancellationToken)
         {
-            _innerService = _analyticsType == AnalyticsType.Amplitude ?
-                new AmplitudeService(_amplitudeKey, _logAmplitude) : new GameAnalyticsService(_gameAnalyticsPrefab);
+            _innerService = CreateAnalyticsInternalService(_analyticsType);
 
             _innerService.InitializeAsync(cancellationToken);
             _diContainer.Resolve<IABTestingService>().OnGroupAssigned += onGroupAssigned;
@@ -78,15 +77,16 @@ namespace TapEmpire.Services
         protected override void OnRelease()
         {
             _isInitialized = false;
-            _diContainer.Resolve<IABTestingService>().OnGroupAssigned -= onGroupAssigned;
-            _monoCallbackService.OnApplicationFocusChange -= OnApplicationFocus;
+            
+            if (_diContainer != null) _diContainer.Resolve<IABTestingService>().OnGroupAssigned -= onGroupAssigned;
+            if (_monoCallbackService != null) _monoCallbackService.OnApplicationFocusChange -= OnApplicationFocus;
 
             // AdsModule.OnRelease();
 
             if (_adjust != null)
                 _adjust.OnConfigChanged -= OnConfigChanged;
 
-            _innerService.Release();
+            _innerService?.Release();
 
             //_globalModule = null;
         }
@@ -134,6 +134,21 @@ namespace TapEmpire.Services
         {
             _diContainer.Resolve<IABTestingService>().OnGroupAssigned -= onGroupAssigned;
             InitializeDeferred();
+        }
+
+        private IAnalyticsService CreateAnalyticsInternalService(AnalyticsType analyticsType)
+        {
+            switch (analyticsType)
+            {
+                #if TEL_AMPLITUDE
+                case AnalyticsType.Amplitude: return new AmplitudeService(_analyticsKey, _shouldEnableLogs);
+                #endif
+                #if TEL_GAMEANALYTICS
+                case AnalyticsType.GameAnalytics: return new GameAnalyticsService(_gameAnalyticsPrefab);
+                #endif
+                case AnalyticsType.AppMetrica: return new AppMetricaService(_analyticsKey, _shouldEnableLogs);
+                default: throw new ArgumentOutOfRangeException("Unknown analytics type");
+            }
         }
 
         private void InitializeDeferred()

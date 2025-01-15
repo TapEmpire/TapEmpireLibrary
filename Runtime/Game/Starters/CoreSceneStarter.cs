@@ -5,10 +5,7 @@ using TapEmpire.Services;
 using TapEmpire.CoreSystems;
 using TapEmpire.UI;
 using Zenject;
-using TEL.Services;
 using TapEmpire.Settings;
-using Game.Services;
-using TapEmpire.Utility;
 
 namespace TapEmpire.Game
 {
@@ -102,6 +99,11 @@ namespace TapEmpire.Game
             }
             #endif
             return _progressService.GetLevelProgress();
+        }
+
+        private void OnDestroy()
+        {
+            _coreSystemsContainer.Release();
         }
         
         // TODO убалить комменты, пока оставил, чтобы подсветить, что нужно убрать в других стартерах (релиз внутри самого контейнера)

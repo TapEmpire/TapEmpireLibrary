@@ -6,6 +6,8 @@ using UnityEngine;
 using System.Linq;
 using Zenject;
 using GoogleMobileAds.Ump.Api;
+using TapEmpire.Utility;
+using R3;
 
 namespace TapEmpire.Services
 {
@@ -20,8 +22,8 @@ namespace TapEmpire.Services
 
         public System.Action OnRewardedAdReady { get; set; } = null;
 
-        public bool IsRewardedAdReady => global::AdsManager.Instance.HasAnyRewarded;
-        public bool IsInterstitialReady => global::AdsManager.Instance.HasInterstitial;
+        public bool IsRewardedAdReady => global::AdsManager.Instance != null && global::AdsManager.Instance.HasAnyRewarded;
+        public bool IsInterstitialReady => global::AdsManager.Instance != null && global::AdsManager.Instance.HasInterstitial;
 
         [SerializeField]
         private AdsManager _adsManagerPrefab = null;
@@ -51,11 +53,17 @@ namespace TapEmpire.Services
         private AdsAnalyticsModule _analyticsModule = null;
 
         public bool AdsDisabled => _adsDisabled;
+        public float MaxWaitingTime => _adsSettings.ShouldWaitAppOpen ? _adsSettings.AppOpenWaitTime : 0.0f;
 
-        protected override UniTask OnInitializeAsync(CancellationToken cancellationToken)
+        private CancellationTokenSource _cancellationTokenSource;
+
+        private ReactiveProperty<bool> _shouldWaitAppOpen = null;
+        public ReadOnlyReactiveProperty<bool> ShouldWaitAppOpen { get; private set; } = new ReactiveProperty<bool>(true);
+
+        protected override async UniTask OnInitializeAsync(CancellationToken cancellationToken)
         {
             if (_isInitialized)
-                return UniTask.CompletedTask;
+                return; //  UniTask.CompletedTask;
 
             if (!_adsDisabled)
             {
@@ -68,12 +76,30 @@ namespace TapEmpire.Services
 
                 // global::AdsManager.Instance.OnInitialized += OnInitialized;
                 global::AdsManager.Instance.EnableAppOpen = _adsSettings.EnableAppOpen;
+                global::AdsManager.Instance.SetAppOpenAutoShow(true);
                 global::AdsManager.Instance.OnConsentObtained += OnConsentObtained;
-                global::AdsManager.Instance.Initialize_AdNetworks().ContinueWith(() => PeriodicAdCheck()).Forget();
+                global::AdsManager.Instance.Initialize_AdNetworks(_adsSettings)
+                    .ContinueWith(() => PeriodicAdCheck()).Forget();
+
+                _shouldWaitAppOpen = new ReactiveProperty<bool>(_adsSettings.ShouldWaitAppOpen);
+
+                ShouldWaitAppOpen = _shouldWaitAppOpen.CombineLatest(global::AdsManager.Instance.ShouldWaitAppOpen,
+                    (timer, appOpen) => timer && appOpen).ToReadOnlyReactiveProperty();
+
                 _isInitialized = true;
+
+                _cancellationTokenSource = new CancellationTokenSource();
+                UniTaskUtility.ExecuteAfterSeconds(MaxWaitingTime,
+                    () =>
+                    {
+                        _shouldWaitAppOpen.Value = false;
+                        global::AdsManager.Instance.ShouldWaitAppOpen.Value = false;
+                    }, _cancellationTokenSource.Token);
+
+                await UniTask.WaitUntil(() => ShouldWaitAppOpen.CurrentValue == false);
             }
 
-            return UniTask.CompletedTask;
+            // return UniTask.CompletedTask;
         }
 
         protected override void OnRelease()
@@ -83,6 +109,9 @@ namespace TapEmpire.Services
             _analyticsModule = null;
             _interstitialTimerTween?.Kill();
             _currentAdPlacement = "";
+
+            _cancellationTokenSource?.Cancel();
+            _cancellationTokenSource = null;
 
             global::AdsManager.Instance?.OnRelease();
         }
@@ -98,7 +127,11 @@ namespace TapEmpire.Services
                     OnAdReceivedOnceRewardEvent = null;
                     callback?.Invoke();
                 };
-                ShowInterstitial();
+
+                if (!ShowInterstitial())
+                {
+                    OnAdReceivedOnceRewardEvent?.Invoke("");
+                }
             }
             else
             {
@@ -106,18 +139,18 @@ namespace TapEmpire.Services
             }
         }
 
-        public void ShowInterstitial()
+        public bool ShowInterstitial()
         {
             if (_adsDisabled)
             {
                 OnAdReceivedReward();
-                return;
+                return true;
             }
 
             if (_currentAdPlacement != "" || !_isInitialized)
             {
                 ResetInterstitialByTimer();
-                return;
+                return false;
             }
 
             _currentAdPlacement = AdType_New.Interstital.ToString();
@@ -125,6 +158,7 @@ namespace TapEmpire.Services
             OnInterstitialAdShowRequested?.Invoke(global::AdsManager.Instance.HasInterstitial);
 
             global::AdsManager.Instance.ShowInterstitial(() => OnAdReceivedReward(), _currentAdPlacement);
+            return true;
         }
 
         public void ShowRewarded(string adPlacement)
@@ -141,9 +175,15 @@ namespace TapEmpire.Services
             global::AdsManager.Instance.ShowRewarded(() => OnAdReceivedReward(), adPlacement);
         }
 
-        public void ShowAppOpen()
+        public void ShowAppOpen(System.Action action)
         {
-            global::AdsManager.Instance.ShowAppOpen();
+            if (!_adsDisabled)
+            {
+                global::AdsManager.Instance.ShowAppOpen(action);
+                return;
+            }
+
+            action?.Invoke();
         }
 
         public void DisableAds(bool shouldDisable)
@@ -155,7 +195,7 @@ namespace TapEmpire.Services
         public void ShowInterstitialByTimer()
         {
             _interstitialTimerTween?.Kill();
-            _interstitialTimerTween = DOVirtual.DelayedCall(_interstitialTimer, ShowInterstitial).SetLoops(-1);
+            _interstitialTimerTween = DOVirtual.DelayedCall(_interstitialTimer, () => ShowInterstitial()).SetLoops(-1);
         }
 
         // Later it might be needed for starting interstitials
@@ -173,7 +213,7 @@ namespace TapEmpire.Services
 
             firebaseService.UpdateConsentStatus(isPersonalized);
 
-            GameAnalyticsSDK.GameAnalytics.SetCustomDimension01(ConsentInformation.ConsentStatus.ToString());
+            // GameAnalyticsSDK.GameAnalytics.SetCustomDimension01(ConsentInformation.ConsentStatus.ToString());
         }
 
         private void ResetInterstitialByTimer()
@@ -181,7 +221,7 @@ namespace TapEmpire.Services
             if (_interstitialTimerTween == null) return;
 
             _interstitialTimerTween.Kill();
-            _interstitialTimerTween = DOVirtual.DelayedCall(_interstitialTimer, ShowInterstitial).SetLoops(-1);
+            _interstitialTimerTween = DOVirtual.DelayedCall(_interstitialTimer, () => ShowInterstitial()).SetLoops(-1);
         }
 
         private void OnAdReceivedReward()

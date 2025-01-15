@@ -1,0 +1,255 @@
+using System;
+using System.Threading;
+using Cysharp.Threading.Tasks;
+using UnityEngine;
+using UnityEngine.Audio;
+using TapEmpire.Utility;
+using Object = UnityEngine.Object;
+using System.Collections.Generic;
+using Unity.VisualScripting;
+
+namespace TapEmpire.Services
+{
+    [Serializable]
+    public class AudioService : Initializable, IAudioService
+    {
+        private const string MusicVolumeKey = "MusicVolume";
+        private const string SoundsVolumeKey = "SoundsVolume";
+        private const float AudioMinVolume = 0.0000001f;
+        private const float AudioMaxVolume = 2.0f;
+
+        [SerializeField]
+        private AudioMixer _audioMixer;
+
+        [SerializeReference]
+        private IAudioBank _audioBank;
+
+        [Header("Sound")]
+        [SerializeField]
+        private AudioSource _soundSourcePrefab;
+
+        [SerializeField]
+        private AudioSource _soundAudio3DPrefab;
+
+        [Header("Music")]
+        [SerializeField]
+        private AudioSource _musicAudioSourcePrefab;
+
+        [NonSerialized]
+        private AudioSource _backgroundMusicSource;
+        [NonSerialized]
+        private ComponentPool<AudioSource> _soundsSourcesPool;
+        [NonSerialized]
+        private ComponentPool<AudioSource> _soundsSources3DPool;
+
+        private Dictionary<string, AudioSource> _audioSources;
+
+        public float MusicVolume { get; private set; }
+        public float SoundsVolume { get; private set; }
+
+        protected override UniTask OnInitializeAsync(CancellationToken cancellationToken)
+        {
+            _audioSources = new Dictionary<string, AudioSource>();
+
+            _soundsSourcesPool?.Clear();
+            _soundsSourcesPool = new ComponentPool<AudioSource>(_soundSourcePrefab, CreateSoundsPoolParent().transform);
+            _soundsSources3DPool?.Clear();
+            _soundsSources3DPool = new ComponentPool<AudioSource>(_soundAudio3DPrefab);
+
+            return UniTask.CompletedTask;
+        }
+
+        private GameObject CreateSoundsPoolParent()
+        {
+            var root = new GameObject("SoundsPoolRoot");
+            Object.DontDestroyOnLoad(root);
+
+            return root;
+        }
+
+        protected override void OnRelease()
+        {
+            StopAllSounds();
+            _soundsSourcesPool?.Clear();
+            _soundsSources3DPool?.Clear();
+        }
+
+        public void InitializeMixer()
+        {
+            SetSoundsVolume(PlayerPrefsUtility.GetSoundSettings(1));
+            SetMusicVolume(PlayerPrefsUtility.GetMusicSettings(1));
+        }
+
+        public void WarmUpSources(bool warmUpSoundsPool, bool warmUp3DSoundsPool, bool warmUpMusicInstance)
+        {
+            if (warmUpMusicInstance && _backgroundMusicSource == null)
+            {
+                _backgroundMusicSource = Object.Instantiate(_musicAudioSourcePrefab);
+                Object.DontDestroyOnLoad(_backgroundMusicSource.gameObject);
+            }
+            if (warmUpSoundsPool)
+            {
+                var soundInstance = _soundsSourcesPool.Get();
+                soundInstance.volume = 0;
+                _soundsSourcesPool.Release(soundInstance);
+            }
+            if (warmUp3DSoundsPool)
+            {
+                var sound3DInstance = _soundsSources3DPool.Get();
+                sound3DInstance.volume = 0;
+                _soundsSources3DPool.Release(sound3DInstance);
+            }
+        }
+
+        public AudioData GetAudioData<AudioId>(AudioId audioId) where AudioId : Enum
+        {
+            return _audioBank.GetAudioData(audioId);
+        }
+
+        private void SetMusicVolume(float volume01)
+        {
+            volume01 = Mathf.Clamp(volume01, AudioMinVolume, AudioMaxVolume);
+            MusicVolume = volume01;
+            PlayerPrefsUtility.SetMusicSettings(volume01);
+            _audioMixer.SetFloat(MusicVolumeKey, Mathf.Log10(volume01) * 20);
+        }
+
+        private void SetSoundsVolume(float volume01)
+        {
+            volume01 = Mathf.Clamp(volume01, AudioMinVolume, AudioMaxVolume);
+            SoundsVolume = volume01;
+            PlayerPrefsUtility.SetSoundSettings(volume01);
+            _audioMixer.SetFloat(SoundsVolumeKey, Mathf.Log10(volume01) * 20);
+        }
+
+        public void PlaySoundOneShotAtPoint<AudioId>(AudioId audioId, Vector3 position, string uniqueId = "") where AudioId : Enum
+        {
+            PlaySound(_soundsSources3DPool, audioId, uniqueId, position);
+        }
+
+        public void PlaySoundOneShot<AudioId>(AudioId audioId, string uniqueId = "") where AudioId : Enum
+        {
+            PlaySound(_soundsSourcesPool, audioId, uniqueId);
+        }
+
+        private void PlaySound<AudioId>(ComponentPool<AudioSource> pool, AudioId audioId, string uniqueId, Vector3? position = null) where AudioId : Enum
+        {
+            AudioSource instance = pool.GetSafe();
+
+            if (instance == null)
+            {
+                Debug.LogWarning($"No available AudioSource in pool for sound: {audioId}");
+                return;
+            }
+
+            if (position.HasValue)
+            {
+                instance.transform.position = position.Value;
+            }
+
+            var audioData = GetAudioData(audioId);
+            if (audioData == null)
+            {
+                Debug.LogWarning($"AudioData for {audioId} not found.");
+                return;
+            }
+
+            instance.SetupData(audioData);
+            instance.Play();
+
+            var instanceKey = audioId + uniqueId;
+            _audioSources.TryAdd(instanceKey, instance);
+
+            var length = audioData.Clip.length;
+            ScheduleRelease(pool, instance, length);
+        }
+
+        private void ScheduleRelease(ComponentPool<AudioSource> pool, AudioSource instance, float delay)
+        {
+            UniTaskUtility.ExecuteAfterSeconds(delay + 1.0f, () =>
+            {
+                if (instance != null && !instance.isPlaying)
+                {
+                    instance.Stop();
+                    instance.clip = null;
+                    instance.loop = false;
+                    pool.Release(instance);
+                }
+            }, Application.exitCancellationToken).Forget();
+        }
+
+        public void StartPlayMusic<AudioId>(AudioId audioId, float fadeInDuration = 0.5f) where AudioId : Enum
+        {
+            var audioData = GetAudioData(audioId);
+            _backgroundMusicSource.SetupDataWithVolumeFadeIn(audioData, fadeInDuration);
+            _backgroundMusicSource.Play();
+        }
+
+        public void PlaySoundLoop<AudioId>(AudioId audioId, string uniqueId = "") where AudioId : Enum
+        {
+            var instance = _soundsSourcesPool.Get();
+            var audioData = GetAudioData(audioId);
+            instance.loop = true;
+
+            instance.SetupData(audioData);
+            instance.Play();
+
+            _audioSources.TryAdd(audioId + uniqueId, instance);
+        }
+
+        public void StopSound<AudioId>(AudioId audioId, string uniqueId = "") where AudioId : Enum
+        {
+            if (!_audioSources.TryGetValue(audioId + uniqueId, out AudioSource source))
+            {
+                return;
+            }
+
+            if (source != null)
+            {
+                source.Stop();
+                source.loop = false;
+                source.clip = null;
+                _soundsSourcesPool.Release(source);
+            }
+
+            if (_audioSources != null && _audioSources.Count > 0)
+            {
+                _audioSources.Remove(audioId + uniqueId);
+            }
+        }
+
+        public void StopAllSounds()
+        {
+            if (_audioSources != null && _audioSources?.Count > 0)
+            {
+                foreach (var source in _audioSources)
+                {
+                    if (source.Value != null)
+                    {
+                        source.Value.loop = false;
+                        source.Value.Stop();
+                        source.Value.clip = null;
+                    }
+                }
+
+                _audioSources?.Clear();
+            }
+        }
+
+        public bool MusicMode => MusicVolume > AudioMinVolume;
+
+        // TODO fade
+        public void ChangeMusicMode(bool mode, bool withFade)
+        {
+            SetMusicVolume(mode ? 1 : 0);
+        }
+
+        public bool SoundsMode => SoundsVolume > AudioMinVolume;
+
+        // TODO fade
+        public void ChangeSoundsMode(bool mode, bool withFade)
+        {
+            SetSoundsVolume(mode ? 1 : 0);
+        }
+    }
+}

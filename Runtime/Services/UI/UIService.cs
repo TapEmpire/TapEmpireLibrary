@@ -76,7 +76,7 @@ namespace TapEmpire.UI
 
         private void SceneContextsService_OnSceneContextInstalled(string contextId, SceneContext context)
         {
-            if (contextId != "Core")
+            if (contextId != "Core" && contextId != "Menu")
             {
                 return;
             }
@@ -194,6 +194,10 @@ namespace TapEmpire.UI
 
             await TryExecuteWithFadeAsync(view.CloseAsync(cancellationToken), view, false, cancellationToken, tryUseFade);
             
+            if (!_views.TryGetValue(viewModel, out view)) // повторно проверяем вьюху после эвейта
+            {
+                return;
+            }
             if (_currentPopupModel != null && _currentPopupModel == viewModel)
             {
                 OnClosePopup?.Invoke(viewModel);
@@ -215,6 +219,7 @@ namespace TapEmpire.UI
             bool tryUseFade = true) where T : IUIViewModel
         {
             var tasks = _views
+                .ToList()
                 .Where(view => view.Key is not T)
                 .Select(view => CloseViewAsync(view.Key, cancellationToken, tryUseFade)).ToList();
 
