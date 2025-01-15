@@ -1,4 +1,5 @@
 using R3;
+using UnityEngine.Purchasing;
 
 namespace TapEmpire.Services
 {
@@ -11,5 +12,6 @@ namespace TapEmpire.Services
         public Observable<string> OnPurchaseSuccess { get; }
 
         public Observable<PurchaseFailureReason> OnPurchaseFailed { get; }
+        Product GetProductInfo(string key);
     }
 }

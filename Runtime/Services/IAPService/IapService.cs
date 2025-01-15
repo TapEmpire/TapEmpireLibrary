@@ -5,6 +5,7 @@ using System.Threading;
 using Cysharp.Threading.Tasks;
 using R3;
 using UnityEngine;
+using UnityEngine.Purchasing;
 using Zenject;
 
 namespace TapEmpire.Services
@@ -27,6 +28,11 @@ namespace TapEmpire.Services
         
         private ReactiveCommand<PurchaseFailureReason> _onPurchaseFailed = new();
         public Observable<PurchaseFailureReason> OnPurchaseFailed => _onPurchaseFailed;
+       
+        public Product GetProductInfo(string key)
+        {
+            return _purchasingModule.GetProductDetail(key);
+        }
 
         [Inject]
         private void Construct(IProgressService progressService, IAdsService adsService)

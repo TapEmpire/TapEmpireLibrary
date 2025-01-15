@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using R3;
+using UnityEngine.Purchasing;
 
 namespace TapEmpire.Services
 {
@@ -19,6 +20,7 @@ namespace TapEmpire.Services
 
         public void BuyProduct(IapSettings product);
         public void BuyProduct(string productId);
+        public Product GetProductDetail(string productId);
 
         public void RestorePurchases();
         public void Init(IReadOnlyCollection<IapSettings> iapCollection);
