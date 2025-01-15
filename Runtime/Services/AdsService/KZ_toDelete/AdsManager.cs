@@ -95,6 +95,7 @@ public class AdsManager : MonoBehaviour
     public ReactiveProperty<bool> ShouldWaitAppOpen => Admob.ShouldWaitAppOpen;
 
     private AdsSettings _adsSettings = null;
+    private AdsRuntimeScenario _adsRuntimeScenario;
 
     Action OnRewardComplete;
     private System.Action OnAppOpenShown = null;
@@ -136,9 +137,10 @@ public class AdsManager : MonoBehaviour
         // GameAnalyticsSDK.GameAnalytics.Initialize();
     }
 
-    public async UniTask Initialize_AdNetworks(AdsSettings adsSettings)
+    public async UniTask Initialize_AdNetworks(AdsSettings adsSettings, AdsRuntimeScenario adsRutimeScenario)
     {
         _adsSettings = adsSettings;
+        _adsRuntimeScenario = adsRutimeScenario;
         await Initialize();
     }
 
@@ -159,7 +161,7 @@ public class AdsManager : MonoBehaviour
 
         PassAdjustConsentParameters();
 
-        Admob.Initialize(_adsSettings.ShouldWaitAppOpen);
+        Admob.Initialize(_adsRuntimeScenario.ShouldWaitAppOpen);
         await UniTask.WaitUntil(() => IsAdmobInitSuccess);
         await UniTask.WaitUntil(() => !ShouldWaitAppOpen.Value);
 
@@ -167,7 +169,8 @@ public class AdsManager : MonoBehaviour
 
         await UniTask.Yield(PlayerLoopTiming.LastPostLateUpdate);
 
-        global::AdsManager.Instance.ShowBanner();
+        if (_adsRuntimeScenario.ShowBanner) 
+            Instance.ShowBanner();
     }
 
     private async UniTask InitializeApplovin()
