@@ -27,8 +27,10 @@ namespace TapEmpire.Services
         public Observable<string> OnPurchaseSuccess => _onPurchaseSuccess;
         
         private ReactiveCommand<PurchaseFailureReason> _onPurchaseFailed = new();
+        private ReactiveCommand<IIapHandler<PackIapSettings>>  _onIapHandle = new ();
         public Observable<PurchaseFailureReason> OnPurchaseFailed => _onPurchaseFailed;
-       
+        public Observable<IIapHandler<PackIapSettings>> OnIapHandle => _onIapHandle;
+
         public Product GetProductInfo(string key)
         {
             return _purchasingModule.GetProductDetail(key);
@@ -100,6 +102,7 @@ namespace TapEmpire.Services
             foreach (var iapHandler in handlers)
             {
                 await iapHandler.Handle(settings);
+                _onIapHandle.Execute(iapHandler);
             }
         }
     }
