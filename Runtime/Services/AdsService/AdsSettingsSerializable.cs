@@ -1,10 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Linq;
 using Sirenix.OdinInspector;
-using TapEmpire.Services.AdsStrategy;
 using TapEmpire.Utility;
 using UnityEngine;
 
@@ -21,7 +19,8 @@ namespace TapEmpire.Services
             public bool ShouldWaitAppOpen = false;
             public float AppOpenWaitTime = 10.0f;
             public List<int> InterstitialAfterLevels = new();
-            public AdsInterstitialSessionData AdsInterstitialSessionData;
+            public SessionData SessionData;
+            public InterstitialType InterstitialType;
             
             public AdsRemoteModel() {}
 
@@ -31,7 +30,8 @@ namespace TapEmpire.Services
                 ShouldWaitAppOpen = settings.ShouldWaitAppOpen;
                 AppOpenWaitTime = settings.AppOpenWaitTime;
                 InterstitialAfterLevels = settings.InterstitialAfterLevels.ToList();
-                AdsInterstitialSessionData = settings.AdsInterstitialSessionData;
+                SessionData = settings.sessionData;
+                InterstitialType = settings.interstitialType;
             }
         }
 
@@ -44,7 +44,8 @@ namespace TapEmpire.Services
             _adsSettings.ShouldWaitAppOpen = model.ShouldWaitAppOpen;
             _adsSettings.AppOpenWaitTime = model.AppOpenWaitTime;
             _adsSettings.InterstitialAfterLevels = model.InterstitialAfterLevels;
-            _adsSettings.AdsInterstitialSessionData = model.AdsInterstitialSessionData;
+            _adsSettings.sessionData = model.SessionData;
+            _adsSettings.interstitialType = model.InterstitialType;
         }
 
         public string SerializeJson()

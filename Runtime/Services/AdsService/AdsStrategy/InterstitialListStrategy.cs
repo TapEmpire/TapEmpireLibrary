@@ -3,7 +3,7 @@ using Zenject;
 
 namespace TapEmpire.Services
 {
-    public class AdsInterstitialListStrategy : IAdsInterstitialStrategy
+    public class InterstitialListStrategy : IInterstitialStrategy
     {
         private AdsSettings _adsSettings;
         

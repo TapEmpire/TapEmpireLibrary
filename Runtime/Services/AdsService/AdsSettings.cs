@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using Sirenix.OdinInspector;
-using TapEmpire.Services.AdsStrategy;
 using TapEmpireLibrary.Utility;
 using UnityEngine;
 using UnityEngine.Serialization;
@@ -17,16 +16,17 @@ namespace TapEmpire.Services
 
         public bool ShowApplovinOn2GB = false;
         public float InterstitialDelay = 30.0f;
-        public AdsInterstitialStrategyType AdsInterstitialType;
+        public InterstitialType interstitialType;
 
         [Header("---List type---")]
         [Space(5)]
-        [ShowIf("@this.AdsInterstitialType == AdsInterstitialStrategyType.List")]
+        [ShowIf("@this.interstitialType == InterstitialType.List")]
         public List<int> InterstitialAfterLevels = new();
         
+        [FormerlySerializedAs("AdsInterstitialSessionData")]
         [Header("---Session type---")]
-        [ShowIf("@this.AdsInterstitialType == AdsInterstitialStrategyType.Sessions")]
-        public AdsInterstitialSessionData AdsInterstitialSessionData;
+        [ShowIf("@this.interstitialType == InterstitialType.Sessions")]
+        public SessionData sessionData;
         
         [Button]
         public void Clear()

@@ -51,7 +51,7 @@ namespace TapEmpire.Services
         private float _interstitialTimer = 30.0f;
         private bool _isInitialized = false;
         private AdsAnalyticsModule _analyticsModule = null;
-        private AdsInterstitialStrategyContext _adsInterstitialStrategyContext;
+        private InterstitialStrategyContext _interstitialStrategyContext;
 
         public bool AdsDisabled => _adsDisabled;
         public float MaxWaitingTime => _adsSettings.ShouldWaitAppOpen ? _adsSettings.AppOpenWaitTime : 0.0f;
@@ -97,15 +97,15 @@ namespace TapEmpire.Services
                         global::AdsManager.Instance.ShouldWaitAppOpen.Value = false;
                     }, _cancellationTokenSource.Token);
                 
-                _adsInterstitialStrategyContext = new AdsInterstitialStrategyContext();
+                _interstitialStrategyContext = new InterstitialStrategyContext();
 
-                IAdsInterstitialStrategy strategy = _adsSettings.AdsInterstitialType == AdsInterstitialStrategyType.List
-                    ? new AdsInterstitialListStrategy()
-                    : new AdsInterstitialSessionsStrategy();
+                IInterstitialStrategy strategy = _adsSettings.interstitialType == InterstitialType.List
+                    ? new InterstitialListStrategy()
+                    : new InterstitialSessionsStrategy();
 
                 strategy.Configure(_adsSettings, _diContainer);
                 
-                _adsInterstitialStrategyContext.SetAdsStrategy(strategy);
+                _interstitialStrategyContext.SetAdsStrategy(strategy);
                 
                 await UniTask.WaitUntil(() => ShouldWaitAppOpen.CurrentValue == false);
             }
@@ -171,7 +171,7 @@ namespace TapEmpire.Services
             var showingAdCount = _progressService.GetShowingAdCount();
             showingAdCount++;
             _progressService.SetShowingAdCount(showingAdCount);
-            _adsInterstitialStrategyContext.UpdateInterstitialAds();
+            _interstitialStrategyContext.UpdateInterstitialAds();
             
             global::AdsManager.Instance.ShowInterstitial(() => OnAdReceivedReward(), _currentAdPlacement);
             return true;
@@ -271,7 +271,7 @@ namespace TapEmpire.Services
 
         private bool ShouldShowInterstitial(int levelIndex)
         {
-            bool shouldShow = _adsInterstitialStrategyContext.IsShouldShowAds(levelIndex);
+            bool shouldShow = _interstitialStrategyContext.IsShouldShowAds(levelIndex);
             return shouldShow;
         }
     }

@@ -1,6 +1,6 @@
 ﻿namespace TapEmpire.Services
 {
-    public enum AdsInterstitialStrategyType
+    public enum InterstitialType
     {
         List,
         Sessions
