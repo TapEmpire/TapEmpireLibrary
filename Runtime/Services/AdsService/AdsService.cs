@@ -211,8 +211,15 @@ namespace TapEmpire.Services
         {
             _adsDisabled = shouldDisable;
             _progressService.SetBoolProp(ProgressBoolProp.DisableAds, _adsDisabled);
+            _adsRuntimeScenario.EnableAppOpen = false;
+            _adsRuntimeScenario.ShouldWaitAppOpen = false;
+            _adsRuntimeScenario.InterstitialAfterLevels = new List<int>();
+            _adsRuntimeScenario.ShowBanner = false;
             if (_adsDisabled && AdsManager.Instance != null)
+            {
                 AdsManager.Instance.DestroyBanner();
+                AdsManager.Instance.SetAppOpenAutoShow(false);
+            }
         }
 
         public void DisableAdsDebug(bool disableAdsDebug)
