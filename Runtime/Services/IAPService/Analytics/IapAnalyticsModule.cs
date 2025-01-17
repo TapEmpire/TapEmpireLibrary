@@ -3,7 +3,7 @@ using com.adjust.sdk;
 using Firebase.Analytics;
 using Io.AppMetrica;
 using R3;
-using UnityEngine.Purchasing;
+using UnityEngine;
 using Zenject;
 
 namespace TapEmpire.Services
@@ -12,43 +12,51 @@ namespace TapEmpire.Services
     {
         private readonly DiContainer _diContainer;
         private readonly IAnalyticsService _analyticsService;
+        private readonly IIapService _iapService;
 
         public IapAnalyticsModule(DiContainer diContainer)
         {
             _diContainer = diContainer;
             _analyticsService = _diContainer.Resolve<IAnalyticsService>();
+            _iapService = _diContainer.Resolve<IIapService>();
         }
 
         public void Initialize()
         {
-            var iapService = _diContainer.Resolve<IIapService>();
-            iapService.OnPurchaseSuccess.Subscribe(OnPurchaseSuccess);
-            iapService.OnPurchaseFailed.Subscribe(OnPurchaseFailed);
-            iapService.OnPurchaseRestored.Subscribe(OnPurchaseRestored);
+            _iapService.OnPurchaseSuccess.Subscribe(OnPurchaseSuccess);
+            _iapService.OnPurchaseFailed.Subscribe(OnPurchaseFailed);
+            _iapService.OnPurchaseRestored.Subscribe(OnPurchaseRestored);
         }
 
-        private void OnPurchaseSuccess(Product product)
+        private void OnPurchaseSuccess(string iapId)
         {
+            var pack = _iapService.GetPackInfo(iapId);
+            if (pack == null)
+            {
+                Debug.LogError($"cant find pack with id: {iapId}, stop sending analytics");
+                return;
+            }
+            
             var progressService = _diContainer.Resolve<IProgressService>();
             var levelsCompleted = progressService.GetLevelProgress();
             _analyticsService.LogEvent(IapAnalyticsEvents.IapPurchased, new Dictionary<string, object>()
             {
-                { "purchase_id", product.definition.id },
+                { "purchase_id", iapId },
                 { "level", levelsCompleted }
             });
             
-            var revenue = new Revenue((long)product.metadata.localizedPrice, "USD");
+            var revenue = new Revenue((long)pack.Price, "USD");
             AppMetrica.ReportRevenue(revenue);
             
             var purchaseEventToken = "iap_purchase";
             AdjustEvent adjustEvent = new AdjustEvent(purchaseEventToken);
-            adjustEvent.setRevenue((double)product.metadata.localizedPrice, "USD");
+            adjustEvent.setRevenue(pack.Price, "USD");
             adjustEvent.setPurchaseToken(purchaseEventToken);
             Adjust.trackEvent(adjustEvent);
 
             FirebaseAnalytics.LogEvent(IapAnalyticsEvents.IapPurchased, new Parameter[]
             {
-                new("value", (long)product.metadata.localizedPrice),
+                new("value", pack.Price),
                 new("currency", "USD"),
             });
         }

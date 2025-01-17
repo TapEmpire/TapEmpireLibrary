@@ -22,12 +22,12 @@ namespace TapEmpire.Services
         private List<IIapHandler<PackIapSettings>> _purchaseSuccessHandlers = new();
         private List<IIapHandler<PackIapSettings>> _purchaseRestoredHandlers = new();
         
-        private ReactiveCommand<Product> _onPurchaseSuccess = new();
+        private ReactiveCommand<string> _onPurchaseSuccess = new();
         private ReactiveCommand<string> _onPurchaseRestored = new();
         private ReactiveCommand<PurchaseFailArgs> _onPurchaseFailed = new();
         private ReactiveCommand<IIapHandler<PackIapSettings>>  _onIapHandle = new ();
         
-        public Observable<Product> OnPurchaseSuccess => _onPurchaseSuccess;
+        public Observable<string> OnPurchaseSuccess => _onPurchaseSuccess;
         public Observable<string> OnPurchaseRestored => _onPurchaseRestored;
         public Observable<PurchaseFailArgs> OnPurchaseFailed => _onPurchaseFailed;
         public Observable<IIapHandler<PackIapSettings>> OnIapHandle => _onIapHandle;
@@ -62,6 +62,11 @@ namespace TapEmpire.Services
             return _purchasingModule.GetProductDetail(key);
         }
         
+        public PackIapSettings GetPackInfo(string key)
+        {
+            return _iapSettings.Iaps.FirstOrDefault(x => x.Key == key);
+        }
+
         public void RestoreProducts()
         {
             _purchasingModule.RestorePurchases();
@@ -78,14 +83,14 @@ namespace TapEmpire.Services
             return base.OnInitializeAsync(cancellationToken);
         }
         
-        protected void OnProductPurchaseSuccess(Product product)
+        protected void OnProductPurchaseSuccess(string iapId)
         {
-            var iapId = product.definition.id;
+            
             Debug.Log($"IAP OnProductPurchaseSuccess {iapId}");
             if (IapSettings.ContainsKey(iapId))
             {
                 ProcessPurchase(IapSettings[iapId], _purchaseSuccessHandlers).Forget();
-                _onPurchaseSuccess.Execute(product);
+                _onPurchaseSuccess.Execute(iapId);
             }
         }
         

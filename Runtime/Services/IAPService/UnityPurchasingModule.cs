@@ -31,8 +31,8 @@ namespace TapEmpire.Services
         private readonly ReactiveProperty<InitializationFailureReason> _onInitializationFailed = new();
         public Observable<InitializationFailureReason> OnInitializationFailed => _onInitializationFailed;
 
-        private readonly ReactiveCommand<Product> _onPurchaseSuccess = new();
-        public Observable<Product> OnPurchaseSuccess => _onPurchaseSuccess;
+        private readonly ReactiveCommand<string> _onPurchaseSuccess = new();
+        public Observable<string> OnPurchaseSuccess => _onPurchaseSuccess;
 
         private readonly ReactiveCommand<string> _onPurchaseRestored = new();
         public Observable<string> OnPurchaseRestored => _onPurchaseRestored;
@@ -212,7 +212,6 @@ namespace TapEmpire.Services
             Debug.Log($"IAP ProcessPurchase. Is Restore Purchase: {_restoreInProgress.Value.ToString()}");
 
             var id = args.purchasedProduct.definition.id;
-
             if (_isReady.Value)
             {
                 _restoredProducts.Add(id);
@@ -226,7 +225,7 @@ namespace TapEmpire.Services
             }
             else
             {
-                _onPurchaseSuccess.Execute(args.purchasedProduct);
+                _onPurchaseSuccess.Execute(id);
             }
 
             _purchaseInProgress.Value = string.Empty;
