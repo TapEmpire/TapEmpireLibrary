@@ -167,13 +167,12 @@ namespace TapEmpire.Services
             _currentAdPlacement = AdType_New.Interstital.ToString();
             // OnAdClickedEvent?.Invoke(_currentAdType);
             OnInterstitialAdShowRequested?.Invoke(global::AdsManager.Instance.HasInterstitial);
-
-            var showingAdCount = _progressService.GetShowingAdCount();
-            showingAdCount++;
-            _progressService.SetShowingAdCount(showingAdCount);
-            _interstitialStrategyContext.UpdateInterstitialAds();
             
-            global::AdsManager.Instance.ShowInterstitial(() => OnAdReceivedReward(), _currentAdPlacement);
+            global::AdsManager.Instance.ShowInterstitial(() =>
+            {
+                OnAdReceivedReward();
+                OnAdReceivedRewardInterstitial();
+            }, _currentAdPlacement);
             return true;
         }
 
@@ -214,6 +213,11 @@ namespace TapEmpire.Services
             _interstitialTimerTween = DOVirtual.DelayedCall(_interstitialTimer, () => ShowInterstitial()).SetLoops(-1);
         }
 
+        private void OnAdReceivedRewardInterstitial()
+        {
+            _interstitialStrategyContext.UpdateInterstitialAds();
+        }
+        
         // Later it might be needed for starting interstitials
         private void OnInitialized()
         {

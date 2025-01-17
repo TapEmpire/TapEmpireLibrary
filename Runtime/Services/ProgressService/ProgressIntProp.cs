@@ -7,5 +7,8 @@
         CompletedLevelCount = 2,
         CyclesCompleted = 3,
         TotalAdsWatched = 4,
+        CompletedLevelsForOneSession = 4,
+        ShowingAds = 5,
+        ListIndex = 6,
     }
 }

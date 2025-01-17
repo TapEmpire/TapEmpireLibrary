@@ -101,5 +101,45 @@
         }
 
         #endregion
+
+        #region Ads
+        
+        public static void SetCompletedLevelsForOneSession(this IProgressService self, int value)
+        {
+            var key = $"{ProgressIntProp.CompletedLevelsForOneSession}";
+            self.IntValuesDictionary.SetValue(key, value);
+        }
+        
+        public static int GetCompletedLevelsForOneSession(this IProgressService self)
+        {
+            var key = $"{ProgressIntProp.CompletedLevelsForOneSession}";
+            return self.IntValuesDictionary.TryGetValue(key, out var value) ? value : 0;
+        }
+        
+        public static void SetShowingAdCount(this IProgressService self, int value)
+        {
+            var key = $"{ProgressIntProp.ShowingAds}";
+            self.IntValuesDictionary.SetValue(key, value);
+        }
+        
+        public static int GetShowingAdCount(this IProgressService self)
+        {
+            var key = $"{ProgressIntProp.ShowingAds}";
+            return self.IntValuesDictionary.TryGetValue(key, out var value) ? value : 0;
+        }
+        
+        public static void SetListIndexShowingAd(this IProgressService self, int value)
+        {
+            var key = $"{ProgressIntProp.ListIndex}";
+            self.IntValuesDictionary.SetValue(key, value);
+        }
+        
+        public static int GetListIndexShowingAd(this IProgressService self)
+        {
+            var key = $"{ProgressIntProp.ListIndex}";
+            return self.IntValuesDictionary.TryGetValue(key, out var value) ? value : 0;
+        }
+        
+        #endregion
     }
 }
