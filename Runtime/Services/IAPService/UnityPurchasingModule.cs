@@ -31,14 +31,14 @@ namespace TapEmpire.Services
         private readonly ReactiveProperty<InitializationFailureReason> _onInitializationFailed = new();
         public Observable<InitializationFailureReason> OnInitializationFailed => _onInitializationFailed;
 
-        private readonly ReactiveCommand<string> _onPurchaseSuccess = new();
-        public Observable<string> OnPurchaseSuccess => _onPurchaseSuccess;
+        private readonly ReactiveCommand<Product> _onPurchaseSuccess = new();
+        public Observable<Product> OnPurchaseSuccess => _onPurchaseSuccess;
 
         private readonly ReactiveCommand<string> _onPurchaseRestored = new();
         public Observable<string> OnPurchaseRestored => _onPurchaseRestored;
 
-        private readonly ReactiveCommand<PurchaseFailureReason> _onPurchaseFailed = new();
-        public Observable<PurchaseFailureReason> OnProductPurchaseFailed => _onPurchaseFailed;
+        private readonly ReactiveCommand<PurchaseFailArgs> _onPurchaseFailed = new();
+        public Observable<PurchaseFailArgs> OnProductPurchaseFailed => _onPurchaseFailed;
 
         private readonly ReactiveProperty<string> _purchaseInProgress = new(string.Empty);
         public Observable<string> OnPurchaseInProgress => _purchaseInProgress;
@@ -226,7 +226,7 @@ namespace TapEmpire.Services
             }
             else
             {
-                _onPurchaseSuccess.Execute(id);
+                _onPurchaseSuccess.Execute(args.purchasedProduct);
             }
 
             _purchaseInProgress.Value = string.Empty;
@@ -242,13 +242,23 @@ namespace TapEmpire.Services
 
         public void OnPurchaseFailed(Product product, UnityEngine.Purchasing.PurchaseFailureReason failureReason)
         {
-            _onPurchaseFailed.Execute((PurchaseFailureReason)failureReason);
+            var args = new PurchaseFailArgs
+            {
+                IapId = product.definition.id,
+                Reason = (PurchaseFailureReason)failureReason
+            };
+            _onPurchaseFailed.Execute(args);
             _purchaseInProgress.Value = String.Empty;
         }
 
         public void OnPurchaseFailed(Product product, PurchaseFailureDescription failureDescription)
         {
-            _onPurchaseFailed.Execute((PurchaseFailureReason)failureDescription.reason);
+            var args = new PurchaseFailArgs
+            {
+                IapId = product.definition.id,
+                Reason = (PurchaseFailureReason)failureDescription.reason
+            };
+            _onPurchaseFailed.Execute(args);
             _purchaseInProgress.Value = String.Empty;
         }
 

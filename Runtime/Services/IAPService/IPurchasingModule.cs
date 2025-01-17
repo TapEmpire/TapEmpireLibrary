@@ -10,12 +10,12 @@ namespace TapEmpire.Services
     {
         public ReadOnlyReactiveProperty<bool> IsReady { get; }
 
-        public Observable<string> OnPurchaseSuccess { get; }
+        public Observable<Product> OnPurchaseSuccess { get; }
         public Observable<string> OnPurchaseRestored { get; }
 
         public Observable<string> OnPurchaseInProgress { get; }
         public Observable<bool> OnRestoreInProgress { get; }
-        public Observable<PurchaseFailureReason> OnProductPurchaseFailed { get; }
+        public Observable<PurchaseFailArgs> OnProductPurchaseFailed { get; }
         public Observable<InitializationFailureReason> OnInitializationFailed { get; }
 
         public void BuyProduct(IapSettings product);

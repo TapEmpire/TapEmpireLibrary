@@ -9,8 +9,9 @@ namespace TapEmpire.Services
         void BuyProduct(string iapId);
         void RestoreProducts();
 
-        public Observable<string> OnPurchaseSuccess { get; }
-        public Observable<PurchaseFailureReason> OnPurchaseFailed { get; }
+        public Observable<Product> OnPurchaseSuccess { get; }
+        public Observable<string> OnPurchaseRestored { get; }
+        public Observable<PurchaseFailArgs> OnPurchaseFailed { get; }
         public Observable<IIapHandler<PackIapSettings>> OnIapHandle { get; }
         Product GetProductInfo(string key);
     }
