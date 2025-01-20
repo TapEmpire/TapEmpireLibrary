@@ -68,17 +68,21 @@ namespace TapEmpire.Services
 
         public async UniTask RateOnLevel(int level)
         {
-            if (!_rateMeSettings.Enable || HasRated)
-            {
-                return;
-            }
-
-            var shouldShowRateMe = _rateMeSettings.Levels.Exists(rateLevel => rateLevel == level);
-
-            if (shouldShowRateMe)
+            if (IsNeedRated(level))
             {
                 await Rate();
             }
+        }
+
+        public bool IsNeedRated(int level)
+        {
+            if (!_rateMeSettings.Enable || HasRated)
+            {
+                return false;
+            }
+            
+            var shouldShowRateMe = _rateMeSettings.Levels.Exists(rateLevel => rateLevel == level);
+            return shouldShowRateMe;
         }
 
         private void Accept()
