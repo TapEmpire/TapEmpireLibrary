@@ -99,7 +99,7 @@ namespace TapEmpire.Services
                 
                 _interstitialStrategyContext = new InterstitialStrategyContext();
 
-                IInterstitialStrategy strategy = _adsSettings.interstitialType == InterstitialType.List
+                IInterstitialStrategy strategy = _adsSettings.Type == InterstitialType.List
                     ? new InterstitialListStrategy()
                     : new InterstitialSessionsStrategy();
 

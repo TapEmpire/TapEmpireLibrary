@@ -24,7 +24,7 @@ namespace TapEmpire.Services
             _lastAdShowTime = DateTime.UtcNow;
             
             var listIndex = _progressService.GetListIndexShowingAd();
-            var data = _adsSettings.sessionData.InterstitialData[listIndex];
+            var data = _adsSettings.SessionData.InterstitialData[listIndex];
             _levelIntervalShowing = data.Interval;
         }
 
@@ -34,7 +34,7 @@ namespace TapEmpire.Services
             _levelIntervalShowing = CalculateNextInterval();
         }
 
-        public bool IsShouldShowAds(int levelIndex)
+        public bool ShouldShowAds(int levelIndex)
         {
             var completeLevelsForOneSession = _progressService.GetCompletedLevelsForOneSession();
             completeLevelsForOneSession++;
@@ -52,7 +52,7 @@ namespace TapEmpire.Services
         private void ResetSessionProgressIfNeeded()
         {
             var inactiveSeconds = _sessionService.GetTotalInactiveTime().TotalSeconds;
-            if (inactiveSeconds >= _adsSettings.sessionData.Duration)
+            if (inactiveSeconds >= _adsSettings.SessionData.Duration)
             {
                 _progressService.SetCompletedLevelsForOneSession(-1);
                 _progressService.SetShowingAdCount(0);
@@ -65,24 +65,24 @@ namespace TapEmpire.Services
             var adsShowingCount = _progressService.GetShowingAdCount();
             var listIndex = _progressService.GetListIndexShowingAd();
 
-            if (listIndex >= _adsSettings.sessionData.InterstitialData.Count)
+            if (listIndex >= _adsSettings.SessionData.InterstitialData.Count)
             {
-                return _adsSettings.sessionData.InterstitialData[^1].Interval;
+                return _adsSettings.SessionData.InterstitialData[^1].Interval;
             }
 
             adsShowingCount++;
-            var data = _adsSettings.sessionData.InterstitialData[listIndex];
+            var data = _adsSettings.SessionData.InterstitialData[listIndex];
 
             if (adsShowingCount >= data.Ads)
             {
                 listIndex++;
                 _progressService.SetListIndexShowingAd(listIndex);
                 adsShowingCount = 0;
-                if (listIndex >= _adsSettings.sessionData.InterstitialData.Count)
+                if (listIndex >= _adsSettings.SessionData.InterstitialData.Count)
                 {
-                    listIndex = _adsSettings.sessionData.InterstitialData.Count - 1;
+                    listIndex = _adsSettings.SessionData.InterstitialData.Count - 1;
                 }
-                data = _adsSettings.sessionData.InterstitialData[listIndex];
+                data = _adsSettings.SessionData.InterstitialData[listIndex];
             }
 
             _progressService.SetShowingAdCount(adsShowingCount);
@@ -99,13 +99,13 @@ namespace TapEmpire.Services
             var elapsedSeconds = (DateTime.UtcNow - _lastAdShowTime).TotalSeconds;
             var listIndex = _progressService.GetListIndexShowingAd();
 
-            if (listIndex >= _adsSettings.sessionData.InterstitialData.Count)
+            if (listIndex >= _adsSettings.SessionData.InterstitialData.Count)
             {
-                listIndex = _adsSettings.sessionData.InterstitialData.Count - 1;
+                listIndex = _adsSettings.SessionData.InterstitialData.Count - 1;
                 _progressService.SetListIndexShowingAd(listIndex);
             }
 
-            var adsTimer = _adsSettings.sessionData.InterstitialData[listIndex].Timer;
+            var adsTimer = _adsSettings.SessionData.InterstitialData[listIndex].Timer;
             
             if (elapsedSeconds >= adsTimer)
             {
