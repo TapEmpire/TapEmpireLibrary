@@ -17,7 +17,7 @@ namespace TapEmpire.Services
             
         }
 
-        public bool IsShouldShowAds(int levelIndex)
+        public bool ShouldShowAds(int levelIndex)
         {
             return _adsSettings.InterstitialAfterLevels.Any(interstitialLevel => interstitialLevel == levelIndex + 1);
         }

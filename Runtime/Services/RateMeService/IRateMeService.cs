@@ -8,5 +8,8 @@ namespace TapEmpire.Services
 
         UniTask Rate();
         UniTask RateOnLevel(int level); // Human level, not levelIndex.
+        bool ShouldRate(int level);
+        bool IsLevelEligibleForRateMe(int level);
+        bool IsAccept { get; set; }
     }
 }

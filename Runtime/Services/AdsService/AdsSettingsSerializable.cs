@@ -30,8 +30,8 @@ namespace TapEmpire.Services
                 ShouldWaitAppOpen = settings.ShouldWaitAppOpen;
                 AppOpenWaitTime = settings.AppOpenWaitTime;
                 InterstitialAfterLevels = settings.InterstitialAfterLevels.ToList();
-                SessionData = settings.sessionData;
-                InterstitialType = settings.interstitialType;
+                SessionData = settings.SessionData;
+                InterstitialType = settings.Type;
             }
         }
 
@@ -44,8 +44,8 @@ namespace TapEmpire.Services
             _adsSettings.ShouldWaitAppOpen = model.ShouldWaitAppOpen;
             _adsSettings.AppOpenWaitTime = model.AppOpenWaitTime;
             _adsSettings.InterstitialAfterLevels = model.InterstitialAfterLevels;
-            _adsSettings.sessionData = model.SessionData;
-            _adsSettings.interstitialType = model.InterstitialType;
+            _adsSettings.SessionData = model.SessionData;
+            _adsSettings.Type = model.InterstitialType;
         }
 
         public string SerializeJson()

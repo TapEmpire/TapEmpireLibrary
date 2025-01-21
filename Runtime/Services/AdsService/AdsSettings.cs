@@ -16,17 +16,16 @@ namespace TapEmpire.Services
 
         public bool ShowApplovinOn2GB = false;
         public float InterstitialDelay = 30.0f;
-        public InterstitialType interstitialType;
+        public InterstitialType Type;
 
         [Header("---List type---")]
         [Space(5)]
-        [ShowIf("@this.interstitialType == InterstitialType.List")]
+        [ShowIf("@this.Type == InterstitialType.List")]
         public List<int> InterstitialAfterLevels = new();
         
-        [FormerlySerializedAs("AdsInterstitialSessionData")]
         [Header("---Session type---")]
-        [ShowIf("@this.interstitialType == InterstitialType.Sessions")]
-        public SessionData sessionData;
+        [ShowIf("@this.Type == InterstitialType.Sessions")]
+        public SessionData SessionData;
         
         [Button]
         public void Clear()

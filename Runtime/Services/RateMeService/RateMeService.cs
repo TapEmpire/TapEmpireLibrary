@@ -26,6 +26,8 @@ namespace TapEmpire.Services
 
         private UniTaskCompletionSource<bool> _completionSource = null;
 
+        public bool IsAccept { get; set; }
+
         [Inject]
         private void Construct(IProgressService progressService, IUIService uiService)
         {
@@ -68,21 +70,30 @@ namespace TapEmpire.Services
 
         public async UniTask RateOnLevel(int level)
         {
-            if (!_rateMeSettings.Enable || HasRated)
-            {
-                return;
-            }
-
-            var shouldShowRateMe = _rateMeSettings.Levels.Exists(rateLevel => rateLevel == level);
-
-            if (shouldShowRateMe)
+            if (ShouldRate(level))
             {
                 await Rate();
             }
         }
 
+        public bool ShouldRate(int level)
+        {
+            IsAccept = false;
+            if (!_rateMeSettings.Enable || HasRated)
+            {
+                return false;
+            }
+            return IsLevelEligibleForRateMe(level);
+        }
+
+        public bool IsLevelEligibleForRateMe(int level)
+        {
+            return _rateMeSettings.Levels.Exists(rateLevel => rateLevel == level);
+        }
+
         private void Accept()
         {
+            IsAccept = true;
             _progressService.SetRateMe(true);
             _reviewManager?.RateMeAsync(_cancellationTokenSource.Token).Forget();
             _uiService.TryCloseViewAsync<RateMeUiViewModel>(_cancellationTokenSource.Token).Forget();

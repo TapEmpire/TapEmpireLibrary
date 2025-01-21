@@ -6,6 +6,6 @@ namespace TapEmpire.Services
     {
         void Configure(AdsSettings adsSettings, DiContainer diContainer);
         void UpdateInterstitialAds();
-        bool IsShouldShowAds(int levelIndex);
+        bool ShouldShowAds(int levelIndex);
     }
 }

@@ -16,7 +16,7 @@
         
         public bool IsShouldShowAds(int levelIndex)
         {
-            return _interstitialStrategy.IsShouldShowAds(levelIndex);
+            return _interstitialStrategy.ShouldShowAds(levelIndex);
         }
     }
 }
