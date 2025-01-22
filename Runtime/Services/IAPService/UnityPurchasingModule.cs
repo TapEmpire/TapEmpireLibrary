@@ -104,6 +104,11 @@ namespace TapEmpire.Services
                     .SetEnvironmentName(Environment);
                 await UnityServices.InitializeAsync(options);
                 UnityPurchasing.Initialize(this, builder);
+                Debug.Log("All products: ");
+                foreach (var product in _controller.products.all)
+                {
+                    Debug.Log($"{product.definition.id}");
+                }
             }
             catch (Exception e)
             {
@@ -123,7 +128,7 @@ namespace TapEmpire.Services
                 _purchaseInProgress.Value = productId;
 
                 var product = _controller.products.WithID(productId);
-
+                Debug.Log($"IAP Trying to find product with Id: '{productId}'");
                 if (product is {availableToPurchase: true})
                 {
                     Debug.Log($"IAP Purchasing product: '{product.definition.id}'");

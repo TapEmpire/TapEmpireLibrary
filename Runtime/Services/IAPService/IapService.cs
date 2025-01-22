@@ -15,6 +15,9 @@ namespace TapEmpire.Services
     {
         [SerializeField] private IapSettingsSo<PackIapSettings> _iapSettings;
         
+        [SerializeReference] 
+        private IIapSettingsDecorator[] _iapSettingsDecorators = null;
+        
         private IPurchasingModule _purchasingModule;
         private IAdsService _adsService;
         private IapAnalyticsModule _iapAnalyticsModule;
@@ -32,7 +35,6 @@ namespace TapEmpire.Services
         public Observable<PurchaseFailArgs> OnPurchaseFailed => _onPurchaseFailed;
         public Observable<IIapHandler<PackIapSettings>> OnIapHandle => _onIapHandle;
         
-        protected IapSettingsSo<PackIapSettings> IAPSettingsSo { get; set; }
         public Dictionary<string,PackIapSettings> IapSettings { get; set; }
         
         [Inject]
@@ -74,9 +76,9 @@ namespace TapEmpire.Services
 
         protected override UniTask OnInitializeAsync(CancellationToken cancellationToken)
         {
-            IAPSettingsSo = _iapSettings;
-            IapSettings = IAPSettingsSo.Iaps.ToDictionary(x => x.Key, x => x);
-            _purchasingModule.Init(IAPSettingsSo.Iaps);
+            var iapCollection = ProcessWithDecorators(_iapSettings.Iaps);
+            IapSettings = iapCollection.ToDictionary(x => x.Key, x => x);
+            _purchasingModule.Init(iapCollection);
             _purchaseSuccessHandlers.Add(new NoAdsIapHandler(_adsService));
             _purchaseRestoredHandlers.Add(new NoAdsIapHandler(_adsService));
             _iapAnalyticsModule.Initialize();
@@ -85,7 +87,6 @@ namespace TapEmpire.Services
         
         protected void OnProductPurchaseSuccess(string iapId)
         {
-            
             Debug.Log($"IAP OnProductPurchaseSuccess {iapId}");
             if (IapSettings.ContainsKey(iapId))
             {
@@ -118,6 +119,20 @@ namespace TapEmpire.Services
                 await iapHandler.Handle(settings);
                 _onIapHandle.Execute(iapHandler);
             }
+        }
+        
+        private List<PackIapSettings> ProcessWithDecorators(List<PackIapSettings> iapSettings)
+        {
+            if (_iapSettingsDecorators == null)
+            {
+                return iapSettings;
+            }
+            List<PackIapSettings> result = null;
+            foreach (var iapSettingsDecorator in _iapSettingsDecorators)
+            {
+                result = iapSettingsDecorator.Process(iapSettings);
+            }
+            return result;
         }
     }
 } 
