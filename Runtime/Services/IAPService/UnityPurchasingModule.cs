@@ -104,11 +104,6 @@ namespace TapEmpire.Services
                     .SetEnvironmentName(Environment);
                 await UnityServices.InitializeAsync(options);
                 UnityPurchasing.Initialize(this, builder);
-                Debug.Log("All products: ");
-                foreach (var product in _controller.products.all)
-                {
-                    Debug.Log($"{product.definition.id}");
-                }
             }
             catch (Exception e)
             {
