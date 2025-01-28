@@ -6,7 +6,7 @@ namespace TapEmpire.Services
     [Serializable]
     public class DisableAdsProduct : IIapProduct
     {
-        [SerializeField] private string _productId = "ads_remove";
+        [SerializeField] private string _productId = "RemoveAds";
         public string ProductId => _productId;
     }
 }

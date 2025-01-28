@@ -1,6 +1,6 @@
 namespace TapEmpire.Services
 {
-    public static class IapDataKeys
+    public static partial class IapDataKeys
     {
         public const string RestoredIapKey = "RestoredIapKey";
     }
