@@ -5,15 +5,16 @@ namespace TapEmpire.Services
 {
     public interface IIapService : IService
     {
-        void BuyProduct(PackIapSettings iapId);
+        void RegisterHandler<T>(IIapHandler<T> handler) where T : IIapProduct;
+        void BuyProduct(IapOffer iapId);
         void BuyProduct(string iapId);
         void RestoreProducts();
 
         public Observable<string> OnPurchaseSuccess { get; }
         public Observable<string> OnPurchaseRestored { get; }
         public Observable<PurchaseFailArgs> OnPurchaseFailed { get; }
-        public Observable<IIapHandler<PackIapSettings>> OnIapHandle { get; }
+        public Observable<IIapHandler> OnIapHandle { get; }
         Product GetProductInfo(string key);
-        PackIapSettings GetPackInfo(string key);
+        IapOffer GetOfferInfo(string key);
     }
 }

@@ -13,29 +13,25 @@ namespace TapEmpire.Services
     [Serializable]
     public class IapService : Initializable, IIapService
     {
-        [SerializeField] private IapSettingsSo<PackIapSettings> _iapSettings;
+        [SerializeField] private IapProductsSettings _iapProductsSettings;
         
-        [SerializeReference] 
-        private IIapSettingsDecorator[] _iapSettingsDecorators = null;
+        private readonly Dictionary<Type, IIapHandler> _handlers = new();
         
         private IPurchasingModule _purchasingModule;
         private IAdsService _adsService;
         private IapAnalyticsModule _iapAnalyticsModule;
         
-        private List<IIapHandler<PackIapSettings>> _purchaseSuccessHandlers = new();
-        private List<IIapHandler<PackIapSettings>> _purchaseRestoredHandlers = new();
-        
         private ReactiveCommand<string> _onPurchaseSuccess = new();
         private ReactiveCommand<string> _onPurchaseRestored = new();
         private ReactiveCommand<PurchaseFailArgs> _onPurchaseFailed = new();
-        private ReactiveCommand<IIapHandler<PackIapSettings>>  _onIapHandle = new ();
+        private ReactiveCommand<IIapHandler>  _onIapHandle = new ();
+        
+        private Dictionary<string, IapOffer> _storeOffers = new();
         
         public Observable<string> OnPurchaseSuccess => _onPurchaseSuccess;
         public Observable<string> OnPurchaseRestored => _onPurchaseRestored;
         public Observable<PurchaseFailArgs> OnPurchaseFailed => _onPurchaseFailed;
-        public Observable<IIapHandler<PackIapSettings>> OnIapHandle => _onIapHandle;
-        
-        public Dictionary<string,PackIapSettings> IapSettings { get; set; }
+        public Observable<IIapHandler> OnIapHandle => _onIapHandle;
         
         [Inject]
         private void Construct(DiContainer diContainer, IProgressService progressService, IAdsService adsService)
@@ -45,28 +41,42 @@ namespace TapEmpire.Services
             _purchasingModule.OnPurchaseSuccess.Subscribe(OnProductPurchaseSuccess);
             _purchasingModule.OnProductPurchaseFailed.Subscribe(OnProductPurchaseFailed);
             _purchasingModule.OnPurchaseRestored.Subscribe(OnProductPurchaseRestored);
+            _iapAnalyticsModule = new IapAnalyticsModule(diContainer);
+        }
 
-             _iapAnalyticsModule = new IapAnalyticsModule(diContainer);
+        public void RegisterHandler<T>(IIapHandler<T> handler) where T : IIapProduct
+        {
+            _handlers[typeof(T)] = handler;
         }
-        
-        public void BuyProduct(PackIapSettings iapId)
+
+        public void BuyProduct(IapOffer iapId)
         {
             _purchasingModule.BuyProduct(iapId);
         }
         
-        public void BuyProduct(string iapId)
+        public void BuyProduct(string key)
         {
-            _purchasingModule.BuyProduct(iapId);
+            var offer = _iapProductsSettings.Products.FirstOrDefault(x => x.Key == key);
+            if (offer == null)
+            {
+                Debug.LogError($"can't find offer with key [{key}]!");
+                return;
+            }
+            _purchasingModule.BuyProduct(offer.GetStoreID());
         }
         
         public Product GetProductInfo(string key)
         {
-            return _purchasingModule.GetProductDetail(key);
+            var offer = _iapProductsSettings.Products.FirstOrDefault(x => x.Key == key);
+            if (offer != null) 
+                return _purchasingModule.GetProductDetail(offer.GetStoreID());
+            Debug.LogError($"can't find offer with key [{key}]!");
+            return null;
         }
         
-        public PackIapSettings GetPackInfo(string key)
+        public IapOffer GetOfferInfo(string storeKey)
         {
-            return _iapSettings.Iaps.FirstOrDefault(x => x.Key == key);
+            return _iapProductsSettings.Products.FirstOrDefault(x => x.GetStoreID() == storeKey);
         }
 
         public void RestoreProducts()
@@ -76,11 +86,10 @@ namespace TapEmpire.Services
 
         protected override UniTask OnInitializeAsync(CancellationToken cancellationToken)
         {
-            var iapCollection = ProcessWithDecorators(_iapSettings.Iaps);
-            IapSettings = iapCollection.ToDictionary(x => x.Key, x => x);
+            var iapCollection = _iapProductsSettings.Products;
+            _storeOffers = iapCollection.ToDictionary(x => x.GetStoreID(), x => x);
             _purchasingModule.Init(iapCollection);
-            _purchaseSuccessHandlers.Add(new NoAdsIapHandler(_adsService));
-            _purchaseRestoredHandlers.Add(new NoAdsIapHandler(_adsService));
+            RegisterHandler(new NoAdsIapHandler(_adsService));
             _iapAnalyticsModule.Initialize();
             return base.OnInitializeAsync(cancellationToken);
         }
@@ -88,11 +97,10 @@ namespace TapEmpire.Services
         protected void OnProductPurchaseSuccess(string iapId)
         {
             Debug.Log($"IAP OnProductPurchaseSuccess {iapId}");
-            if (IapSettings.ContainsKey(iapId))
-            {
-                ProcessPurchase(IapSettings[iapId], _purchaseSuccessHandlers).Forget();
-                _onPurchaseSuccess.Execute(iapId);
-            }
+            if (!_storeOffers.ContainsKey(iapId)) 
+                return;
+            ProcessPurchase(_storeOffers[iapId]).Forget();
+            _onPurchaseSuccess.Execute(iapId);
         }
         
         protected void OnProductPurchaseFailed(PurchaseFailArgs args)
@@ -105,34 +113,24 @@ namespace TapEmpire.Services
         {
             Debug.Log($"IAP OnPurchaseRestored{iapId}");
 
-            if (IapSettings.ContainsKey(iapId))
-            {
-                ProcessPurchase(IapSettings[iapId], _purchaseRestoredHandlers).Forget();
-                _onPurchaseRestored.Execute(iapId);
-            }
+            if (!_storeOffers.ContainsKey(iapId)) 
+                return;
+            ProcessPurchase(_storeOffers[iapId]).Forget();
+            _onPurchaseRestored.Execute(iapId);
         }
-        
-        protected async UniTask ProcessPurchase(PackIapSettings settings, IReadOnlyList<IIapHandler<PackIapSettings>> handlers)
+
+        private async UniTask ProcessPurchase(IapOffer settings)
         {
-            foreach (var iapHandler in handlers)
+            foreach (var iapProduct in settings.Products)
             {
-                await iapHandler.Handle(settings);
-                _onIapHandle.Execute(iapHandler);
+                var productType = iapProduct.GetType();
+                if (_handlers.TryGetValue(productType, out var handler) && handler.CanHandle(iapProduct))
+                {
+                    await handler.Handle(iapProduct);
+                    _onIapHandle.Execute(handler);
+                }
             }
-        }
-        
-        private List<PackIapSettings> ProcessWithDecorators(List<PackIapSettings> iapSettings)
-        {
-            if (_iapSettingsDecorators == null)
-            {
-                return iapSettings;
-            }
-            List<PackIapSettings> result = null;
-            foreach (var iapSettingsDecorator in _iapSettingsDecorators)
-            {
-                result = iapSettingsDecorator.Process(iapSettings);
-            }
-            return result;
         }
     }
+
 } 

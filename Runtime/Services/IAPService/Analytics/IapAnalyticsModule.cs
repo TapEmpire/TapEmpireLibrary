@@ -30,8 +30,8 @@ namespace TapEmpire.Services
 
         private void OnPurchaseSuccess(string iapId)
         {
-            var pack = _iapService.GetPackInfo(iapId);
-            if (pack == null)
+            var offer = _iapService.GetOfferInfo(iapId);
+            if (offer == null)
             {
                 Debug.LogError($"cant find pack with id: {iapId}, stop sending analytics");
                 return;
@@ -45,18 +45,18 @@ namespace TapEmpire.Services
                 { "level", levelsCompleted }
             });
             
-            var revenue = new Revenue((long)pack.Price, "USD");
+            var revenue = new Revenue((long)offer.Price, "USD");
             AppMetrica.ReportRevenue(revenue);
             
             var purchaseEventToken = "iap_purchase";
             AdjustEvent adjustEvent = new AdjustEvent(purchaseEventToken);
-            adjustEvent.setRevenue(pack.Price, "USD");
+            adjustEvent.setRevenue(offer.Price, "USD");
             adjustEvent.setPurchaseToken(purchaseEventToken);
             Adjust.trackEvent(adjustEvent);
 
             FirebaseAnalytics.LogEvent(IapAnalyticsEvents.IapPurchased, new Parameter[]
             {
-                new("value", pack.Price),
+                new("value", offer.Price),
                 new("currency", "USD"),
             });
         }

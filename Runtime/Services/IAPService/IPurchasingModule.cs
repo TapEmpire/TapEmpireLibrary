@@ -18,11 +18,11 @@ namespace TapEmpire.Services
         public Observable<PurchaseFailArgs> OnProductPurchaseFailed { get; }
         public Observable<InitializationFailureReason> OnInitializationFailed { get; }
 
-        public void BuyProduct(IapSettings product);
+        public void BuyProduct(IapOffer product);
         public void BuyProduct(string productId);
         public Product GetProductDetail(string productId);
 
         public void RestorePurchases();
-        public void Init(IReadOnlyCollection<IapSettings> iapCollection);
+        public void Init(IReadOnlyCollection<IapOffer> iapCollection);
     }
 }
