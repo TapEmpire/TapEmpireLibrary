@@ -64,9 +64,9 @@ namespace TapEmpire.Services
             _progressService = progressService;
         }
 
-        public void Init(IReadOnlyCollection<IapSettings> iapSettings)
+        public void Init(IReadOnlyCollection<IapOffer> iapSettings)
         {
-            if (!_progressService.TryLoad(IAPDataKeys.RestoredIapKey, out _restoredProducts)) 
+            if (!_progressService.TryLoad(IapDataKeys.RestoredIapKey, out _restoredProducts)) 
                 _restoredProducts = new List<string>();
 
             if (_isInitialized.Value)
@@ -82,7 +82,7 @@ namespace TapEmpire.Services
 
                 foreach (var iap in iapSettings)
                 {
-                    builder.AddProduct(iap.Key, iap.ProductType);
+                    builder.AddProduct(iap.GetStoreID(), iap.ProductType);
                 }
 
                 IsInitialized.Subscribe(_ => UpdateStatus()).AddTo(_disposables);
@@ -104,11 +104,6 @@ namespace TapEmpire.Services
                     .SetEnvironmentName(Environment);
                 await UnityServices.InitializeAsync(options);
                 UnityPurchasing.Initialize(this, builder);
-                Debug.Log("All products: ");
-                foreach (var product in _controller.products.all)
-                {
-                    Debug.Log($"{product.definition.id}");
-                }
             }
             catch (Exception e)
             {
@@ -116,9 +111,9 @@ namespace TapEmpire.Services
             }
         }
 
-        public void BuyProduct(IapSettings product)
+        public void BuyProduct(IapOffer product)
         {
-            BuyProduct(product.Key);
+            BuyProduct(product.GetStoreID());
         }
 
         public void BuyProduct(string productId)
@@ -162,7 +157,7 @@ namespace TapEmpire.Services
             {
                 _restoredProducts.ForEach(x => _onPurchaseRestored.Execute(x));
                 _restoredProducts.Clear();
-                _progressService.Save(IAPDataKeys.RestoredIapKey, _restoredProducts);
+                _progressService.Save(IapDataKeys.RestoredIapKey, _restoredProducts);
                 return;
             }
 
@@ -220,7 +215,7 @@ namespace TapEmpire.Services
             if (_isReady.Value)
             {
                 _restoredProducts.Add(id);
-                _progressService.Save(IAPDataKeys.RestoredIapKey, _restoredProducts);
+                _progressService.Save(IapDataKeys.RestoredIapKey, _restoredProducts);
                 return PurchaseProcessingResult.Complete;
             }
 
