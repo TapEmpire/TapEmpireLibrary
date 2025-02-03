@@ -39,15 +39,29 @@ namespace TapEmpire.Services
             var completeLevelsForOneSession = _progressService.GetCompletedLevelsForOneSession();
             completeLevelsForOneSession++;
             _progressService.SetCompletedLevelsForOneSession(completeLevelsForOneSession);
-            
-            if (ShouldShowAdBasedOnLevels() || ShouldShowAdBasedOnTime())
+        
+            var listIndex = _progressService.GetListIndexShowingAd();
+            if (listIndex >= _adsSettings.SessionData.InterstitialData.Count)
+            {
+                listIndex = _adsSettings.SessionData.InterstitialData.Count - 1;
+                _progressService.SetListIndexShowingAd(listIndex);
+            }
+        
+            var adsTimer = _adsSettings.SessionData.InterstitialData[listIndex].Timer;
+        
+            bool shouldShowAd = adsTimer == 0 
+                ? ShouldShowAdBasedOnLevels() 
+                : (ShouldShowAdBasedOnLevels() || ShouldShowAdBasedOnTime());
+        
+            if (shouldShowAd)
             {
                 _progressService.SetCompletedLevelsForOneSession(-1);
                 return true;
             }
-
+        
             return false;
         }
+
 
         private void ResetSessionProgressIfNeeded()
         {
