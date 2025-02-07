@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Cysharp.Threading.Tasks;
+using Newtonsoft.Json.Linq;
 using R3;
 using TapEmpire.UI;
 using UnityEngine;
@@ -32,7 +33,6 @@ namespace TapEmpire.Services
         private ReactiveCommand<IIapHandler>  _onIapHandle = new ();
         
         private Dictionary<string, IapOffer> _storeOffers = new();
-        private NoAdsPopupViewModel _noAdsPopupViewModel;
         private List<int> _iapShowProgress = new();
 
         private CompositeDisposable _disposable = new CompositeDisposable();
@@ -113,7 +113,8 @@ namespace TapEmpire.Services
                 {
                     _iapShowProgress.Add(level);
                     _progressService.SetIapShowProgress(_iapShowProgress);
-                    _uiService.OpenViewAsync(_noAdsPopupView, _noAdsPopupViewModel, CancellationToken.None).Forget();
+                    var noAdsPopupViewModel = new NoAdsPopupViewModel(_uiService, this, new JObject(new JProperty("Level", $"Level_{level}")).ToString());
+                    _uiService.OpenViewAsync(_noAdsPopupView, noAdsPopupViewModel, CancellationToken.None).Forget();
                 }
             }
         }
@@ -126,7 +127,6 @@ namespace TapEmpire.Services
             RegisterHandler(new NoAdsIapHandler(_adsService));
             _iapAnalyticsModule.Initialize();
 
-            _noAdsPopupViewModel = new NoAdsPopupViewModel(_uiService, this);
             _iapShowProgress = _progressService.GetIapShowProgress();
             return base.OnInitializeAsync(cancellationToken);
         }
@@ -172,7 +172,6 @@ namespace TapEmpire.Services
         protected override void OnRelease()
         {
             _disposable.Dispose();
-            _noAdsPopupViewModel = null;
         }
     }
 } 
