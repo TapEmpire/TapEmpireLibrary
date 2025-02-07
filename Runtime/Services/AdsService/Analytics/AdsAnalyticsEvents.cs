@@ -13,4 +13,9 @@ namespace TapEmpire.Services
     {
         public const string AdsWatched = "Ads_watched";
     }
+
+    public static class AdsAnalyticsStrings
+    {
+        public const string AdsPlacements = "AdsPlacements";
+    }
 }
