@@ -95,12 +95,14 @@ namespace TapEmpire.Services
             _purchasingModule.RestorePurchases();
         }
 
-        public void ShowOnLevel(int level)
+        private Action _onIapShownCallback;
+        public void ShowOnLevel(int level, Action onComplete)
         {
             _progressService.TryGetBoolProp(ProgressBoolProp.DisableAds, out var adsDisabled);
             
             if (!_iapShowSettings.Enable || adsDisabled)
             {
+                onComplete.Invoke();
                 return;
             }
 
@@ -111,11 +113,31 @@ namespace TapEmpire.Services
                 var wasShown = _iapShowProgress.Contains(level);
                 if (!wasShown)
                 {
+                    _onIapShownCallback = onComplete;
                     _iapShowProgress.Add(level);
                     _progressService.SetIapShowProgress(_iapShowProgress);
                     var noAdsPopupViewModel = new NoAdsPopupViewModel(_uiService, this, new JObject(new JProperty("Level", $"Level_{level}")).ToString());
+                    _uiService.OnBeforeCloseView += UiServiceOnOnBeforeCloseView;
                     _uiService.OpenViewAsync(_noAdsPopupView, noAdsPopupViewModel, CancellationToken.None).Forget();
                 }
+                else
+                {
+                    onComplete.Invoke();
+                }
+            }
+            else
+            {
+                onComplete.Invoke();
+            }
+        }
+
+        private void UiServiceOnOnBeforeCloseView(IUIViewModel uiViewModel)
+        {
+            if (uiViewModel.GetType() == typeof(NoAdsPopupViewModel))
+            {
+                _uiService.OnBeforeCloseView -= UiServiceOnOnBeforeCloseView;
+                _onIapShownCallback?.Invoke();
+                _onIapShownCallback = null;
             }
         }
 
