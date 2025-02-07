@@ -73,8 +73,8 @@ namespace TapEmpire.Services
 
         public static void LogEventStatic(string eventName, Dictionary<string, object> details = null)
         {
-            Amplitude amplitude = Amplitude.getInstance();
-            amplitude.logEvent(eventName, details);
+            // Amplitude amplitude = Amplitude.getInstance();
+            // amplitude.logEvent(eventName, details);
         }
     }
 }

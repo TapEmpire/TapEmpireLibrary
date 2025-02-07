@@ -163,14 +163,14 @@ namespace TapEmpire.Services
             var adsWatchedCount = progressService.GetAdsWatchedProgress();
 
             _innerService.SetUserProperties(new Dictionary<string, object>{
-                { AnalyticsParameters.InstallYear, launchDate.Year },
-                { AnalyticsParameters.InstallDate, launchDate.DayOfYear },
-                { AnalyticsParameters.DaysAfterInstall, daysAfterInstall.Days },
+                // { AnalyticsParameters.InstallYear, launchDate.Year },
+                // { AnalyticsParameters.InstallDate, launchDate.DayOfYear },
+                // { AnalyticsParameters.DaysAfterInstall, daysAfterInstall.Days },
                 { AnalyticsParameters.AdjustAttribution, Adjust.getAttribution()?.network},
                 { AnalyticsParameters.RemoteConfig, progressService.GetRemoteConfigName() },
-                { CoreGenericAnalyticsParameters.LevelsCompleted, levelsCompleted },
-                { CoreGenericAnalyticsParameters.CyclesCompleted, cyclesCompleted },
-                { AdsAnalyticsParameters.AdsWatched, adsWatchedCount }
+                // { CoreGenericAnalyticsParameters.LevelsCompleted, levelsCompleted },
+                // { CoreGenericAnalyticsParameters.CyclesCompleted, cyclesCompleted },
+                // { AdsAnalyticsParameters.AdsWatched, adsWatchedCount }
                 //{ AnalyticsParameters.AbGroup1, _diContainer.Resolve<IABTestingService>().Group },
             });
 

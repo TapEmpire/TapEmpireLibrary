@@ -1,3 +1,4 @@
+using System;
 using System.Threading;
 using R3;
 using TapEmpire.Services;
@@ -12,11 +13,13 @@ namespace TapEmpire.UI
         private readonly IIapService _iapService;
 
         public static readonly string IapKey = "no_ads_default";
+        public string Placement { get; private set; } = String.Empty;
         
-        public NoAdsPopupViewModel(IUIService uiService, IIapService iapService)
+        public NoAdsPopupViewModel(IUIService uiService, IIapService iapService, string placement)
         {
             _uiService = uiService;
             _iapService = iapService;
+            Placement = placement;
         }
 
         public void StartPurchase()

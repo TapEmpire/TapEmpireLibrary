@@ -6,4 +6,9 @@ namespace TapEmpire.Services
         public const string IapError = "PURCHASE_ERROR";
         public const string IapRestored = "PURCHASE_RESTORED";
     }
+
+    public static class IapAnalyticsStrings
+    {
+        public const string AdsPlacements = "IapPacements";
+    }
 }
