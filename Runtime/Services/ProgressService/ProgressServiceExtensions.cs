@@ -1,4 +1,7 @@
-﻿namespace TapEmpire.Services
+﻿using System.Collections.Generic;
+using Newtonsoft.Json;
+
+namespace TapEmpire.Services
 {
     public static partial class ProgressServiceExtensions
     {
@@ -100,6 +103,30 @@
             return self.UpdateIntProp(ProgressIntProp.TotalAdsWatched);
         }
 
+        #endregion
+
+        #region Iaps
+
+        public static string IapShowProgressKey = "IapShowProgressData";
+
+        public static List<int> GetIapShowProgress(this IProgressService self)
+        {
+            var list = new List<int>();
+            if (self.StringValuesDictionary.TryGetValue(IapShowProgressKey, out var value, canUseDefault: false))
+            {
+                list = JsonConvert.DeserializeObject<List<int>>(value);
+            }
+
+            return list;
+        }
+
+        public static void SetIapShowProgress(this IProgressService self, List<int> value)
+        {
+            var serializedObject = JsonConvert.SerializeObject(value);
+
+            self.StringValuesDictionary.SetValue(IapShowProgressKey, serializedObject);
+        }
+        
         #endregion
     }
 }
