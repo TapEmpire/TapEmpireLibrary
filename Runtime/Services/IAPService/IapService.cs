@@ -31,7 +31,8 @@ namespace TapEmpire.Services
         private ReactiveCommand<string> _onPurchaseRestored = new();
         private ReactiveCommand<PurchaseFailArgs> _onPurchaseFailed = new();
         private ReactiveCommand<IIapHandler>  _onIapHandle = new ();
-        
+        private Action _onIapShownCallback;
+
         private Dictionary<string, IapOffer> _storeOffers = new();
         private List<int> _iapShowProgress = new();
 
@@ -95,7 +96,6 @@ namespace TapEmpire.Services
             _purchasingModule.RestorePurchases();
         }
 
-        private Action _onIapShownCallback;
         public void ShowOnLevel(int level, Action onComplete)
         {
             _progressService.TryGetBoolProp(ProgressBoolProp.DisableAds, out var adsDisabled);
