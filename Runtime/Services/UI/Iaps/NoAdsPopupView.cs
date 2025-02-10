@@ -18,18 +18,25 @@ namespace TapEmpire.UI
         public override UniTask OpenAsync(CancellationToken cancellationToken)
         {
             _closeButton.onClick.AddListener(CloseView);
+            _purchaseButton.onClick.AddListener(Purchase);
+
             ConfigureIap();
             return base.OpenAsync(cancellationToken);
         }
-        
+
+        public override UniTask CloseAsync(CancellationToken cancellationToken)
+        {
+            _purchaseButton.onClick.RemoveAllListeners();
+
+            return base.CloseAsync(cancellationToken);
+        }
+
         private void ConfigureIap()
         {
             var localizedPrice = DerivedModel.GetPrice();
             _priceText.text = string.IsNullOrEmpty(_buyLocalizationEntryName) ? 
                 $"BUY {localizedPrice}" : 
                 $"{LocalizationService.GetLocalizedString(LocalizationConstants.UITable, _buyLocalizationEntryName)} {localizedPrice}";
-            
-            _purchaseButton.onClick.AddListener(Purchase);
         }
 
         private void CloseView()
@@ -39,7 +46,6 @@ namespace TapEmpire.UI
 
         private void Purchase()
         {
-            _purchaseButton.onClick.RemoveAllListeners();
             DerivedModel.StartPurchase();
         }
     }

@@ -14,6 +14,8 @@ namespace TapEmpire.UI
 
         public static readonly string IapKey = "no_ads_default";
         public string Placement { get; private set; } = String.Empty;
+
+        private CompositeDisposable _disposable = new ();
         
         public NoAdsPopupViewModel(IUIService uiService, IIapService iapService, string placement)
         {
@@ -24,16 +26,18 @@ namespace TapEmpire.UI
 
         public void StartPurchase()
         {
-            _iapService.OnPurchaseSuccess.Subscribe(OnPurchaseSuccess);
-            _iapService.OnPurchaseFailed.Subscribe(OnPurchaseFailed);
+            Unsubscribe();
+            
+            _disposable.Add(_iapService.OnPurchaseSuccess.Subscribe(OnPurchaseSuccess));
+            _disposable.Add(_iapService.OnPurchaseFailed.Subscribe(OnPurchaseFailed));
             _iapService.BuyProduct(IapKey);
         }
-        
+
         public void Close()
         {
             _uiService.CloseViewAsync(this, CancellationToken.None);
         }
-        
+
         public string GetPrice()
         {
             var product = _iapService.GetProductInfo(IapKey);
@@ -42,12 +46,19 @@ namespace TapEmpire.UI
 
         private void OnPurchaseSuccess(string productId)
         {
+            Unsubscribe();
             _uiService.CloseViewAsync(this, CancellationToken.None);
         }
 
         private void OnPurchaseFailed(PurchaseFailArgs args)
         {
+            Unsubscribe();
             Debug.Log($"OnPurchaseFailed but nothing to do, id: {args.IapId} reason: {args.Reason}");
+        }
+
+        private void Unsubscribe()
+        {
+            _disposable.Dispose();
         }
     }
 }
