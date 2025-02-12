@@ -10,6 +10,7 @@ using Object = UnityEngine.Object;
 using System.Linq;
 using DG.Tweening;
 using ObservableCollections;
+using UnityEngine.UI;
 
 namespace TapEmpire.UI
 {
@@ -28,6 +29,8 @@ namespace TapEmpire.UI
         
         [NonSerialized]
         private RectTransform _canvasRectTransform;
+        [NonSerialized]
+        private Transform _customCanvasRectTransform;
         
         [NonSerialized]
         private Dictionary<IUIViewModel, UIView> _views = new();
@@ -70,6 +73,11 @@ namespace TapEmpire.UI
             var canvas = Object.Instantiate(_canvasPrefab);
             Object.DontDestroyOnLoad(canvas);
             _canvasRectTransform = canvas.GetComponent<RectTransform>();
+
+            var customCanvasObject = new GameObject("CustomCanvasRoot");
+            Object.DontDestroyOnLoad(customCanvasObject);
+            _customCanvasRectTransform = customCanvasObject.transform;
+            
             _sceneContextsService.OnSceneContextInstalled += SceneContextsService_OnSceneContextInstalled;
             return UniTask.CompletedTask;
         }
@@ -139,7 +147,7 @@ namespace TapEmpire.UI
                 CloseViewAsync(_currentPopupModel, cancellationToken, false).Forget();
                 _currentPopupModel = null;
             }
-            var view = Object.Instantiate(viewPrefab, _canvasRectTransform);
+            var view = InstantiateView(viewPrefab);
             view.Model = viewModel;
             _views.Add(viewModel, view);
             if ( _coreDiContainer != null)
@@ -160,6 +168,13 @@ namespace TapEmpire.UI
                 _currentPopupModel = viewModel;
             }
             OnAfterOpenView?.Invoke(viewModel);
+        }
+
+        private UIView InstantiateView(UIView prefab)
+        {
+            var root = prefab.GetComponent<CanvasScaler>() == null ? _canvasRectTransform : _customCanvasRectTransform;
+
+            return Object.Instantiate(prefab, root);
         }
 
         private async UniTask TryExecuteWithFadeAsync(UniTask task, UIView view, bool fadeIn, CancellationToken cancellationToken, bool tryUseFade = true)
