@@ -27,6 +27,7 @@ namespace TapEmpire.UI
         public void StartPurchase()
         {
             Unsubscribe();
+            _disposable = new CompositeDisposable();
             
             _disposable.Add(_iapService.OnPurchaseSuccess.Subscribe(OnPurchaseSuccess));
             _disposable.Add(_iapService.OnPurchaseFailed.Subscribe(OnPurchaseFailed));
@@ -46,8 +47,8 @@ namespace TapEmpire.UI
 
         private void OnPurchaseSuccess(string productId)
         {
-            Unsubscribe();
             _uiService.CloseViewAsync(this, CancellationToken.None);
+            Unsubscribe();
         }
 
         private void OnPurchaseFailed(PurchaseFailArgs args)
