@@ -1,3 +1,5 @@
+using System;
+using Cysharp.Threading.Tasks;
 using R3;
 using UnityEngine.Purchasing;
 
@@ -16,5 +18,6 @@ namespace TapEmpire.Services
         public Observable<IIapHandler> OnIapHandle { get; }
         Product GetProductInfo(string key);
         IapOffer GetOfferInfo(string key);
+        void ShowOnLevel(int dataLevelIndex, Action callback);
     }
 }
