@@ -1,15 +1,18 @@
+using System;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
+using Zenject;
 
 namespace TapEmpire.Services
 {
+    [Serializable]
     public class NoAdsIapHandler : BaseIapHandler<DisableAdsProduct>
     {
-        private readonly IAdsService _adsService;
+        private IAdsService _adsService;
 
-        public NoAdsIapHandler(IAdsService adsService)
+        public override void Initialize(DiContainer diContainer)
         {
-            _adsService = adsService;
+            _adsService = diContainer.Resolve<IAdsService>();
         }
 
         public override UniTask Handle(DisableAdsProduct product)

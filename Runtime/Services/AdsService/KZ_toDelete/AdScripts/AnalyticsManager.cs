@@ -106,6 +106,8 @@ public static class AnalyticsManager
         adjustAdRevenue.setRevenue(revenue, "USD");
         adjustAdRevenue.setAdRevenueNetwork(maxAd.NetworkName);
         adjustAdRevenue.setAdRevenueUnit($"{format}_{maxAd.AdUnitIdentifier}");
+        adjustAdRevenue.addPartnerParameter("ad_format", maxAd.AdFormat);
+        adjustAdRevenue.addPartnerParameter("ad_unit_id", maxAd.AdUnitIdentifier);
         Adjust.trackAdRevenue(adjustAdRevenue);
 
         // GameAnalytics.NewAdEvent(GAAdAction.Show, GetAdType(format), "Max", targetPlacement);
