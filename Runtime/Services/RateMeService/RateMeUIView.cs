@@ -7,7 +7,7 @@ using UnityEngine.UI;
 
 namespace TapEmpire.Services
 {
-    public class RateMeUIView : UIView<RateMeUiViewModel>
+    public class RateMeUIView : UIView<RateMeUiViewModel>, IInjectable
     {
         [SerializeField] private Button _accept;
         [SerializeField] private Button _reject;
