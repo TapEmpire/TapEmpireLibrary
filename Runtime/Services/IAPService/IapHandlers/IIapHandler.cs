@@ -1,5 +1,6 @@
 using System;
 using Cysharp.Threading.Tasks;
+using Zenject;
 
 namespace TapEmpire.Services
 {
@@ -12,6 +13,9 @@ namespace TapEmpire.Services
     {
         bool CanHandle(IIapProduct product);
         UniTask Handle(IIapProduct product);
+        Type GetProductType();
+
+        void Initialize(DiContainer diContainer);
     }
 
     public abstract class BaseIapHandler<T> : IIapHandler<T> where T : IIapProduct
@@ -27,5 +31,7 @@ namespace TapEmpire.Services
         }
 
         public abstract UniTask Handle(T product);
+        public abstract void Initialize(DiContainer diContainer);
+        public Type GetProductType() => typeof(T);
     }
 }
