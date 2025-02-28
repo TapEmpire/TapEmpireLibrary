@@ -9,16 +9,20 @@ namespace TapEmpire.Services
         void InitializeMixer();
         void WarmUpSources(bool warmUpSoundsPool, bool warmUp3DSoundsPool, bool warmUpMusicInstance);
         
-        AudioData GetAudioData<AudioId>(AudioId audioId) where AudioId : Enum;
+        AudioData GetAudioData<TAudioId>(TAudioId audioId) where TAudioId : Enum;
 
-        void PlaySoundOneShotAtPoint<AudioId>(AudioId audioId, Vector3 position, string uniqueId = "") where AudioId : Enum;
-        
-        void PlaySoundOneShot<AudioId>(AudioId audioId, string uniqueId = "") where AudioId : Enum;
+        void PlaySoundOneShotAtPoint<TAudioId>(TAudioId audioId, Vector3 position, string uniqueId = "") where TAudioId : Enum;
 
-        void StartPlayMusic<AudioId>(AudioId audioId, float fadeInDuration = 0.5f) where AudioId : Enum;
-        void PlaySoundLoop<AudioId>(AudioId audioId, string uniqueId = "") where AudioId : Enum;
-        void StopSound<AudioId>(AudioId audioId, string uniqueId = "") where AudioId : Enum;
+        void PlaySoundOneShot(string audioId, string uniqueId = "");
+        void PlaySoundOneShot<TAudioId>(TAudioId audioId, string uniqueId = "") where TAudioId : Enum;
+
+        void StartPlayMusic<TAudioId>(TAudioId audioId, float fadeInDuration = 0.5f) where TAudioId : Enum;
+        void PlaySoundLoop(string audioId, string uniqueId = "");
+        void PlaySoundLoop<TAudioId>(TAudioId audioId, string uniqueId = "") where TAudioId : Enum;
+        void StopSound(string audioId, string uniqueId = "");
+        void StopSound<TAudioId>(TAudioId audioId, string uniqueId = "") where TAudioId : Enum;
         void StopAllSounds();
+        void SetCustomAudioBank(IAudioBank audioBank);
 
         bool MusicMode { get; }
         void ChangeMusicMode(bool mode, bool withFade);
