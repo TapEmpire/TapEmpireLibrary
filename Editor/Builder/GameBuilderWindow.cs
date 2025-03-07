@@ -5,7 +5,9 @@ using System.Linq;
 using Sirenix.OdinInspector;
 using System;
 using com.adjust.sdk;
+using LunarConsolePlugin;
 using TapEmpire.Settings;
+using TEL.Utilities;
 
 namespace TapEmpire.Build
 {
@@ -101,6 +103,13 @@ namespace TapEmpire.Build
             var adsManager = AssetDatabase.LoadAssetAtPath<AdsManager>($"{_projectPathSettings.DefaultServicesPath}/AdsManager Variant.prefab");
             adsManager.TestAds = SelectedBuildConfig == Configuration.Debug;
             EditorUtility.SetDirty(adsManager);
+
+            var console = FindObjectOfType<LunarConsole>(true);
+            if (console)
+            {
+                console.gameObject.SetActive(SelectedBuildConfig == Configuration.Debug);
+                EditorTools.SetDirty(console);
+            }
         }
 
         private void ApplyPlatform()
