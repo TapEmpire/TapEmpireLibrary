@@ -20,5 +20,14 @@ namespace TapEmpire.Utility
             }
 #endif
         }
+
+        public static string ReadText(string title, string directory)
+        {
+#if UNITY_EDITOR
+            string path = EditorUtility.OpenFilePanel(title, directory, "json");
+
+            return path.Length != 0 ? File.ReadAllText(path) : string.Empty;
+        }
+#endif
     }
 }
