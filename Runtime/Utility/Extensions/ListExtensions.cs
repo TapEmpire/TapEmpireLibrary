@@ -139,5 +139,18 @@ namespace TapEmpire.Utility
         {
             return list[UnityEngine.Random.Range(0, list.Count - 1)];
         }
+
+        public static List<T> Shuffle<T>(this List<T> list)
+        {
+            var random = new System.Random();
+            int n = list.Count;
+            for (int i = n - 1; i > 0; i--)
+            {
+                int j = random.Next(0, i + 1);
+                (list[i], list[j]) = (list[j], list[i]);
+            }
+
+            return list;
+        }
     }
 }

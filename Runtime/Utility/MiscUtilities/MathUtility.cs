@@ -90,5 +90,10 @@ namespace TapEmpire.Utility
 
             return number;
         }
+
+        public static int CeiledMod(int n, int div)
+        {
+            return (n + div - 1) / div;
+        }
     }
 }
