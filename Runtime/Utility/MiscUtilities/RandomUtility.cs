@@ -83,4 +83,16 @@ namespace TapEmpire.Utility
             _chances.ForEachIndexed((chance, index) => _indices.AddRange(Enumerable.Repeat(index, chance)));
         }
     }
+
+    public class BoxRandomizer<T> : FalseRandomizerInt
+    {
+        private List<T> _elements;
+
+        public BoxRandomizer(List<T> elements) : base(Enumerable.Repeat(1, elements.Count).ToList(), null)
+        {
+            _elements = elements;
+        }
+
+        public T GetRandomElement() => _elements[GetNextRandomIndex()];
+    }
 }
