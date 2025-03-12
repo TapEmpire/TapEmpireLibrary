@@ -47,6 +47,20 @@ namespace TapEmpire.Utility
             }
         }
 
+        public static int FindIndex<T>(this IEnumerable<T> source, Func<T, bool> predicate)
+        {
+            int index = 0;
+            foreach (var item in source)
+            {
+                if (predicate(item))
+                {
+                    return index;
+                }
+                index++;
+            }
+            return -1;
+        }
+
         public static bool TryGetIndex<T>(this T[] self, T indexOfItem, out int index) where T : class
         {
             for (var i = 0; i < self.Length; i++)
@@ -61,7 +75,7 @@ namespace TapEmpire.Utility
             index = -1;
             return false;
         }
-        
+
         public static bool TryGetFirst<T>(this IEnumerable<T> self, Predicate<T> predicate, out T value)
         {
             foreach (var item in self)
@@ -78,7 +92,7 @@ namespace TapEmpire.Utility
             value = default;
             return false;
         }
-        
+
         public static bool TryGetFirstOfType<T1, T2>(this IEnumerable<T1> self, out T2 value)
         {
             foreach (var item in self)
@@ -93,7 +107,7 @@ namespace TapEmpire.Utility
             value = default;
             return false;
         }
-        
+
         public static T GetWithMax<T>(this IEnumerable<T> self, Func<T, float> getValueDelegate)
         {
             var max = float.NegativeInfinity;
@@ -109,7 +123,7 @@ namespace TapEmpire.Utility
             }
             return maxItem;
         }
-        
+
         public static T GetWithMin<T>(this IEnumerable<T> self, Func<T, float> getValueDelegate)
         {
             var min = float.PositiveInfinity;
@@ -125,7 +139,7 @@ namespace TapEmpire.Utility
             }
             return minItem;
         }
-        
+
         public static bool TryGetAt<T>(this IList<T> self, int index, out T item)
         {
             if (self.Count > index)
@@ -136,33 +150,33 @@ namespace TapEmpire.Utility
             item = default;
             return false;
         }
-        
+
         public static T[] RemoveItem<T>(this T[] self, T itemToRemove)
         {
             // Find the index of the item to remove.
             int index = Array.IndexOf(self, itemToRemove);
-        
+
             // If the item is not found, return the original array.
             if (index < 0)
             {
                 return self;
             }
-        
+
             // Create a new array with a size one less than the original.
             T[] newArray = new T[self.Length - 1];
-        
+
             // Copy the items before the removed item.
             if (index > 0)
             {
                 Array.Copy(self, 0, newArray, 0, index);
             }
-        
+
             // Copy the items after the removed item.
             if (index < self.Length - 1)
             {
                 Array.Copy(self, index + 1, newArray, index, self.Length - index - 1);
             }
-        
+
             return newArray;
         }
     }

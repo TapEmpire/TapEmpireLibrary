@@ -29,6 +29,7 @@ namespace TapEmpire.UI
         
         protected override UniTask OnCloseAsync(CancellationToken cancellationToken)
         {
+            _fillImage.rectTransform.DOKill();
             return base.OnCloseAsync(cancellationToken);
         }
 
