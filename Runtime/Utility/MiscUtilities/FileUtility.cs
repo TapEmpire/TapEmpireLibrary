@@ -27,7 +27,9 @@ namespace TapEmpire.Utility
             string path = EditorUtility.OpenFilePanel(title, directory, "json");
 
             return path.Length != 0 ? File.ReadAllText(path) : string.Empty;
-        }
+#else
+            return string.Empty;
 #endif
+        }
     }
 }
