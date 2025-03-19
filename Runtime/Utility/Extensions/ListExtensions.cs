@@ -137,20 +137,23 @@ namespace TapEmpire.Utility
 
         public static T GetRandomElement<T>(this List<T> list)
         {
-            return list[UnityEngine.Random.Range(0, list.Count - 1)];
+            return list[UnityEngine.Random.Range(0, list.Count)];
         }
 
-        public static List<T> Shuffle<T>(this List<T> list)
+        public static List<T> Shuffle<T>(this List<T> self)
         {
-            var random = new System.Random();
-            int n = list.Count;
-            for (int i = n - 1; i > 0; i--)
+            return self.Shuffle(0, self.Count);
+        }
+
+        public static List<T> Shuffle<T>(this List<T> self, int start, int end)
+        {
+            for (int i = end - 1; i > start; i--)
             {
-                int j = random.Next(0, i + 1);
-                (list[i], list[j]) = (list[j], list[i]);
+                int j = UnityEngine.Random.Range(start, i + 1);
+                (self[i], self[j]) = (self[j], self[i]);
             }
 
-            return list;
+            return self;
         }
     }
 }

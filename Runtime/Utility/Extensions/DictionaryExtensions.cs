@@ -68,5 +68,16 @@ namespace TapEmpire.Utility
         {
             return self.TryGetValue(key, out var value) ? value : default(TValue);
         }
+
+        public static IEnumerable<KeyValuePair<TKey, TValue>> FindAll<TKey, TValue>(this Dictionary<TKey, TValue> self, Predicate<KeyValuePair<TKey, TValue>> predicate)
+        {
+            foreach (var entry in self)
+            {
+                if (predicate(entry))
+                {
+                    yield return entry;
+                }
+            }
+        }
     }
 }
