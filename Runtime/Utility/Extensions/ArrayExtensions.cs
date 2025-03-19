@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 
 namespace TapEmpire.Utility
 {
@@ -25,6 +24,17 @@ namespace TapEmpire.Utility
         {
             var index = array.GetColumn(column, from).FindIndex(predicate);
             return index < 0 ? index : index + from;
+        }
+
+        public static IEnumerable<T> AsStream<T>(this T[,] array)
+        {
+            for (int i = 0; i < array.GetLength(0); i++)
+            {
+                for (int j = 0; j < array.GetLength(1); j++)
+                {
+                    yield return array[i, j];
+                }
+            }
         }
     }
 }
