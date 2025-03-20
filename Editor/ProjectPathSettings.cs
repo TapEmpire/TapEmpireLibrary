@@ -15,6 +15,10 @@ namespace TapEmpire.Build
         [ShowInInspector] public string GameBuildSettingsPath => $"{DefaultScriptablesPath}/GameBuildSettings.asset";
         [ShowInInspector] public string GameStartSettingsPath => $"{DefaultScriptablesPath}/GameStartSettings.asset";
 
+        [Title("Project specific")]
+
+        [ShowInInspector] public string ProjectScriptablesPath => $"{DefaultGamePath}/Scriptables";
+
         private static ProjectPathSettings _instance = null;
 
         public static ProjectPathSettings Instance

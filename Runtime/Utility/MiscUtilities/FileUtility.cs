@@ -5,6 +5,15 @@ namespace TapEmpire.Utility
 {
     public static class FileUtility
     {
+        public static string OpenFilePanel(string title, string directory, string extension = "json")
+        {
+#if UNITY_EDITOR
+            return EditorUtility.OpenFilePanel(title, directory, extension);
+#else
+            return string.Empty;
+#endif
+        }
+
         public static void SaveText(string title, string fileName, string text)
         {
 #if UNITY_EDITOR
@@ -25,8 +34,16 @@ namespace TapEmpire.Utility
         {
 #if UNITY_EDITOR
             string path = EditorUtility.OpenFilePanel(title, directory, "json");
+            return ReadFile(path);
+#else
+            return string.Empty;
+#endif
+        }
 
-            return path.Length != 0 ? File.ReadAllText(path) : string.Empty;
+        public static string ReadFile(string filename)
+        {
+#if UNITY_EDITOR
+            return filename.Length != 0 ? File.ReadAllText(filename) : string.Empty;
 #else
             return string.Empty;
 #endif
