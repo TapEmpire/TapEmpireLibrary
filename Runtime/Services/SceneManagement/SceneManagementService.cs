@@ -21,14 +21,14 @@ namespace TapEmpire.Services
 
         [SerializeField] private float _initialProgress = 0.3f;
         [SerializeField] private float _adsProgress = 0.8f;
+        [SerializeField] private float _minDisplayTime = 1.5f; // Minimum time to show the progress bar
+        [SerializeField] private float _initialProgressTime = 0.5f;
 
         private IUIService _uiService;
         private IAdsService _adsService;
 
         private SceneLoadingUIViewModel _sceneLoadingUIViewModel;
 
-        private readonly float _minDisplayTime = 1.5f; // Minimum time to show the progress bar
-        private readonly float _initialProgressTime = 0.5f;
         private float _initialProgressDone = 0.0f;
 
         private UniTaskCompletionSource _completionSource = null;
