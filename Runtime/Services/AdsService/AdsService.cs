@@ -6,7 +6,6 @@ using DG.Tweening;
 using UnityEngine;
 using System.Linq;
 using Zenject;
-using GoogleMobileAds.Ump.Api;
 using TapEmpire.Utility;
 using R3;
 
@@ -35,13 +34,8 @@ namespace TapEmpire.Services
         [SerializeField]
         private AdsSettings _adsSettings = null;
 
-        // [SerializeField]
-        // private AppMetrica _appMetricaPrefab = null;
-
         [Inject]
         private DiContainer _diContainer = null;
-
-        [SerializeField] private bool _adsDisabledDebug;
         [SerializeField] private bool _adsDisabled;
         
         private string _currentAdPlacement = "";
@@ -54,7 +48,7 @@ namespace TapEmpire.Services
         private bool _isInitialized = false;
         private AdsAnalyticsModule _analyticsModule = null;
 
-        public bool DebugAdsDisabled => _adsDisabledDebug;
+        public bool AdsDisabledDebug { get; set; } = false;
         public float MaxWaitingTime => _adsSettings.ShouldWaitAppOpen ? _adsSettings.AppOpenWaitTime : 0.0f;
 
         private CancellationTokenSource _cancellationTokenSource;
@@ -85,42 +79,37 @@ namespace TapEmpire.Services
                 _adsRuntimeScenario.InterstitialAfterLevels = _adsSettings.InterstitialAfterLevels;
                 _adsRuntimeScenario.ShowBanner = true;
             }
-            
-            if (!_adsDisabledDebug)
-            {
-                GameObject.Instantiate(_adsManagerPrefab);
-                // GameObject.Instantiate(_appMetricaPrefab);
-                GameObject.Instantiate(_adjustPrefab);
+        
+            GameObject.Instantiate(_adsManagerPrefab);
+            // GameObject.Instantiate(_appMetricaPrefab);
+            GameObject.Instantiate(_adjustPrefab);
 
-                _analyticsModule = new AdsAnalyticsModule(_diContainer);
-                _analyticsModule.Initialize();
+            _analyticsModule = new AdsAnalyticsModule(_diContainer);
+            _analyticsModule.Initialize();
 
-                // global::AdsManager.Instance.OnInitialized += OnInitialized;
-                global::AdsManager.Instance.EnableAppOpen = _adsRuntimeScenario.EnableAppOpen;
-                global::AdsManager.Instance.SetAppOpenAutoShow(true);
-                global::AdsManager.Instance.OnConsentObtained += OnConsentObtained;
-                global::AdsManager.Instance.Initialize_AdNetworks(_adsSettings, _adsRuntimeScenario)
-                    .ContinueWith(() => PeriodicAdCheck()).Forget();
+            // global::AdsManager.Instance.OnInitialized += OnInitialized;
+            global::AdsManager.Instance.EnableAppOpen = _adsRuntimeScenario.EnableAppOpen;
+            global::AdsManager.Instance.SetAppOpenAutoShow(true);
+            global::AdsManager.Instance.OnConsentObtained += OnConsentObtained;
+            global::AdsManager.Instance.Initialize_AdNetworks(_adsSettings, _adsRuntimeScenario)
+                .ContinueWith(() => PeriodicAdCheck()).Forget();
 
-                _shouldWaitAppOpen = new ReactiveProperty<bool>(_adsRuntimeScenario.ShouldWaitAppOpen);
+            _shouldWaitAppOpen = new ReactiveProperty<bool>(_adsRuntimeScenario.ShouldWaitAppOpen);
 
-                ShouldWaitAppOpen = _shouldWaitAppOpen.CombineLatest(global::AdsManager.Instance.ShouldWaitAppOpen,
-                    (timer, appOpen) => timer && appOpen).ToReadOnlyReactiveProperty();
+            ShouldWaitAppOpen = _shouldWaitAppOpen.CombineLatest(global::AdsManager.Instance.ShouldWaitAppOpen,
+                (timer, appOpen) => timer && appOpen).ToReadOnlyReactiveProperty();
 
-                _isInitialized = true;
+            _isInitialized = true;
 
-                _cancellationTokenSource = new CancellationTokenSource();
-                UniTaskUtility.ExecuteAfterSeconds(MaxWaitingTime,
-                    () =>
-                    {
-                        _shouldWaitAppOpen.Value = false;
-                        global::AdsManager.Instance.ShouldWaitAppOpen.Value = false;
-                    }, _cancellationTokenSource.Token);
+            _cancellationTokenSource = new CancellationTokenSource();
+            UniTaskUtility.ExecuteAfterSeconds(MaxWaitingTime,
+                () =>
+                {
+                    _shouldWaitAppOpen.Value = false;
+                    global::AdsManager.Instance.ShouldWaitAppOpen.Value = false;
+                }, _cancellationTokenSource.Token);
 
-                await UniTask.WaitUntil(() => ShouldWaitAppOpen.CurrentValue == false, cancellationToken: cancellationToken);
-            }
-
-            // return UniTask.CompletedTask;
+            await UniTask.WaitUntil(() => ShouldWaitAppOpen.CurrentValue == false, cancellationToken: cancellationToken);
         }
 
         protected override void OnRelease()
@@ -162,7 +151,7 @@ namespace TapEmpire.Services
 
         public bool ShowInterstitial()
         {
-            if (_adsDisabledDebug)
+            if (AdsDisabledDebug)
             {
                 OnAdReceivedReward();
                 return true;
@@ -184,7 +173,7 @@ namespace TapEmpire.Services
 
         public void ShowRewarded(string adPlacement)
         {
-            if (_adsDisabledDebug)
+            if (AdsDisabledDebug)
             {
                 OnAdReceivedReward();
                 return;
@@ -198,7 +187,7 @@ namespace TapEmpire.Services
 
         public void ShowAppOpen(System.Action action)
         {
-            if (_adsDisabledDebug)
+            if (AdsDisabledDebug)
             {
                 action?.Invoke();
                 return;
@@ -220,11 +209,6 @@ namespace TapEmpire.Services
                 AdsManager.Instance.DestroyBanner();
                 AdsManager.Instance.SetAppOpenAutoShow(false);
             }
-        }
-
-        public void DisableAdsDebug(bool disableAdsDebug)
-        {
-            _adsDisabledDebug = disableAdsDebug;
         }
 
         public void ShowInterstitialByTimer()

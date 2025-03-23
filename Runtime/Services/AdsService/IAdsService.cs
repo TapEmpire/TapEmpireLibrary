@@ -19,11 +19,10 @@ namespace TapEmpire.Services
         void ShowInterstitial(int level, System.Action action);
         void ShowRewarded(string adType);
         void DisableAds(bool shouldDisable);
-        void DisableAdsDebug(bool disableAdsDebug);
         void ShowInterstitialByTimer();
         void ShowAppOpen(System.Action action);
 
-        bool DebugAdsDisabled { get; }
+        bool AdsDisabledDebug { get; set; }
         float MaxWaitingTime { get; }
         ReadOnlyReactiveProperty<bool> ShouldWaitAppOpen { get; }
     }
