@@ -179,6 +179,25 @@ namespace TapEmpire.Utility
 
             return newArray;
         }
+
+        public static (T First, T Second) FindFirstPairByCallback<T, TResult>(this IEnumerable<T> source, Func<T, TResult> callback)
+        {
+            var dictionary = new Dictionary<TResult, T>();
+
+            foreach (var item in source)
+            {
+                var result = callback(item);
+
+                if (dictionary.TryGetValue(result, out var existingItem))
+                {
+                    return (existingItem, item);
+                }
+
+                dictionary[result] = item;
+            }
+
+            return default;
+        }
     }
 
     public static class EnumerableHelper<E>
