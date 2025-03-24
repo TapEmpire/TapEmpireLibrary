@@ -41,6 +41,11 @@ namespace TapEmpire.Utility
             list.RemoveRange(from, list.Count - from);
         }
 
+        public static List<T> GetRangeFrom<T>(this List<T> list, int from)
+        {
+            return list.GetRange(from, list.Count - from);
+        }
+
         public static void RemoveLast<T>(this List<T> list, int count)
         {
             list.RemoveRange(list.Count - count, count);
