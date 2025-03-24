@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using Cysharp.Threading.Tasks;
+using UnityEngine;
 using UnityEngine.Localization;
 using UnityEngine.Localization.Settings;
 using Zenject;
@@ -22,7 +23,7 @@ namespace TapEmpire.Services.Localization
 
         protected override UniTask OnInitializeAsync(CancellationToken cancellationToken)
         {
-            var savedLocale = _progressService.GetLocale();
+            var savedLocale = _progressService.GetLocale(Application.systemLanguage.ToString());
             var locales = LocalizationSettings.AvailableLocales.Locales;
             _localeModels.Clear();
             foreach (var locale in locales)
