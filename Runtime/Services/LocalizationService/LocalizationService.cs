@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using Cysharp.Threading.Tasks;
+using R3;
 using UnityEngine;
 using UnityEngine.Localization;
 using UnityEngine.Localization.Settings;
@@ -11,9 +12,11 @@ namespace TapEmpire.Services.Localization
     public class LocalizationService : Initializable, ILocalizationService
     {
         public LocaleModel SelectedLocale { get; private set; }
+        public ReadOnlyReactiveProperty<LocaleModel> Locale => _locale;
 
         private IProgressService _progressService;
         private List<LocaleModel> _localeModels = new();
+        private ReactiveProperty<LocaleModel> _locale = new();
         
         [Inject]
         private void Construct(IProgressService progressService)
@@ -36,6 +39,7 @@ namespace TapEmpire.Services.Localization
                 {
                     SelectedLocale = model;
                     LocalizationSettings.SelectedLocale = model.Locale;
+                    _locale.Value = model;
                 }
             }
             
@@ -56,6 +60,7 @@ namespace TapEmpire.Services.Localization
         {
             SelectedLocale = locale;
             LocalizationSettings.SelectedLocale = SelectedLocale.Locale;
+            _locale.Value = locale;
             _progressService.SetLocale(locale.ShortName);
         }
 
