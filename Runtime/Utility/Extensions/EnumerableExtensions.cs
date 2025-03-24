@@ -198,6 +198,40 @@ namespace TapEmpire.Utility
 
             return default;
         }
+
+        public static (T First, T Second) FindPairByCallback<T, TResult>(this IEnumerable<T> source, Func<T, TResult> callback, Func<T, int> extraCondition)
+        {
+            var dictionary = new Dictionary<TResult, List<T>>();
+
+            foreach (var item in source)
+            {
+                var result = callback(item);
+
+                if (dictionary.TryGetValue(result, out var existingList))
+                {
+                    var extraValue = extraCondition(item);
+                    var existingItem = existingList.Find(element => extraCondition(element) != extraValue);
+                    if (existingItem != null)
+                    {
+                        return (existingItem, item);
+                    }
+
+                    existingList.Add(item);
+                    continue;
+                }
+
+                dictionary[result] = new List<T>() { item };
+            }
+
+            var matches = dictionary.FirstOrDefault(pair => pair.Value.Count >= 2);
+
+            if (matches.Value != null)
+            {
+                return (matches.Value[0], matches.Value[1]);
+            }
+
+            return default;
+        }
     }
 
     public static class EnumerableHelper<E>
