@@ -8,6 +8,11 @@ namespace TapEmpire.Utility
     {
         private static readonly float TURNOVER_INVERSE = 1.0f / 180.0f;
 
+        public static int LoopClamp(int value, int max)
+        {
+            return value < max ? value : 0;
+        }
+
         public static int LoopValue(int value, int max)
         {
             return (value + 1 >= max) ? 0 : value + 1;

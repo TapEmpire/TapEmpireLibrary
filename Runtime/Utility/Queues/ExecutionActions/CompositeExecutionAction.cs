@@ -3,7 +3,7 @@ using R3;
 
 namespace TapEmpire.Utility
 {
-    public class CompositeExecutionAction : ExecutionAction, IDisposable
+    public class CompositeExecutionAction : ExecutionAction
     {
         private IExecutionAction[] _actions = Array.Empty<IExecutionAction>();
 
@@ -13,7 +13,7 @@ namespace TapEmpire.Utility
 
         public CompositeDisposable _disposables = new();
 
-        public CompositeExecutionAction(IExecutionAction[] actions)
+        public CompositeExecutionAction(params IExecutionAction[] actions)
         {
             _actions = actions;
             _actions.ForEach(action => action.OnDone.Subscribe(OnDoneCallback).AddTo(_disposables));
@@ -30,9 +30,15 @@ namespace TapEmpire.Utility
             _index = -1;
         }
 
-        public void Dispose()
+        public override void Dispose()
         {
             _disposables.Dispose();
+            base.Dispose();
+        }
+
+        public void Add(IExecutionAction action)
+        {
+            // 
         }
 
         private void OnDoneCallback(bool isDone)
