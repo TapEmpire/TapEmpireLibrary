@@ -37,7 +37,7 @@ namespace TapEmpire.Services
         [Inject]
         private DiContainer _diContainer = null;
         [SerializeField] private bool _adsDisabled;
-        
+
         private string _currentAdPlacement = "";
 
         [Inject]
@@ -55,6 +55,7 @@ namespace TapEmpire.Services
 
         private ReactiveProperty<bool> _shouldWaitAppOpen = null;
         public ReadOnlyReactiveProperty<bool> ShouldWaitAppOpen { get; private set; } = new ReactiveProperty<bool>(true);
+        public AdsSettings Settings => _adsSettings;
 
         private AdsRuntimeScenario _adsRuntimeScenario;
 
@@ -79,7 +80,7 @@ namespace TapEmpire.Services
                 _adsRuntimeScenario.InterstitialAfterLevels = _adsSettings.InterstitialAfterLevels;
                 _adsRuntimeScenario.ShowBanner = true;
             }
-        
+
             GameObject.Instantiate(_adsManagerPrefab);
             // GameObject.Instantiate(_appMetricaPrefab);
             GameObject.Instantiate(_adjustPrefab);
@@ -147,6 +148,29 @@ namespace TapEmpire.Services
             {
                 callback?.Invoke();
             }
+        }
+
+        public bool ShowInterstitial(System.Action callback)
+        {
+            if (!IsInterstitialReady)
+            {
+                callback?.Invoke();
+                return false;
+            }
+
+            OnAdReceivedOnceRewardEvent = (adType) =>
+                {
+                    OnAdReceivedOnceRewardEvent = null;
+                    callback?.Invoke();
+                };
+
+            if (!ShowInterstitial())
+            {
+                OnAdReceivedOnceRewardEvent.Invoke(string.Empty);
+                return false;
+            }
+
+            return true;
         }
 
         public bool ShowInterstitial()

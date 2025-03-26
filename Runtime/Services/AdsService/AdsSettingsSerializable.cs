@@ -16,7 +16,7 @@ namespace TapEmpire.Services
 
         public class AdsRemoteModel
         {
-            public bool EnableAppOpen = true;
+            public bool EnableAppOpen = false;
             public bool ShouldWaitAppOpen = false;
             public float AppOpenWaitTime = 10.0f;
             public List<int> InterstitialAfterLevels = new();
