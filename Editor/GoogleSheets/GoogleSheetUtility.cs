@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using Cysharp.Threading.Tasks;
 using Newtonsoft.Json;
@@ -23,12 +24,24 @@ namespace TapEmpire.Utility.GoogleSheet
                 Directory.CreateDirectory(fullPath);
             }
 
-            var stringTableCollection = LocalizationEditorSettings.CreateStringTableCollection(
-                tableName, fullPath, LocalizationSettings.AvailableLocales.Locales);
+            var stringTableCollection = LocalizationEditorSettings.GetStringTableCollection(tableName);
+
+            if (stringTableCollection == null)
+            {
+                stringTableCollection = LocalizationEditorSettings.CreateStringTableCollection(
+                    tableName, fullPath, LocalizationSettings.AvailableLocales.Locales);
+            }
+
+            var keys = entries.Select(entry => entry.Id);
+
+            stringTableCollection.StringTables.ForEach(table => table.Clear());
+            stringTableCollection.SharedData.Entries
+                .Where(entry => !keys.Contains(entry.Key))
+                .Select(entry => entry.Key)
+                .ToList()
+                .ForEach(key => stringTableCollection.SharedData.RemoveKey(key));
 
             var table = stringTableCollection.GetTable("en-US") as StringTable;
-            table.Clear();
-
             entries.ForEach(entry => table.AddEntry(entry.Id, entry.En));
 
             EditorUtility.SetDirty(table);

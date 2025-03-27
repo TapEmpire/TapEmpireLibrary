@@ -13,8 +13,15 @@ namespace TapEmpire.Utility.GoogleSheet
     public class GoogleSheetData : ScriptableObject
     {
         [ShowInInspector]
-        public static string SheetId = "1fAzhrnaDemi2lngCobeOdD-U0RbNoAczEpcjt_7qd38";
+        [ReadOnly]
+        public static string StaticSheetId = "";
+        public string SheetId = "";
         public List<LevelGoogleData> List = new();
+
+        void OnValidate()
+        {
+            StaticSheetId = SheetId;
+        }
     }
 
     [Serializable]
@@ -22,18 +29,17 @@ namespace TapEmpire.Utility.GoogleSheet
     {
         public string LocalizationTableName;
         public string LevelId;
-        
+
         [Button]
         public async void LoadFromGoogle()
         {
             var provider = new GoogleSheetsSettingsProvider();
-            var localizationData = await provider.GetLocalization(GoogleSheetData.SheetId, LevelId);
+            var localizationData = await provider.GetLocalization(GoogleSheetData.StaticSheetId, LevelId);
 
             var collection = LocalizationEditorSettings.GetStringTableCollection(LocalizationTableName);
             var dict = new Dictionary<string, StringTable>();
             foreach (var table in collection.StringTables)
             {
-                table.Clear();
                 dict.Add(table.name.Split('_').Last().Split('-')[0], table);
             }
 
