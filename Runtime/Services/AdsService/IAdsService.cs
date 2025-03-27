@@ -15,13 +15,15 @@ namespace TapEmpire.Services
         bool IsRewardedAdReady { get; }
         bool IsInterstitialReady { get; }
 
-        bool ShowInterstitial();
-        bool ShowInterstitial(System.Action action);
-        void ShowInterstitial(int level, System.Action action);
+        bool ShowInterstitial(string placement = "");
+        void ShowInterstitial(int level, System.Action action, string placement = "");
         void ShowRewarded(string adType);
         void DisableAds(bool shouldDisable);
         void ShowInterstitialByTimer();
         void ShowAppOpen(System.Action action);
+
+        bool ShowInterstitial(System.Action action, string placement = "");
+        void ShowRewarded(string placement, System.Action action);
 
         bool AdsDisabledDebug { get; set; }
         float MaxWaitingTime { get; }
