@@ -28,13 +28,13 @@ namespace TapEmpire.Utility.GoogleSheet
     public class LevelGoogleData
     {
         public string LocalizationTableName;
-        public string LevelId;
+        public string TableId;
 
         [Button]
         public async void LoadFromGoogle()
         {
             var provider = new GoogleSheetsSettingsProvider();
-            var localizationData = await provider.GetLocalization(GoogleSheetData.StaticSheetId, LevelId);
+            var localizationData = await provider.GetLocalization(GoogleSheetData.StaticSheetId, TableId);
 
             var collection = LocalizationEditorSettings.GetStringTableCollection(LocalizationTableName);
             var dict = new Dictionary<string, StringTable>();
@@ -50,7 +50,7 @@ namespace TapEmpire.Utility.GoogleSheet
                 {
                     var containerEntry = container.Entries[j];
                     var table = dict[containerEntry.Locale];
-                    if (containerEntry.Locale == "en") continue;
+                    // if (containerEntry.Locale == "en") continue;
 
                     CreateOrUpdateEntry(table, containerEntry.LocalizedString, container.Key);
                 }
@@ -61,6 +61,12 @@ namespace TapEmpire.Utility.GoogleSheet
                     EditorUtility.SetDirty(table.SharedData);
                 }
             }
+        }
+
+        [Button]
+        private void CopyToClipboard()
+        {
+            GoogleSheetUtility.CopyToClipboard(LocalizationTableName);
         }
 
         private void CreateOrUpdateEntry(StringTable table, string localizedString, string entryName)

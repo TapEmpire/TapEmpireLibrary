@@ -42,24 +42,25 @@ namespace TapEmpire.Utility.GoogleSheet
             var parsers = new Dictionary<string, Action<TranslationEntryContainer, string>>
             {
                 ["key"] = (c, v) => c.Key = v,
-                ["en"] = (c, v) => c.Entries.Add(new TranslationEntry(){Locale = "en", LocalizedString = v}),
-                ["es"] = (c, v) => c.Entries.Add(new TranslationEntry(){Locale = "es", LocalizedString = v}),
-                ["pt"] = (c, v) => c.Entries.Add(new TranslationEntry(){Locale = "pt", LocalizedString = v}),
-                ["it"] = (c, v) => c.Entries.Add(new TranslationEntry(){Locale = "it", LocalizedString = v}),
-                ["de"] = (c, v) => c.Entries.Add(new TranslationEntry(){Locale = "de", LocalizedString = v}),
-                ["zh"] = (c, v) => c.Entries.Add(new TranslationEntry(){Locale = "zh", LocalizedString = v}),
-                ["ja"] = (c, v) => c.Entries.Add(new TranslationEntry(){Locale = "ja", LocalizedString = v}),
-                ["ko"] = (c, v) => c.Entries.Add(new TranslationEntry(){Locale = "ko", LocalizedString = v}),
-                ["in"] = (c, v) => c.Entries.Add(new TranslationEntry(){Locale = "in", LocalizedString = v}),
-                ["fr"] = (c, v) => c.Entries.Add(new TranslationEntry(){Locale = "fr", LocalizedString = v}),
-                ["vi"] = (c, v) => c.Entries.Add(new TranslationEntry(){Locale = "vi", LocalizedString = v}),
-                ["ms"] = (c, v) => c.Entries.Add(new TranslationEntry(){Locale = "ms", LocalizedString = v}),
-                ["id"] = (c, v) => c.Entries.Add(new TranslationEntry(){Locale = "id", LocalizedString = v}),
-                ["hi"] = (c, v) => c.Entries.Add(new TranslationEntry(){Locale = "hi", LocalizedString = v}),
-                ["ru"] = (c, v) => c.Entries.Add(new TranslationEntry(){Locale = "ru", LocalizedString = v}),
+                ["en"] = (c, v) => c.Entries.Add(new TranslationEntry() { Locale = "en", LocalizedString = v }),
+                ["es"] = (c, v) => c.Entries.Add(new TranslationEntry() { Locale = "es", LocalizedString = v }),
+                ["pt"] = (c, v) => c.Entries.Add(new TranslationEntry() { Locale = "pt", LocalizedString = v }),
+                ["it"] = (c, v) => c.Entries.Add(new TranslationEntry() { Locale = "it", LocalizedString = v }),
+                ["de"] = (c, v) => c.Entries.Add(new TranslationEntry() { Locale = "de", LocalizedString = v }),
+                ["zh"] = (c, v) => c.Entries.Add(new TranslationEntry() { Locale = "zh", LocalizedString = v }),
+                ["ja"] = (c, v) => c.Entries.Add(new TranslationEntry() { Locale = "ja", LocalizedString = v }),
+                ["ko"] = (c, v) => c.Entries.Add(new TranslationEntry() { Locale = "ko", LocalizedString = v }),
+                ["in"] = (c, v) => c.Entries.Add(new TranslationEntry() { Locale = "in", LocalizedString = v }),
+                ["fr"] = (c, v) => c.Entries.Add(new TranslationEntry() { Locale = "fr", LocalizedString = v }),
+                ["vi"] = (c, v) => c.Entries.Add(new TranslationEntry() { Locale = "vi", LocalizedString = v }),
+                ["ms"] = (c, v) => c.Entries.Add(new TranslationEntry() { Locale = "ms", LocalizedString = v }),
+                ["id"] = (c, v) => c.Entries.Add(new TranslationEntry() { Locale = "id", LocalizedString = v }),
+                ["hi"] = (c, v) => c.Entries.Add(new TranslationEntry() { Locale = "hi", LocalizedString = v }),
+                ["ru"] = (c, v) => c.Entries.Add(new TranslationEntry() { Locale = "ru", LocalizedString = v }),
             };
 
-            var  tables = ParsePlainData(res.downloadHandler.text, parsers, Selectors.AddNewElement, ParseAsTable);
+            var tables = ParsePlainData(res.downloadHandler.text, parsers, Selectors.AddNewElement, ParseAsTable);
+            tables = tables.Where(table => !string.IsNullOrEmpty(table.Key)).ToList();
             Debug.Log($"[SETTINGS] Remote table {levelId} data set");
 
             return tables;

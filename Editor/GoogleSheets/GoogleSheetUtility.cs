@@ -7,6 +7,7 @@ using Cysharp.Threading.Tasks;
 using Newtonsoft.Json;
 using UnityEditor;
 using UnityEditor.Localization;
+using UnityEditor.Localization.Plugins.XLIFF.V12;
 using UnityEngine;
 using UnityEngine.Localization.Settings;
 using UnityEngine.Localization.Tables;
@@ -26,20 +27,22 @@ namespace TapEmpire.Utility.GoogleSheet
 
             var stringTableCollection = LocalizationEditorSettings.GetStringTableCollection(tableName);
 
-            if (stringTableCollection == null)
+            if (stringTableCollection != null)
             {
-                stringTableCollection = LocalizationEditorSettings.CreateStringTableCollection(
-                    tableName, fullPath, LocalizationSettings.AvailableLocales.Locales);
+                // var keys = entries.Select(entry => entry.Id);
+
+                // stringTableCollection.StringTables.ForEach(table => table.Clear());
+                // stringTableCollection.SharedData.Entries
+                //     .Where(entry => !keys.Contains(entry.Key))
+                //     .Select(entry => entry.Key)
+                //     .ToList()
+                //     .ForEach(key => stringTableCollection.SharedData.RemoveKey(key));
             }
 
-            var keys = entries.Select(entry => entry.Id);
-
-            stringTableCollection.StringTables.ForEach(table => table.Clear());
-            stringTableCollection.SharedData.Entries
-                .Where(entry => !keys.Contains(entry.Key))
-                .Select(entry => entry.Key)
-                .ToList()
-                .ForEach(key => stringTableCollection.SharedData.RemoveKey(key));
+            if (stringTableCollection == null)
+            {
+                stringTableCollection = LocalizationEditorSettings.CreateStringTableCollection(tableName, fullPath);
+            }
 
             var table = stringTableCollection.GetTable("en-US") as StringTable;
             entries.ForEach(entry => table.AddEntry(entry.Id, entry.En));
@@ -53,6 +56,20 @@ namespace TapEmpire.Utility.GoogleSheet
             StringBuilder sb = new StringBuilder();
 
             entries.ForEach(entry => sb.AppendLine($"{entry.Id}\t{entry.En}"));
+
+            GUIUtility.systemCopyBuffer = sb.ToString();
+            Debug.Log("Data copied to clipboard - ready to paste into Google Sheets");
+        }
+
+        public static void CopyToClipboard(string tableName)
+        {
+            var stringTableCollection = LocalizationEditorSettings.GetStringTableCollection(tableName);
+            var table = stringTableCollection.GetTable("en-US") as StringTable;
+            var sharedTable = stringTableCollection.SharedData;
+
+            StringBuilder sb = new StringBuilder();
+
+            sharedTable.Entries.ForEach(entry => sb.AppendLine($"{entry.Key}\t{table.GetEntry(entry.Id).Value}"));
 
             GUIUtility.systemCopyBuffer = sb.ToString();
             Debug.Log("Data copied to clipboard - ready to paste into Google Sheets");

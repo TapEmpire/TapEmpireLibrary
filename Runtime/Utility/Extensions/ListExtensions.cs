@@ -160,5 +160,10 @@ namespace TapEmpire.Utility
 
             return self;
         }
+
+        public static bool Contains<T>(this List<T> self, System.Predicate<T> predicate)
+        {
+            return self.FindIndex(element => predicate.Invoke(element)) != -1;
+        }
     }
 }
