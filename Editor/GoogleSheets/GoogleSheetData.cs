@@ -6,21 +6,36 @@ using UnityEditor;
 using UnityEditor.Localization;
 using UnityEngine;
 using UnityEngine.Localization.Tables;
+using UnityEngine.UI;
 
 namespace TapEmpire.Utility.GoogleSheet
 {
     [CreateAssetMenu(menuName = "TapEmpire/GoogleSheet/GoogleSheetData", fileName = "GoogleSheetData")]
     public class GoogleSheetData : ScriptableObject
     {
-        [ShowInInspector]
-        [ReadOnly]
-        public static string StaticSheetId = "";
-        public string SheetId = "";
+        public TextAsset ServiceAccountKey;
+        public string SpreadSheetId = string.Empty;
+        public string TemplateSheetId = string.Empty;
         public List<LevelGoogleData> List = new();
 
-        void OnValidate()
+        [HideInInspector]
+        public ConnectionData ConnectionData = null;
+
+        private static GoogleSheetData _instance = null;
+
+        public static GoogleSheetData Instance
         {
-            StaticSheetId = SheetId;
+            get
+            {
+                if (_instance == null)
+                {
+                    var guids = AssetDatabase.FindAssets("t:GoogleSheetData");
+                    var path = AssetDatabase.GUIDToAssetPath(guids[0]);
+                    _instance = AssetDatabase.LoadAssetAtPath<GoogleSheetData>(path);
+                }
+
+                return _instance;
+            }
         }
     }
 
@@ -33,8 +48,9 @@ namespace TapEmpire.Utility.GoogleSheet
         [Button]
         public async void LoadFromGoogle()
         {
+            var googleSheetData = GoogleSheetData.Instance;
             var provider = new GoogleSheetsSettingsProvider();
-            var localizationData = await provider.GetLocalization(GoogleSheetData.StaticSheetId, TableId);
+            var localizationData = await provider.GetLocalization(googleSheetData.SpreadSheetId, TableId);
 
             var collection = LocalizationEditorSettings.GetStringTableCollection(LocalizationTableName);
             var dict = new Dictionary<string, StringTable>();
@@ -69,6 +85,14 @@ namespace TapEmpire.Utility.GoogleSheet
             GoogleSheetUtility.CopyToClipboard(LocalizationTableName);
         }
 
+        [Button]
+        private async void CheckAndCreateGoogleSheet()
+        {
+            var tableId = await GoogleSheetUtility.CreateAndInitializeGoogleSheet(GoogleSheetData.Instance, LocalizationTableName);
+            TableId = tableId.ToString();
+            EditorUtility.SetDirty(GoogleSheetData.Instance);
+        }
+
         private void CreateOrUpdateEntry(StringTable table, string localizedString, string entryName)
         {
             var entry = table.GetEntry(entryName);
@@ -93,5 +117,12 @@ namespace TapEmpire.Utility.GoogleSheet
     {
         public string Locale;
         public string LocalizedString;
+    }
+
+    public class ConnectionData
+    {
+        public string ServiceKey;
+        public string Token;
+        public DateTime Expiration;
     }
 }

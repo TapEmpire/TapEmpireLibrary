@@ -1,17 +1,19 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text;
 using Cysharp.Threading.Tasks;
 using Newtonsoft.Json;
 using UnityEditor;
 using UnityEditor.Localization;
-using UnityEditor.Localization.Plugins.XLIFF.V12;
 using UnityEngine;
-using UnityEngine.Localization.Settings;
 using UnityEngine.Localization.Tables;
 using UnityEngine.Networking;
+using System.Linq;
+using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.Security;
+using Org.BouncyCastle.Pkcs;
 
 namespace TapEmpire.Utility.GoogleSheet
 {
@@ -75,59 +77,199 @@ namespace TapEmpire.Utility.GoogleSheet
             Debug.Log("Data copied to clipboard - ready to paste into Google Sheets");
         }
 
-        // public static async UniTaskVoid UpdateGoogleSheet(string jsonData, string sheetName, string spreadsheetId, string apiKey)
+        public static List<List<string>> GetLocalizationTableData(string tableName)
+        {
+            var stringTableCollection = LocalizationEditorSettings.GetStringTableCollection(tableName);
+            var table = stringTableCollection.GetTable("en-US") as StringTable;
+            var sharedTable = stringTableCollection.SharedData;
+
+            return sharedTable.Entries
+                .Select(entry => new List<string>() { entry.Key, table.GetEntry(entry.Id).Value })
+                .ToList();
+        }
+
+        public static UniTask<int> CreateAndInitializeGoogleSheet(GoogleSheetData googleSheetData, string tableName)
+        {
+            var data = GetLocalizationTableData(tableName);
+            return GoogleSheetCopyAndPaste.DuplicateAndPopulateSheet(googleSheetData, tableName, data);
+        }
+
+        public static async UniTask<string> SendRequest(string url, string method, string data, string token)
+        {
+            try
+            {
+                using (UnityWebRequest request = new UnityWebRequest(url, method))
+                {
+                    byte[] bodyRaw = Encoding.UTF8.GetBytes(data);
+                    request.uploadHandler = new UploadHandlerRaw(bodyRaw);
+                    request.downloadHandler = new DownloadHandlerBuffer();
+
+                    request.SetRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+
+                    if (!string.IsNullOrEmpty(token))
+                    {
+                        request.SetRequestHeader("Content-Type", "application/json");
+                        request.SetRequestHeader("Authorization", "Bearer " + token);
+                    }
+
+                    var response = await request.SendWebRequest().ToUniTask();
+
+                    if (response.result == UnityWebRequest.Result.Success)
+                    {
+                        Debug.Log("Successful request");
+                        return request.downloadHandler.text;
+                    }
+                    else
+                    {
+                        Debug.LogError("Response error: " + response.error);
+                        Debug.LogError("Response: " + request.downloadHandler.text);
+                        return null;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"Exception in UnityWebRequest: {ex.Message}\n{ex.StackTrace}");
+                return null;
+            }
+        }
+
+        public static async UniTask<ConnectionData> GetAccessTokenAsync(string serviceAccountJson)
+        {
+            string url = "https://oauth2.googleapis.com/token";
+            ServiceAccountData saData = JsonConvert.DeserializeObject<ServiceAccountData>(serviceAccountJson);
+
+            string jwt = CreateJwt(saData);
+            string formData = $"grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer&assertion={jwt}";
+
+            var response = await SendRequest(url, "POST", formData, null);
+            if (string.IsNullOrEmpty(response))
+            {
+                return default;
+            }
+
+            TokenResponse tokenResponse = JsonUtility.FromJson<TokenResponse>(response);
+
+            return new ConnectionData()
+            {
+                ServiceKey = serviceAccountJson,
+                Token = tokenResponse.access_token,
+                Expiration = DateTime.Now.AddSeconds(tokenResponse.expires_in - 300)
+            };
+        }
+
+        private static string Base64UrlEncode(string input)
+        {
+            byte[] inputBytes = Encoding.UTF8.GetBytes(input);
+            string base64 = Convert.ToBase64String(inputBytes);
+            return base64.Replace('+', '-').Replace('/', '_').TrimEnd('=');
+        }
+
+        private static string CreateJwt(ServiceAccountData saData)
+        {
+            string header = "{\"alg\":\"RS256\",\"typ\":\"JWT\"}";
+            long currentTime = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+            long expirationTime = currentTime + 3600; // 1 hour
+
+            string claimSet = $@"{{
+                    ""iss"":""{saData.client_email}"",
+                    ""scope"":""https://www.googleapis.com/auth/spreadsheets"",
+                    ""aud"":""https://oauth2.googleapis.com/token"",
+                    ""exp"":{expirationTime},
+                    ""iat"":{currentTime}
+                }}";
+
+            // Encode the JWT components
+            string encodedHeader = Base64UrlEncode(header);
+            string encodedClaimSet = Base64UrlEncode(claimSet);
+
+            // Create signature
+            string signatureInput = encodedHeader + "." + encodedClaimSet;
+            string signature = SignWithRSA_BouncyCastle(signatureInput, saData.private_key);
+
+            // Assemble the JWT
+            return signatureInput + "." + signature;
+        }
+
+        // private static string SignWithRSA(string input, string privateKey)
         // {
-        //     string range = $"{sheetName}!A1";
-        //     string url = $"https://sheets.googleapis.com/v4/spreadsheets/{spreadsheetId}/values/{range}?valueInputOption=USER_ENTERED&key={apiKey}";
-
-        //     using (UnityWebRequest request = new UnityWebRequest(url, "PUT"))
+        //     try
         //     {
-        //         byte[] bodyRaw = Encoding.UTF8.GetBytes(jsonData);
-        //         request.uploadHandler = new UploadHandlerRaw(bodyRaw);
-        //         request.downloadHandler = new DownloadHandlerBuffer();
-        //         request.SetRequestHeader("Content-Type", "application/json");
+        //         // Clean up the private key
+        //         privateKey = privateKey.Replace("-----BEGIN PRIVATE KEY-----", "")
+        //                             .Replace("-----END PRIVATE KEY-----", "")
+        //                             .Replace("\n", "");
 
-        //         await request.SendWebRequest();
+        //         byte[] privateKeyBytes = Convert.FromBase64String(privateKey);
 
-        //         if (request.result == UnityWebRequest.Result.Success)
-        //         {
-        //             UnityEngine.Debug.Log("Google Sheet updated successfully!");
-        //         }
-        //         else
-        //         {
-        //             UnityEngine.Debug.LogError($"Error updating sheet: {request.error}");
-        //             UnityEngine.Debug.LogError($"Response: {request.downloadHandler.text}");
-        //         }
+        //         // Create the RSA provider and import the private key
+        //         RSACryptoServiceProvider provider = new RSACryptoServiceProvider();
+        //         provider.ImportPkcs8PrivateKey(new ReadOnlySpan<byte>(privateKeyBytes), out _);
+
+        //         // Sign the data
+        //         byte[] inputBytes = Encoding.UTF8.GetBytes(input);
+        //         byte[] signatureBytes = provider.SignData(inputBytes, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
+
+        //         // Return Base64 URL encoded signature
+        //         string signature = Convert.ToBase64String(signatureBytes);
+        //         return signature.Replace('+', '-').Replace('/', '_').TrimEnd('=');
+        //     }
+        //     catch (Exception ex)
+        //     {
+        //         Debug.LogError($"Exception in SignWithRSA: {ex.Message}\n{ex.StackTrace}");
+        //         return string.Empty;
         //     }
         // }
-        // private static void Test()
-        // {
-        //     var sheetName = "UI2";
-        //     var spreadsheetId = "";
-        //     var apiKey = "";
 
-        //     List<List<object>> values = new List<List<object>>
-        //     {
-        //         new List<object> { "Row1Col1", "Row1Col2", "Row1Col3" },
-        //         new List<object> { "Row2Col1", "Row2Col2", "Row2Col3" },
-        //         new List<object> { DateTime.Now.ToString(), UnityEngine.Random.Range(1, 100), "Unity Data" }
-        //     };
+        public static string SignWithRSA_BouncyCastle(string input, string privateKey)
+        {
+            try
+            {
+                // Clean up the private key - remove headers and line breaks
+                privateKey = privateKey.Replace("-----BEGIN PRIVATE KEY-----", "")
+                                      .Replace("-----END PRIVATE KEY-----", "")
+                                      .Replace("\n", "")
+                                      .Replace("\r", "");
 
-        //     var json = FormatJsonForSheets(values, sheetName);
-        //     UpdateGoogleSheet(json, sheetName, spreadsheetId, apiKey).Forget();
-        // }
+                // Decode the private key from Base64
+                byte[] privateKeyBytes = Convert.FromBase64String(privateKey);
 
-        // private static string FormatJsonForSheets(List<List<object>> values, string sheetName)
-        // {
-        //     var valueRange = new Dictionary<string, object>()
-        //     {
-        //         { "range", $"{sheetName}!A1" },
-        //         { "majorDimension", "ROWS" },
-        //         { "values", values }
-        //     };
+                // Load the private key using BouncyCastle
+                AsymmetricKeyParameter privKey;
 
-        //     return JsonConvert.SerializeObject(valueRange);
-        //     // return JsonUtility.ToJson(valueRange);
-        // }
+                try
+                {
+                    // Parse as PKCS#8 key
+                    privKey = PrivateKeyFactory.CreateKey(privateKeyBytes);
+                }
+                catch (Exception)
+                {
+                    // If PKCS#8 fails, try as a regular private key
+                    privKey = PrivateKeyFactory.CreateKey(privateKeyBytes);
+                }
+
+                // Create a signer for SHA-256 with RSA
+                ISigner signer = SignerUtilities.GetSigner("SHA256withRSA");
+
+                // Initialize the signer with the private key for signing
+                signer.Init(true, privKey);
+
+                // Convert input to bytes and add to the signer
+                byte[] inputBytes = Encoding.UTF8.GetBytes(input);
+                signer.BlockUpdate(inputBytes, 0, inputBytes.Length);
+
+                // Generate the signature
+                byte[] signatureBytes = signer.GenerateSignature();
+
+                // Convert signature to Base64 URL encoded format
+                string signature = Convert.ToBase64String(signatureBytes);
+                return signature.Replace('+', '-').Replace('/', '_').TrimEnd('=');
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"BouncyCastle signing error: {ex.Message}\n{ex.StackTrace}");
+                return string.Empty;
+            }
+        }
     }
 }
