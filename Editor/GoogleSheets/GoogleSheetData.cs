@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Cysharp.Threading.Tasks;
 using Sirenix.OdinInspector;
 using UnityEditor;
 using UnityEditor.Localization;
@@ -35,6 +36,16 @@ namespace TapEmpire.Utility.GoogleSheet
                 }
 
                 return _instance;
+            }
+        }
+
+        [Button]
+        private async void CheckAndCreateGoogleSheets()
+        {
+            var entries = List.Where(entry => string.IsNullOrEmpty(entry.TableId) || entry.TableId == "-1");
+            foreach (var entry in entries)
+            {
+                await entry.CheckAndCreateGoogleSheetAsync();
             }
         }
     }
@@ -86,7 +97,12 @@ namespace TapEmpire.Utility.GoogleSheet
         }
 
         [Button]
-        private async void CheckAndCreateGoogleSheet()
+        private void CheckAndCreateGoogleSheet()
+        {
+            CheckAndCreateGoogleSheetAsync().Forget();
+        }
+
+        public async UniTask CheckAndCreateGoogleSheetAsync()
         {
             var tableId = await GoogleSheetUtility.CreateAndInitializeGoogleSheet(GoogleSheetData.Instance, LocalizationTableName);
             TableId = tableId.ToString();
