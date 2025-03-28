@@ -17,12 +17,14 @@ namespace TapEmpire.Services
         public class LevelSortTableRemoteModel
         {
             public int[] Order;
+            public string[] Names;
 
             public LevelSortTableRemoteModel() {}
 
             public LevelSortTableRemoteModel(LevelSortTable settings)
             {
                 Order = settings.Order.ToArray();
+                Names = settings.Names.ToArray();
             }
         }
 
@@ -32,6 +34,7 @@ namespace TapEmpire.Services
         {
             var model = token.ToObject<LevelSortTableRemoteModel>();
             _levelSortTable.Order = model.Order;
+            _levelSortTable.Names = model.Names;
         }
 
         public string SerializeJson()
