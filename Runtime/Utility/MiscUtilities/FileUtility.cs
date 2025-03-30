@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.IO;
 using UnityEditor;
 
@@ -26,6 +27,16 @@ namespace TapEmpire.Utility
             if (path.Length != 0)
             {
                 File.WriteAllText(path, text);
+            }
+#endif
+        }
+
+        public static void WriteFile(string filename, string text)
+        {
+#if UNITY_EDITOR
+            if (filename.Length != 0)
+            {
+                File.WriteAllText(filename, text);
             }
 #endif
         }

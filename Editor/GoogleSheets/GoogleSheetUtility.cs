@@ -191,36 +191,6 @@ namespace TapEmpire.Utility.GoogleSheet
             return signatureInput + "." + signature;
         }
 
-        // private static string SignWithRSA(string input, string privateKey)
-        // {
-        //     try
-        //     {
-        //         // Clean up the private key
-        //         privateKey = privateKey.Replace("-----BEGIN PRIVATE KEY-----", "")
-        //                             .Replace("-----END PRIVATE KEY-----", "")
-        //                             .Replace("\n", "");
-
-        //         byte[] privateKeyBytes = Convert.FromBase64String(privateKey);
-
-        //         // Create the RSA provider and import the private key
-        //         RSACryptoServiceProvider provider = new RSACryptoServiceProvider();
-        //         provider.ImportPkcs8PrivateKey(new ReadOnlySpan<byte>(privateKeyBytes), out _);
-
-        //         // Sign the data
-        //         byte[] inputBytes = Encoding.UTF8.GetBytes(input);
-        //         byte[] signatureBytes = provider.SignData(inputBytes, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
-
-        //         // Return Base64 URL encoded signature
-        //         string signature = Convert.ToBase64String(signatureBytes);
-        //         return signature.Replace('+', '-').Replace('/', '_').TrimEnd('=');
-        //     }
-        //     catch (Exception ex)
-        //     {
-        //         Debug.LogError($"Exception in SignWithRSA: {ex.Message}\n{ex.StackTrace}");
-        //         return string.Empty;
-        //     }
-        // }
-
         public static string SignWithRSA_BouncyCastle(string input, string privateKey)
         {
             try
