@@ -131,7 +131,22 @@ namespace TapEmpire.Services
 
         public void PlaySoundOneShot(string audioId, string uniqueId = "")
         {
-            PlaySound(_soundsSourcesPool, audioId, _customAudioBank.GetAudioData(audioId), uniqueId);
+            AudioData audioData = null;
+            if (_customAudioBank.HasAudioData(audioId))
+            {
+                audioData = _customAudioBank.GetAudioData(audioId);
+            }
+            else if (_audioBank.HasAudioData(audioId))
+            {
+                audioData = _audioBank.GetAudioData(audioId);
+            }
+            else
+            {
+                Debug.LogWarning($"No audioId in banks {audioId}");
+                return;
+            }
+            
+            PlaySound(_soundsSourcesPool, audioId, audioData, uniqueId);
         }
 
         public void PlaySoundOneShot<TAudioId>(TAudioId audioId, string uniqueId = "") where TAudioId : Enum
@@ -150,7 +165,7 @@ namespace TapEmpire.Services
 
             if (instance == null)
             {
-                Debug.LogWarning($"No available AudioSource in pool for sound: {audioId}");
+                Debug.LogWarning($"[AUDIO] No available AudioSource in pool for sound: {audioId}");
                 return;
             }
 
@@ -161,7 +176,7 @@ namespace TapEmpire.Services
 
             if (audioData == null)
             {
-                Debug.LogWarning($"AudioData for {audioId} not found.");
+                Debug.LogWarning($"[AUDIO] AudioData for {audioId} not found.");
                 return;
             }
 
@@ -170,17 +185,18 @@ namespace TapEmpire.Services
 
             var instanceKey = audioId + uniqueId;
             _audioSources.TryAdd(instanceKey, instance);
-
+            
             var length = audioData.Clip.length;
-            ScheduleRelease(pool, instance, length);
+            ScheduleRelease(pool, instanceKey, instance, length);
         }
 
-        private void ScheduleRelease(ComponentPool<AudioSource> pool, AudioSource instance, float delay)
+        private void ScheduleRelease(ComponentPool<AudioSource> pool, string instanceKey, AudioSource instance, float delay)
         {
             UniTaskUtility.ExecuteAfterSeconds(delay + 1.0f, () =>
             {
                 if (instance != null && !instance.isPlaying)
                 {
+                    _audioSources.Remove(instanceKey);
                     instance.Stop();
                     instance.clip = null;
                     instance.loop = false;
