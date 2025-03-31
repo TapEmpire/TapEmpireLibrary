@@ -53,7 +53,7 @@ namespace TapEmpire.Services
             if (!isLoaded) return;
 
             // _disposable.Dispose();
-#if !UNITY_EDITOR
+#if UNITY_EDITOR
             _progressService.SetRemoteConfigName("unityEditor");
 #else
             _progressService.SetRemoteConfigName(_firebaseService.RemoteConfiguration.GetString(ConfigNameKey, "default"));
@@ -62,10 +62,6 @@ namespace TapEmpire.Services
                 try
                 {
                     var jsonString = _firebaseService.RemoteConfiguration.GetString(x.Key, string.Empty);
-                    if (x.Key == "AdsSettings")
-                    {
-                        jsonString = @"{""FromLevel"":1,""TimerData"":[{""FromLevel"":2,""Seconds"":10}]}";
-                    }
                     if (!string.IsNullOrEmpty(jsonString))
                     {
                         x.Value.DeserializeJson(JToken.Parse(jsonString));
