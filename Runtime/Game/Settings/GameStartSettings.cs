@@ -1,4 +1,5 @@
-﻿using Sirenix.OdinInspector;
+﻿using R3;
+using Sirenix.OdinInspector;
 using UnityEngine;
 
 namespace TapEmpire.Settings
@@ -6,6 +7,8 @@ namespace TapEmpire.Settings
     [CreateAssetMenu(menuName = "TapEmpire/Settings/GameStartSettings", fileName = "GameStartSettings")]
     public class GameStartSettings : ScriptableObject
     {
+        public readonly Subject<GameStartSettings> OnDataChanged = new ();
+
         [SerializeField]
         private bool _debug;
 
@@ -59,5 +62,7 @@ namespace TapEmpire.Settings
             get => _editorStartFromPrefLevel;
             set => _editorStartFromPrefLevel = value;
         }
+
+        public void BroadcastUpdate() => OnDataChanged.OnNext(this);
     }
 }

@@ -41,6 +41,11 @@ namespace TapEmpire.Utility
             list.RemoveRange(from, list.Count - from);
         }
 
+        public static List<T> GetRangeFrom<T>(this List<T> list, int from)
+        {
+            return list.GetRange(from, list.Count - from);
+        }
+
         public static void RemoveLast<T>(this List<T> list, int count)
         {
             list.RemoveRange(list.Count - count, count);
@@ -137,7 +142,28 @@ namespace TapEmpire.Utility
 
         public static T GetRandomElement<T>(this List<T> list)
         {
-            return list[UnityEngine.Random.Range(0, list.Count - 1)];
+            return list[UnityEngine.Random.Range(0, list.Count)];
+        }
+
+        public static List<T> Shuffle<T>(this List<T> self)
+        {
+            return self.Shuffle(0, self.Count);
+        }
+
+        public static List<T> Shuffle<T>(this List<T> self, int start, int end)
+        {
+            for (int i = end - 1; i > start; i--)
+            {
+                int j = UnityEngine.Random.Range(start, i + 1);
+                (self[i], self[j]) = (self[j], self[i]);
+            }
+
+            return self;
+        }
+
+        public static bool Contains<T>(this List<T> self, System.Predicate<T> predicate)
+        {
+            return self.FindIndex(element => predicate.Invoke(element)) != -1;
         }
     }
 }

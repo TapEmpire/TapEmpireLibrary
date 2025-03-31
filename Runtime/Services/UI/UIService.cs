@@ -221,6 +221,11 @@ namespace TapEmpire.UI
             try
             {
                 _views.Remove(viewModel);
+
+                if (viewModel is IDisposable)
+                {
+                    (viewModel as IDisposable).Dispose();
+                }
                 Object.Destroy(view.gameObject);
             }
             catch (Exception e)

@@ -18,6 +18,9 @@ namespace TapEmpire.Services
 
         [Space(5)]
         public List<int> InterstitialAfterLevels = new();
+
+        public int FromLevel = 0;
+        public List<TimerData> TimerData = new();
         
         [Button]
         public void Clear()
@@ -40,5 +43,12 @@ namespace TapEmpire.Services
             sortedList.Sort();
             return sortedList;
         }
+    }
+
+    [System.Serializable]
+    public struct TimerData
+    {
+        public int FromLevel;
+        public int Seconds;
     }
 }

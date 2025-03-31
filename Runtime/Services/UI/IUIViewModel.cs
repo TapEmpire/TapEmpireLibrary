@@ -1,4 +1,6 @@
-﻿namespace TapEmpire.UI
+﻿using System;
+
+namespace TapEmpire.UI
 {
     public interface IUIViewModel
     {
