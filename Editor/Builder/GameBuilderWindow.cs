@@ -8,6 +8,7 @@ using com.adjust.sdk;
 using LunarConsolePlugin;
 using TapEmpire.Settings;
 using TEL.Utilities;
+using Sirenix.Utilities;
 
 namespace TapEmpire.Build
 {
@@ -86,12 +87,15 @@ namespace TapEmpire.Build
         {
             ApplyBuildMode();
             ApplyPlatform();
+            ApplyActions();
         }
 
         private void ApplyBuildMode()
         {
             var startSettings = AssetDatabase.LoadAssetAtPath<GameStartSettings>(_projectPathSettings.GameStartSettingsPath);
             startSettings.Debug = SelectedBuildConfig == Configuration.Debug;
+            startSettings.SkipInters &= SelectedBuildConfig == Configuration.Debug;
+            startSettings.AutoRestartLevel &= SelectedBuildConfig == Configuration.Debug;
             EditorUtility.SetDirty(startSettings);
 
             var adjust = AssetDatabase.LoadAssetAtPath<Adjust>($"{_projectPathSettings.DefaultServicesPath}/Adjust Variant.prefab");
@@ -136,6 +140,13 @@ namespace TapEmpire.Build
             adsManager.MaxRewarded = platformData.ApplovinAds.RewardedId;
 
             EditorUtility.SetDirty(adsManager);
+        }
+
+        private void ApplyActions()
+        {
+            var buildSettings = AssetDatabase.LoadAssetAtPath<GameBuildSettings>(_projectPathSettings.GameBuildSettingsPath);
+            var isDebug = SelectedBuildConfig == Configuration.Debug;
+            buildSettings.BuildActions.ForEach(action => action.Apply(isDebug));   
         }
 
         [Button, BoxGroup("Keystore"), ShowIf(nameof(UseCustomKeystore))]

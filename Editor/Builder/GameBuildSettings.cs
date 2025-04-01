@@ -27,5 +27,8 @@ namespace TapEmpire.Build
     {
         public PlatformData Android;
         public PlatformData Ios;
+
+        [SerializeReference][Space(5)]
+        public IBuildAction[] BuildActions;
     }
 }
