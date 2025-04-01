@@ -48,6 +48,16 @@ namespace TapEmpire.Utility.GoogleSheet
                 await entry.CheckAndCreateGoogleSheetAsync();
             }
         }
+
+        [Button]
+        private async void LoadFromGoogle()
+        {
+            var entries = List.Where(entry => !string.IsNullOrEmpty(entry.TableId));
+            foreach (var entry in entries)
+            {
+                await entry.LoadFromGoogleSheet();
+            }
+        }
     }
 
     [Serializable]
@@ -58,6 +68,11 @@ namespace TapEmpire.Utility.GoogleSheet
 
         [Button]
         public async void LoadFromGoogle()
+        {
+            await LoadFromGoogleSheet();
+        }
+
+        public async UniTask LoadFromGoogleSheet()
         {
             var googleSheetData = GoogleSheetData.Instance;
             var provider = new GoogleSheetsSettingsProvider();

@@ -165,5 +165,27 @@ namespace TapEmpire.Utility
         {
             return self.FindIndex(element => predicate.Invoke(element)) != -1;
         }
+
+        public static List<T> InterleaveLists<T>(params List<T>[] lists)
+        {
+            if (lists == null || lists.Length == 0)
+                return new List<T>();
+
+            List<T> result = new List<T>();
+            int maxCount = lists.Max(list => list.Count);
+
+            for (int i = 0; i < maxCount; i++)
+            {
+                foreach (var list in lists)
+                {
+                    if (i < list.Count)
+                    {
+                        result.Add(list[i]);
+                    }
+                }
+            }
+
+            return result;
+        }
     }
 }
