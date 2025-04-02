@@ -40,9 +40,9 @@ namespace TapEmpire.Services
             _adsService = adsService;
         }
 
-        public async UniTask CreateLoadingScreen(CancellationToken cancellationToken)
+        public async UniTask CreateLoadingScreen(CancellationToken cancellationToken, bool isLoadingVisible)
         {
-            await CreateLoadingScreenInternal(_initialProgress, _initialProgressTime, cancellationToken);
+            await CreateLoadingScreenInternal(_initialProgress, _initialProgressTime, isLoadingVisible, cancellationToken);
             WaitAdsService(cancellationToken).Forget();
         }
 
@@ -56,9 +56,11 @@ namespace TapEmpire.Services
             }
         }
 
-        private async UniTask CreateLoadingScreenInternal(float initialProgress, float initialTime, CancellationToken cancellationToken)
+        private async UniTask CreateLoadingScreenInternal(float initialProgress, float initialTime, bool isLoadingVisible,
+            CancellationToken cancellationToken)
         {
             _sceneLoadingUIViewModel = new SceneLoadingUIViewModel();
+            _sceneLoadingUIViewModel.IsLoadingVisible.Value = isLoadingVisible;
             await _uiService.OpenViewAsync(_sceneLoadingUIPrefab, _sceneLoadingUIViewModel, cancellationToken);
 
             _sceneLoadingUIViewModel.SetProgressCallback(initialProgress, initialTime);
@@ -71,13 +73,14 @@ namespace TapEmpire.Services
             await _uiService.TryCloseViewAsync<SceneLoadingUIViewModel>(cancellationToken);
         }
 
-        public async UniTask LoadSceneAsync(SceneName sceneName, CancellationToken cancellationToken, bool manualLoadingClose = false)
+        public async UniTask LoadSceneAsync(SceneName sceneName, CancellationToken cancellationToken,
+            bool manualLoadingClose = false, bool isLoadingVisible = true)
         {
             var initialProgress = _initialProgressDone; // _sceneLoadingUIViewModel != null ? _initialProgress : 0.0f;
 
             if (_sceneLoadingUIViewModel == null)
             {
-                await CreateLoadingScreenInternal(0.0f, 0.0f, cancellationToken);
+                await CreateLoadingScreenInternal(0.0f, 0.0f, isLoadingVisible, cancellationToken);
             }
 
             var currentProgress = 0f;
