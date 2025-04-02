@@ -71,7 +71,7 @@ namespace TapEmpire.Utility.GoogleSheet
 
             StringBuilder sb = new StringBuilder();
 
-            sharedTable.Entries.ForEach(entry => sb.AppendLine($"{entry.Key}\t{table.GetEntry(entry.Id).Value}"));
+            sharedTable.Entries.ForEach(entry => sb.AppendLine($"{entry.Key}\t{table.GetEntry(entry.Id).Value.EscapeGD()}"));
 
             GUIUtility.systemCopyBuffer = sb.ToString();
             Debug.Log("Data copied to clipboard - ready to paste into Google Sheets");

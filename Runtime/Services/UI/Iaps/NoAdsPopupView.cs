@@ -4,6 +4,7 @@ using TapEmpire.Services.Localization;
 using TapEmpire.UI;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Localization;
 using UnityEngine.UI;
 
 namespace TapEmpire.UI
@@ -13,7 +14,7 @@ namespace TapEmpire.UI
         [SerializeField] private Button _purchaseButton;
         [SerializeField] private TMP_Text _priceText;
         [SerializeField] private Button _closeButton;
-        [SerializeField] private string _buyLocalizationEntryName;
+        [SerializeField] private LocalizedString _buyLocalization;
 
         public override UniTask OpenAsync(CancellationToken cancellationToken)
         {
@@ -34,9 +35,8 @@ namespace TapEmpire.UI
         private void ConfigureIap()
         {
             var localizedPrice = DerivedModel.GetPrice();
-            _priceText.text = string.IsNullOrEmpty(_buyLocalizationEntryName) ? 
-                $"BUY {localizedPrice}" : 
-                $"{LocalizationService.GetLocalizedString(LocalizationConstants.UITable, _buyLocalizationEntryName)} {localizedPrice}";
+            var buyText = _buyLocalization?.GetLocalizedString() ?? "BUY";
+            _priceText.text = $"{buyText} {localizedPrice}";
         }
 
         private void CloseView()

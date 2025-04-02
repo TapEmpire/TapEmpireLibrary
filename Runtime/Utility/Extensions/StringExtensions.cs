@@ -10,7 +10,15 @@ namespace TapEmpire.Utility
 
         public static string Escape(this string str)
         {
-             return System.Text.RegularExpressions.Regex.Escape(str);
+            return System.Text.RegularExpressions.Regex.Escape(str);
+        }
+
+        // Escape for GoogleDocs
+        public static string EscapeGD(this string str)
+        {
+            return str
+                .Replace("\n", "\\n")
+                .Replace("\t", "\\t");
         }
     }
 }
