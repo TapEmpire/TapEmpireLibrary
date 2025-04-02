@@ -114,7 +114,7 @@ namespace TapEmpire.Services
             var list = new List<int>();
             if (self.StringValuesDictionary.TryGetValue(IapShowProgressKey, out var value, canUseDefault: false))
             {
-                list = JsonConvert.DeserializeObject<List<int>>(value);
+                list = JsonConvert.DeserializeObject<List<int>>(value) ?? new();
             }
 
             return list;
@@ -125,6 +125,11 @@ namespace TapEmpire.Services
             var serializedObject = JsonConvert.SerializeObject(value);
 
             self.StringValuesDictionary.SetValue(IapShowProgressKey, serializedObject);
+        }
+
+        public static void CleanIapShowProgress(this IProgressService self)
+        {
+            self.StringValuesDictionary.SetValue(IapShowProgressKey, "");
         }
         
         #endregion

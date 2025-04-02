@@ -43,6 +43,8 @@ namespace TapEmpire.Utility
 
         private void OnDoneCallback(bool isDone)
         {
+            if (!isDone) return;
+
             if (++_index >= _actions.Length)
             {
                 MarkComplete();
