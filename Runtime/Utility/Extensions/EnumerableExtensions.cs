@@ -47,6 +47,14 @@ namespace TapEmpire.Utility
             }
         }
 
+        public static void ForEachIndexed<TSource>(this IEnumerable<TSource> source, System.Action<int> action)
+        {
+            for (int i = 0; i < source.Count(); ++i)
+            {
+                action?.Invoke(i);
+            }
+        }
+
         public static int FindIndex<T>(this IEnumerable<T> source, Func<T, bool> predicate)
         {
             int index = 0;

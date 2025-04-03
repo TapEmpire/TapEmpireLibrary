@@ -19,6 +19,8 @@ namespace TapEmpire.Utility.GoogleSheet
         public string TemplateSheetId = string.Empty;
         public List<LevelGoogleData> List = new();
 
+        [SerializeReference] public List<ILocalizationConverter> Converters = new();
+
         [HideInInspector]
         public ConnectionData ConnectionData = null;
 
@@ -77,6 +79,7 @@ namespace TapEmpire.Utility.GoogleSheet
             var googleSheetData = GoogleSheetData.Instance;
             var provider = new GoogleSheetsSettingsProvider();
             var localizationData = await provider.GetLocalization(googleSheetData.SpreadSheetId, TableId);
+            googleSheetData.Converters.ForEach(converter => localizationData = converter.Deconvert(LocalizationTableName, localizationData));
 
             var collection = LocalizationEditorSettings.GetStringTableCollection(LocalizationTableName);
             var dict = new Dictionary<string, StringTable>();

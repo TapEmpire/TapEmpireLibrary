@@ -91,6 +91,7 @@ namespace TapEmpire.Utility.GoogleSheet
         public static UniTask<int> CreateAndInitializeGoogleSheet(GoogleSheetData googleSheetData, string tableName)
         {
             var data = GetLocalizationTableData(tableName);
+            googleSheetData.Converters.ForEach(converter => data = converter.Convert(tableName, data));
             return GoogleSheetCopyAndPaste.DuplicateAndPopulateSheet(googleSheetData, tableName, data);
         }
 
