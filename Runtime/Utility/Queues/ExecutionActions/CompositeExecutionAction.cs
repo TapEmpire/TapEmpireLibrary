@@ -3,24 +3,26 @@ using R3;
 
 namespace TapEmpire.Utility
 {
-    public class CompositeExecutionAction : ExecutionAction
+    public class CompositeExecutionAction<T> : ExecutionAction<T> where T : Enum
     {
-        private IExecutionAction[] _actions = Array.Empty<IExecutionAction>();
+        private IExecutionAction<T>[] _actions = Array.Empty<IExecutionAction<T>>();
 
         private int _index = -1;
+        private T _flow;
 
         public int Count => _actions.Length;
 
         public CompositeDisposable _disposables = new();
 
-        public CompositeExecutionAction(params IExecutionAction[] actions)
+        public CompositeExecutionAction(params IExecutionAction<T>[] actions)
         {
             _actions = actions;
             _actions.ForEach(action => action.OnDone.Subscribe(OnDoneCallback).AddTo(_disposables));
         }
 
-        public override void Execute()
+        public override void Execute(T flow = default)
         {
+            _flow = flow;
             OnDoneCallback(true);
         }
 
@@ -36,7 +38,7 @@ namespace TapEmpire.Utility
             base.Dispose();
         }
 
-        public void Add(IExecutionAction action)
+        public void Add(IExecutionAction<T> action)
         {
             // 
         }
@@ -51,7 +53,7 @@ namespace TapEmpire.Utility
                 return;
             }
 
-            _actions[_index].Execute();
+            _actions[_index].Execute(_flow);
         }
     }
 }

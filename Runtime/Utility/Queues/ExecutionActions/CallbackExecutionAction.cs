@@ -2,18 +2,18 @@ using System;
 
 namespace TapEmpire.Utility
 {
-    public class CallbackExecutionAction : ExecutionAction
+    public class CallbackExecutionAction<T> : ExecutionAction<T> where T : Enum
     {
-        private System.Action _action = null;
+        private System.Action<T> _action = null;
 
-        public CallbackExecutionAction(System.Action action)
+        public CallbackExecutionAction(System.Action<T> action)
         {
             _action = action;
         }
 
-        public override void Execute()
+        public override void Execute(T flow = default)
         {
-            _action?.Invoke();
+            _action?.Invoke(flow);
             MarkComplete();
         }
 
