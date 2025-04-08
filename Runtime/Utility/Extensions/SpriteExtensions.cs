@@ -3,6 +3,8 @@ using System.Linq;
 using System.Reflection;
 using UnityEditor;
 using UnityEngine;
+using System.Collections.Generic;
+
 
 #if UNITY_EDITOR
 using UnityEditor.U2D.PSD;
@@ -22,6 +24,14 @@ namespace TapEmpire.Utility
             texture.SetPixels(pixels);
             texture.Apply();
             return texture;
+        }
+
+        public static List<Vector2> GetPhysicsShape(this Sprite self)
+        {
+            var physicsShape = new List<Vector2>();
+
+            self.GetPhysicsShape(0, physicsShape);
+            return physicsShape;
         }
 
 #if UNITY_EDITOR
