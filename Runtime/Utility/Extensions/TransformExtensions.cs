@@ -50,7 +50,7 @@ namespace TapEmpire.Utility
         
         public static void SetXYLocal(this Transform self, Vector2 position)
         {
-            self.position = new Vector3(position.x, position.y, self.position.z);
+            self.localPosition = new Vector3(position.x, position.y, self.localPosition.z);
         }
         
         public static void DestroyAllChildren(this Transform self)

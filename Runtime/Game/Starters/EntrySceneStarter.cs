@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections;
-using System.ComponentModel.Design;
-using System.Threading;
+﻿using System.Threading;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using TapEmpire.Services;
 using TapEmpire.UI;
-using TapEmpire.Utility;
 using Zenject;
 using TapEmpire.Settings;
 
@@ -20,6 +16,9 @@ namespace TapEmpire.Game
 
         [SerializeField]
         private bool _autoLoadSceneOnStart = true;
+
+        [SerializeField]
+        private bool _manualLoadingClose = false;
 
         [Header("Settings")]
         [SerializeField]
@@ -79,7 +78,7 @@ namespace TapEmpire.Game
             await UniTask.WaitUntil(() => _isInitialized, cancellationToken: _cancellationTokenSource.Token);
             if (_autoLoadSceneOnStart)
             {
-                _sceneManagementService.LoadSceneAsync(_sceneName, _cancellationTokenSource.Token).Forget();
+                _sceneManagementService.LoadSceneAsync(_sceneName, _cancellationTokenSource.Token, _manualLoadingClose).Forget();
             }
         }
     }
