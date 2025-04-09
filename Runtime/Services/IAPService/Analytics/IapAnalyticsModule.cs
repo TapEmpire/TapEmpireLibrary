@@ -2,7 +2,9 @@ using System.Collections.Generic;
 using com.adjust.sdk;
 using Firebase.Analytics;
 using Io.AppMetrica;
+using Newtonsoft.Json.Linq;
 using R3;
+using TapEmpire.UI;
 using UnityEngine;
 using Zenject;
 
@@ -13,12 +15,14 @@ namespace TapEmpire.Services
         private readonly DiContainer _diContainer;
         private readonly IAnalyticsService _analyticsService;
         private readonly IIapService _iapService;
+        private readonly IUIService _uiService;
 
         public IapAnalyticsModule(DiContainer diContainer)
         {
             _diContainer = diContainer;
             _analyticsService = _diContainer.Resolve<IAnalyticsService>();
             _iapService = _diContainer.Resolve<IIapService>();
+            _uiService = _diContainer.Resolve<IUIService>();
         }
 
         public void Initialize()
@@ -26,12 +30,19 @@ namespace TapEmpire.Services
             _iapService.OnPurchaseSuccess.Subscribe(OnPurchaseSuccess);
             _iapService.OnPurchaseFailed.Subscribe(OnPurchaseFailed);
             _iapService.OnPurchaseRestored.Subscribe(OnPurchaseRestored);
+
+            _uiService.OnBeforeOpenView += UiService_OnBeforeOpenView;
+        }
+
+        public void Release()
+        {
+            _uiService.OnBeforeOpenView -= UiService_OnBeforeOpenView;
         }
 
         private void OnPurchaseSuccess(string iapId)
         {
-            var pack = _iapService.GetPackInfo(iapId);
-            if (pack == null)
+            var offer = _iapService.GetOfferInfo(iapId);
+            if (offer == null)
             {
                 Debug.LogError($"cant find pack with id: {iapId}, stop sending analytics");
                 return;
@@ -45,19 +56,24 @@ namespace TapEmpire.Services
                 { "level", levelsCompleted }
             });
             
-            var revenue = new Revenue((long)pack.Price, "USD");
+            var revenue = new Revenue((long)offer.Price, "USD");
             AppMetrica.ReportRevenue(revenue);
             
             var purchaseEventToken = "iap_purchase";
             AdjustEvent adjustEvent = new AdjustEvent(purchaseEventToken);
-            adjustEvent.setRevenue(pack.Price, "USD");
+            adjustEvent.setRevenue(offer.Price, "USD");
             adjustEvent.setPurchaseToken(purchaseEventToken);
             Adjust.trackEvent(adjustEvent);
 
             FirebaseAnalytics.LogEvent(IapAnalyticsEvents.IapPurchased, new Parameter[]
             {
-                new("value", pack.Price),
+                new("value", offer.Price),
                 new("currency", "USD"),
+            });
+
+            _analyticsService.LogEvent(IapAnalyticsStrings.AdsPlacements, new Dictionary<string, object>()
+            {
+                { iapId, "Purchased"}
             });
         }
         
@@ -80,6 +96,24 @@ namespace TapEmpire.Services
             {
                 { "purchase_id", iapId },
                 { "level", levelsCompleted }
+            });
+        }
+
+        private void UiService_OnBeforeOpenView(IUIViewModel model)
+        {
+            switch (model)
+            {
+                case NoAdsPopupViewModel:
+                    OnOpenNoAds(model as NoAdsPopupViewModel);
+                    break;
+            }
+        }
+
+        private void OnOpenNoAds(NoAdsPopupViewModel model)
+        {
+            _analyticsService.LogEvent(IapAnalyticsStrings.AdsPlacements, new Dictionary<string, object>()
+            {
+                { NoAdsPopupViewModel.IapKey, new JObject(new JProperty("Shown", model.Placement)) }
             });
         }
     }

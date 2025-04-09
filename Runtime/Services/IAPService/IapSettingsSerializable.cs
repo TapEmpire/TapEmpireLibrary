@@ -1,24 +1,26 @@
 using System.Collections.Generic;
+using System.Linq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Sirenix.OdinInspector;
 using TapEmpire.Utility;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace TapEmpire.Services
 {
     public class IapSettingsSerializable : IRemoteSerializable
     {
-        [SerializeField] private DefaultIapSettings _iapSettings;
+        [SerializeField] private IapProductsSettings _iapProductsSettings;
 
         public class IapRemoteModel
         {
-            public List<PackIapSettings> Iaps = new();
+            public List<IapOffer> Offers = new();
             public IapRemoteModel() { }
             
-            public IapRemoteModel(DefaultIapSettings settings)
+            public IapRemoteModel(IapProductsSettings settings)
             {
-                Iaps = settings.Iaps;
+                Offers = settings.Products;
             }
         }
         
@@ -27,12 +29,12 @@ namespace TapEmpire.Services
         public void DeserializeJson(JToken token)
         {
             var model = token.ToObject<IapRemoteModel>();
-            _iapSettings.Iaps = model.Iaps;
+            InsertModel(model);
         }
         
         public string SerializeJson()
         {
-            var model = new IapRemoteModel(_iapSettings);
+            var model = new IapRemoteModel(_iapProductsSettings);
             var result = JsonConvert.SerializeObject(model);
             return result;
         }
@@ -55,7 +57,20 @@ namespace TapEmpire.Services
         private void DeserializeIapRemoteModel(string jsonString)
         {
             var model = JsonConvert.DeserializeObject<IapRemoteModel>(jsonString);
-            _iapSettings.Iaps = model.Iaps;
+            InsertModel(model);
+        }
+        
+        private void InsertModel(IapRemoteModel model)
+        {
+            var existingOffers = _iapProductsSettings.Products.ToDictionary(offer => offer.Key);
+            foreach (var offer in model.Offers)
+            {
+                if (existingOffers.TryGetValue(offer.Key, out var existingOffer))
+                {
+                    offer.CopyIncludedProducts(existingOffer);
+                }
+            }
+            _iapProductsSettings.Products = model.Offers;
         }
     }
 }

@@ -1,4 +1,7 @@
+using System;
 using System.Collections.Generic;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using Zenject;
 
 namespace TapEmpire.Services
@@ -64,11 +67,11 @@ namespace TapEmpire.Services
         private void OnAdReceivedRewardEvent(string adPlacement)
         {
             var adData = AnalyticsManager.LastAdData;
-            
+
             var progressService = _diContainer.Resolve<IProgressService>();
             var adsWatchedCount = progressService.UpdateAdsWatchedProgress();
             var levelsCompleted = progressService.GetLevelProgress();
-            
+
             _analyticsService.SetUserProperty(AdsAnalyticsParameters.AdsWatched, adsWatchedCount);
             _analyticsService.LogEvent(AdsAnalyticsEvents.AdsWatched, new Dictionary<string, object>{
                 { "placement", adPlacement },
@@ -91,6 +94,24 @@ namespace TapEmpire.Services
                 { "price", price },
                 { "level", levelsCompleted },
             });
+
+            var parameters = new Dictionary<string, object> { };
+            var levelParameter = $"level_{levelsCompleted}";
+
+            if (format == AdFormat.Interstitial)
+            {
+                parameters.Add(format.ToString(), levelParameter);
+            }
+            else if (format == AdFormat.Rewarded || format == AdFormat.RewardedInt)
+            {
+                parameters.Add(format.ToString(), new JObject(new JProperty(adType, levelParameter)));
+            }
+            else
+            {
+                parameters.Add(format.ToString(), null);
+            }
+
+            _analyticsService.LogEvent(AdsAnalyticsStrings.AdsPlacements, parameters);
         }
     }
 }

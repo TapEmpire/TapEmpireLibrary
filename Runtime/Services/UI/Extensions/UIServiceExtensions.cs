@@ -6,7 +6,7 @@ namespace TapEmpire.UI
 {
     public static class UIServiceExtensions
     {
-        public static UniTask TryCloseViewAsync<T>(this IUIService self, CancellationToken cancellationToken, bool tryUseDefaultFadeOut = true, bool log = false)
+        public static UniTask TryCloseViewAsync<T>(this IUIService self, CancellationToken cancellationToken = default, bool tryUseDefaultFadeOut = true, bool log = false)
             where T : IUIViewModel
         {
             if (self.TryGetModel<T>(out var model))

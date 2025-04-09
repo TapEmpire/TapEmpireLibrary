@@ -114,7 +114,8 @@ public class AdNetworkAdmob : AdNetworkBase
         if (string.IsNullOrEmpty(adUnitId)) return;
 
         int width = (AdsManager.Instance.BannerSize == BannerWidth.Full) ? AdSize.FullWidth : 320;
-        AdSize adSize = AdSize.GetCurrentOrientationAnchoredAdaptiveBannerAdSizeWithWidth(width);
+        // AdSize adSize = AdSize.GetCurrentOrientationAnchoredAdaptiveBannerAdSizeWithWidth(width);
+        AdSize adSize = new AdSize(width, 0);
 
         if (bannerView != null)
             bannerView.Destroy();
@@ -512,6 +513,7 @@ public class AdNetworkAdmob : AdNetworkBase
     {
         var adRequest = new AdRequest();
         adRequest.Extras.Add("npa", ConsentManager.isPersonalized ? "0" : "1");
+        adRequest.Extras.Add("collapsible", "0");
         return adRequest;
     }
 

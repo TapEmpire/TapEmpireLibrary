@@ -19,7 +19,7 @@ namespace TapEmpire.Services
         private IProgressService _progressService = null;
         private IUIService _uiService = null;
 
-        private CancellationTokenSource _cancellationTokenSource;
+        private CancellationTokenSource _cancellationTokenSource = new();
         private CompositeDisposable _disposables;
         private RateMeUiViewModel _rateMeUiViewModel;
         private IReviewManager _reviewManager;

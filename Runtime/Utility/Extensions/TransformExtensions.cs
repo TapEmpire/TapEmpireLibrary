@@ -60,5 +60,11 @@ namespace TapEmpire.Utility
                 Object.Destroy(self.GetChild(i).gameObject);
             }
         }
+
+        public static T GetMovementDuration<T>(this T self, Vector3 point, float speed, out float duration) where T : Transform
+        {
+            duration = Vector3.Distance(point, self.position) / speed;
+            return self;
+        }
     }
 }

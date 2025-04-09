@@ -6,7 +6,6 @@ using UnityEngine.Audio;
 using TapEmpire.Utility;
 using Object = UnityEngine.Object;
 using System.Collections.Generic;
-using Unity.VisualScripting;
 
 namespace TapEmpire.Services
 {
@@ -23,6 +22,9 @@ namespace TapEmpire.Services
 
         [SerializeReference]
         private IAudioBank _audioBank;
+        
+        [SerializeReference]
+        private IAudioBank _customAudioBank;
 
         [Header("Sound")]
         [SerializeField]
@@ -101,7 +103,7 @@ namespace TapEmpire.Services
             }
         }
 
-        public AudioData GetAudioData<AudioId>(AudioId audioId) where AudioId : Enum
+        public AudioData GetAudioData<TAudioId>(TAudioId audioId) where TAudioId : Enum
         {
             return _audioBank.GetAudioData(audioId);
         }
@@ -122,19 +124,107 @@ namespace TapEmpire.Services
             _audioMixer.SetFloat(SoundsVolumeKey, Mathf.Log10(volume01) * 20);
         }
 
-        public void PlaySoundOneShotAtPoint<AudioId>(AudioId audioId, Vector3 position, string uniqueId = "") where AudioId : Enum
+        public void PlaySoundOneShotAtPoint<TAudioId>(TAudioId audioId, Vector3 position, string uniqueId = "") where TAudioId : Enum
         {
-            PlaySound(_soundsSources3DPool, audioId, uniqueId, position);
+            PlaySound(_soundsSources3DPool, audioId.ToString(), GetAudioData(audioId), uniqueId, position);
         }
 
-        public void PlaySoundOneShot<AudioId>(AudioId audioId, string uniqueId = "") where AudioId : Enum
+        public void PlaySoundOneShot(string audioId, string uniqueId = "")
         {
-            PlaySound(_soundsSourcesPool, audioId, uniqueId);
+            AudioData audioData = null;
+            if (_customAudioBank.HasAudioData(audioId))
+            {
+                audioData = _customAudioBank.GetAudioData(audioId);
+            }
+            else if (_audioBank.HasAudioData(audioId))
+            {
+                audioData = _audioBank.GetAudioData(audioId);
+            }
+            else
+            {
+                Debug.LogWarning($"No audioId in banks {audioId}");
+                return;
+            }
+            
+            PlaySound(_soundsSourcesPool, audioId, audioData, uniqueId);
         }
 
-        private void PlaySound<AudioId>(ComponentPool<AudioSource> pool, AudioId audioId, string uniqueId, Vector3? position = null) where AudioId : Enum
+        public void PlaySoundOneShot<TAudioId>(TAudioId audioId, string uniqueId = "") where TAudioId : Enum
+        {
+            PlaySound(_soundsSourcesPool, audioId.ToString(), GetAudioData(audioId), uniqueId);
+        }
+
+        public void SetCustomAudioBank(IAudioBank audioBank)
+        {
+            _customAudioBank = audioBank;
+        }
+
+        private void PlaySound(ComponentPool<AudioSource> pool, string audioId, AudioData audioData, string uniqueId, Vector3? position = null)
         {
             AudioSource instance = pool.GetSafe();
+
+            if (instance == null)
+            {
+                Debug.LogWarning($"[AUDIO] No available AudioSource in pool for sound: {audioId}");
+                return;
+            }
+
+            if (position.HasValue)
+            {
+                instance.transform.position = position.Value;
+            }
+
+            if (audioData == null)
+            {
+                Debug.LogWarning($"[AUDIO] AudioData for {audioId} not found.");
+                return;
+            }
+
+            instance.SetupData(audioData);
+            instance.Play();
+
+            var instanceKey = audioId + uniqueId;
+            _audioSources.TryAdd(instanceKey, instance);
+            
+            var length = audioData.Clip.length;
+            ScheduleRelease(pool, instanceKey, instance, length);
+        }
+
+        private void ScheduleRelease(ComponentPool<AudioSource> pool, string instanceKey, AudioSource instance, float delay)
+        {
+            UniTaskUtility.ExecuteAfterSeconds(delay + 1.0f, () =>
+            {
+                if (instance != null && !instance.isPlaying)
+                {
+                    _audioSources.Remove(instanceKey);
+                    instance.Stop();
+                    instance.clip = null;
+                    instance.loop = false;
+                    pool.Release(instance);
+                }
+            }, Application.exitCancellationToken).Forget();
+        }
+
+        public void StartPlayMusic<TAudioId>(TAudioId audioId, float fadeInDuration = 0.5f) where TAudioId : Enum
+        {
+            var audioData = GetAudioData(audioId);
+            _backgroundMusicSource.SetupDataWithVolumeFadeIn(audioData, fadeInDuration);
+            _backgroundMusicSource.Play();
+        }
+
+        public void PlaySoundLoop(string audioId, string uniqueId = "")
+        {
+            PlaySoundLoop(_soundsSourcesPool, audioId, _customAudioBank.GetAudioData(audioId), uniqueId);
+        }
+
+        public void PlaySoundLoop<TAudioId>(TAudioId audioId, string uniqueId = "") where TAudioId : Enum
+        {
+            PlaySoundLoop(_soundsSourcesPool, audioId.ToString(), GetAudioData(audioId), uniqueId);
+        }
+
+        private void PlaySoundLoop(ComponentPool<AudioSource> pool, string audioId, AudioData audioData, string uniqueId, Vector3? position = null)
+        {
+            var instance = pool.GetSafe();
 
             if (instance == null)
             {
@@ -146,49 +236,7 @@ namespace TapEmpire.Services
             {
                 instance.transform.position = position.Value;
             }
-
-            var audioData = GetAudioData(audioId);
-            if (audioData == null)
-            {
-                Debug.LogWarning($"AudioData for {audioId} not found.");
-                return;
-            }
-
-            instance.SetupData(audioData);
-            instance.Play();
-
-            var instanceKey = audioId + uniqueId;
-            _audioSources.TryAdd(instanceKey, instance);
-
-            var length = audioData.Clip.length;
-            ScheduleRelease(pool, instance, length);
-        }
-
-        private void ScheduleRelease(ComponentPool<AudioSource> pool, AudioSource instance, float delay)
-        {
-            UniTaskUtility.ExecuteAfterSeconds(delay + 1.0f, () =>
-            {
-                if (instance != null && !instance.isPlaying)
-                {
-                    instance.Stop();
-                    instance.clip = null;
-                    instance.loop = false;
-                    pool.Release(instance);
-                }
-            }, Application.exitCancellationToken).Forget();
-        }
-
-        public void StartPlayMusic<AudioId>(AudioId audioId, float fadeInDuration = 0.5f) where AudioId : Enum
-        {
-            var audioData = GetAudioData(audioId);
-            _backgroundMusicSource.SetupDataWithVolumeFadeIn(audioData, fadeInDuration);
-            _backgroundMusicSource.Play();
-        }
-
-        public void PlaySoundLoop<AudioId>(AudioId audioId, string uniqueId = "") where AudioId : Enum
-        {
-            var instance = _soundsSourcesPool.Get();
-            var audioData = GetAudioData(audioId);
+            
             instance.loop = true;
 
             instance.SetupData(audioData);
@@ -197,7 +245,17 @@ namespace TapEmpire.Services
             _audioSources.TryAdd(audioId + uniqueId, instance);
         }
 
+        public void StopSound(string audioId, string uniqueId = "")
+        {
+            StopSound(_soundsSourcesPool, audioId, uniqueId);
+        }
+
         public void StopSound<AudioId>(AudioId audioId, string uniqueId = "") where AudioId : Enum
+        {
+            StopSound(_soundsSourcesPool, audioId.ToString(), uniqueId);
+        }
+
+        private void StopSound(ComponentPool<AudioSource> pool, string audioId, string uniqueId, Vector3? position = null)
         {
             if (!_audioSources.TryGetValue(audioId + uniqueId, out AudioSource source))
             {
@@ -209,7 +267,7 @@ namespace TapEmpire.Services
                 source.Stop();
                 source.loop = false;
                 source.clip = null;
-                _soundsSourcesPool.Release(source);
+                pool.Release(source);
             }
 
             if (_audioSources != null && _audioSources.Count > 0)
