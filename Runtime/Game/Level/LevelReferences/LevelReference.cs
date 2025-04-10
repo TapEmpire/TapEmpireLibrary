@@ -35,6 +35,11 @@ namespace TapEmpire.Level
         public TransformReference(Transform value) : base(value) { }
     }
 
+    public class RectTransformReference : LevelReference<RectTransform>
+    {
+        public RectTransformReference(RectTransform value) : base(value) { }
+    }
+
     public class CanvasReference : LevelReference<Canvas>
     {
         public CanvasReference(Canvas value) : base(value) { }
@@ -43,5 +48,10 @@ namespace TapEmpire.Level
     public class CameraReference : LevelReference<Camera>
     {
         public CameraReference(Camera value) : base(value) { }
+    }
+
+    public class SpriteRendererReference : LevelReference<SpriteRenderer>
+    {
+        public SpriteRendererReference(SpriteRenderer value) : base(value) { }
     }
 }
