@@ -10,5 +10,10 @@ namespace TapEmpire.Utility
             color.a = alpha;
             self.color = color;
         }
+
+        public static float GetAlpha(this Image self)
+        {
+            return self.color.a;
+        }
     }
 }

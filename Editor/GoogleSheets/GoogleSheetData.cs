@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using Cysharp.Threading.Tasks;
 using Sirenix.OdinInspector;
 using UnityEditor;
@@ -25,6 +26,8 @@ namespace TapEmpire.Utility.GoogleSheet
         public ConnectionData ConnectionData = null;
 
         private static GoogleSheetData _instance = null;
+
+        private StringBuilder _log = new();
 
         public static GoogleSheetData Instance
         {
@@ -54,10 +57,16 @@ namespace TapEmpire.Utility.GoogleSheet
         [Button]
         private async void LoadFromGoogle()
         {
+            _log.Clear();
             var entries = List.Where(entry => !string.IsNullOrEmpty(entry.TableId));
             foreach (var entry in entries)
             {
-                await entry.LoadFromGoogleSheet();
+                await entry.LoadFromGoogleSheet(_log);
+            }
+
+            if (_log.Length > 0)
+            {
+                Debug.LogError(_log.ToString());
             }
         }
     }
@@ -74,12 +83,12 @@ namespace TapEmpire.Utility.GoogleSheet
             await LoadFromGoogleSheet();
         }
 
-        public async UniTask LoadFromGoogleSheet()
+        public async UniTask LoadFromGoogleSheet(StringBuilder log = null)
         {
             var googleSheetData = GoogleSheetData.Instance;
             var provider = new GoogleSheetsSettingsProvider();
             var localizationData = await provider.GetLocalization(googleSheetData.SpreadSheetId, TableId);
-            googleSheetData.Converters.ForEach(converter => localizationData = converter.Deconvert(LocalizationTableName, localizationData));
+            googleSheetData.Converters.ForEach(converter => localizationData = converter.Deconvert(LocalizationTableName, localizationData, log));
 
             var collection = LocalizationEditorSettings.GetStringTableCollection(LocalizationTableName);
             var dict = new Dictionary<string, StringTable>();
