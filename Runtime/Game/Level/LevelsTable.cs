@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace TapEmpire.Level
@@ -11,5 +12,10 @@ namespace TapEmpire.Level
         private List<LevelSettings> _levels;
 
         public List<LevelSettings> Levels => _levels;
+
+        public List<T> As<T>() where T : LevelSettings
+        {
+            return Levels.Select(level => level as T).ToList();
+        }
     }
 }

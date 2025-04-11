@@ -64,6 +64,11 @@ namespace TapEmpire.Utility
             return (element, index);
         }
 
+        public static void AddRange<T>(this List<T> list, int count, T value = default(T))
+        {
+            list.AddRange(Enumerable.Repeat(value, count));
+        }
+
         public static void Resize<T>(this List<T> list, int count, T value = default(T))
         {
             int listCount = list.Count;

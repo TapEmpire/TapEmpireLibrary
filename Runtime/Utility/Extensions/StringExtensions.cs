@@ -8,6 +8,11 @@ namespace TapEmpire.Utility
             return lastIndex != -1 ? str.Remove(lastIndex, substring.Length) : str;
         }
 
+        public static string RemoveFirstBlock(this string str, char symbol)
+        {
+            return str.Substring(str.IndexOf(symbol) + 1);
+        }
+
         public static string Escape(this string str)
         {
             return System.Text.RegularExpressions.Regex.Escape(str);

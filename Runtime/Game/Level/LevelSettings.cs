@@ -36,5 +36,11 @@ namespace TapEmpire.Level
         }
 
         public string GetLevelFullName() => name;
+
+        // new
+
+        public string FullName => name;
+        public string CustomName => name.RemoveFirstBlock('_');
+        public int IndexName => int.TryParse(name.Split('_')[0], out int levelNumber) ? levelNumber : -1;
     }
 }
