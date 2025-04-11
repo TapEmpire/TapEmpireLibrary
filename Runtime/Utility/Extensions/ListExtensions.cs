@@ -31,9 +31,9 @@ namespace TapEmpire.Utility
             return firstElement;
         }
 
-        public static T PopFrontSafe<T>(this List<T> list)
+        public static T PopFrontSafe<T>(this List<T> list, T defaultValue = default)
         {
-            return list.Empty() ? default(T) : list.PopFront();
+            return list.Empty() ? defaultValue : list.PopFront();
         }
 
         public static void RemoveFrom<T>(this List<T> list, int from)
