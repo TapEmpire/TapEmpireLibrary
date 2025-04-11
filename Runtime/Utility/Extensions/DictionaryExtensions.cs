@@ -41,7 +41,7 @@ namespace TapEmpire.Utility
             }
         }
 
-        public static void AddIfNone<TKey, TValue>(this Dictionary<TKey, TValue> self, TKey key, TValue value)
+        public static void AddIfNone<TKey, TValue>(this IDictionary<TKey, TValue> self, TKey key, TValue value)
         {
             if (!self.ContainsKey(key))
             {
@@ -64,7 +64,7 @@ namespace TapEmpire.Utility
             }
         }
 
-        public static TValue TryGetValue<TKey, TValue>(this Dictionary<TKey, TValue> self, TKey key)
+        public static TValue TryGetValue<TKey, TValue>(this IDictionary<TKey, TValue> self, TKey key)
         {
             return self.TryGetValue(key, out var value) ? value : default(TValue);
         }
