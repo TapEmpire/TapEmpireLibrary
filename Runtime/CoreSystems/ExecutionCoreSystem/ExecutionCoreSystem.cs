@@ -10,6 +10,15 @@ namespace TapEmpire.CoreSystems
     {
         protected virtual IExecutionModule[] ExecutionModules { get; }
 
+        protected void InitializeModules(DiContainer diContainer)
+        {
+            foreach (var module in ExecutionModules)
+            {
+                diContainer.Inject(module);
+                module.Initialize();
+            }
+        }
+
         public void Tick()
         {
             foreach (var module in ExecutionModules)
