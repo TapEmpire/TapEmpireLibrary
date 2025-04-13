@@ -7,7 +7,7 @@ namespace TapEmpire.Utility
 {
     public static class EditorFileUtility
     {
-        public static void DeleteFiles(string folder, string substring)
+        public static void DeleteFiles(string folder, string substring = "")
         {
             if (Directory.Exists(folder))
             {
@@ -17,7 +17,7 @@ namespace TapEmpire.Utility
             }
         }
 
-        public static IEnumerable<string> GetFiles(string folder, string substring)
+        public static IEnumerable<string> GetFiles(string folder, string substring = "")
         {
             if (Directory.Exists(folder))
             {
