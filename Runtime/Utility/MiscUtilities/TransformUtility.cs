@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using TapEmpire.Utility;
 using UnityEngine;
 
-namespace RagDoll.Utility
+namespace TapEmpire.Utility
 {
     public static class TransformUtility
     {
@@ -86,6 +86,23 @@ namespace RagDoll.Utility
             if (rotateZ) currentEulerAngles.z = targetEulerAngles.z;
 
             self.rotation = Quaternion.Euler(currentEulerAngles);
+        }
+
+        public static void ForEach(this Transform self, System.Action<Transform> action)
+        {
+            foreach (Transform child in self)
+            {
+                action(child);
+            }
+        }
+
+        public static void ForEach(this Transform self, System.Action<Transform, int> action)
+        {
+            int index = 0;
+            foreach (Transform child in self)
+            {
+                action(child, index++);
+            }
         }
     }
 }

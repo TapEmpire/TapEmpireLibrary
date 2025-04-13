@@ -4,7 +4,7 @@ using UnityEditor;
 
 namespace TapEmpire.Utility
 {
-    public static class FileUtility
+    public static partial class FileUtility
     {
         public static string OpenFilePanel(string title, string directory, string extension = "json")
         {
