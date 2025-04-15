@@ -15,6 +15,17 @@ namespace TapEmpire.Level
         [AssetsOnly]
         public AssetReference LevelViewPrefab = null;
 
+        public string FullName => name;
+        public string CustomName;
+        public int IndexName;
+
+        private void OnValidate()
+        {
+            IndexName = int.TryParse(name.Split('_')[0], out int levelNumber) ? levelNumber : -1;
+            CustomName = name.RemoveFirstBlock('_');
+        }
+
+        // Deprecated
         public int GetLevelName()
         {
             string prefix = "_Level";
@@ -29,18 +40,14 @@ namespace TapEmpire.Level
             return -1;
         }
 
+        // Deprecated
         public string GetLevelShortName()
         {
             string prefix = "_Level";
             return name.EndsWith(prefix) ? name.RemoveLastOccurence(prefix) : name;
         }
 
+        // Deprecated
         public string GetLevelFullName() => name;
-
-        // new
-
-        public string FullName => name;
-        public string CustomName => name.RemoveFirstBlock('_');
-        public int IndexName => int.TryParse(name.Split('_')[0], out int levelNumber) ? levelNumber : -1;
     }
 }

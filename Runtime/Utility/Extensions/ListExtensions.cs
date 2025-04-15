@@ -51,6 +51,19 @@ namespace TapEmpire.Utility
             list.RemoveRange(list.Count - count, count);
         }
 
+        public static T FindAndRemove<T>(this List<T> list, Func<T, bool> predicate)
+        {
+            var index = list.FindIndex(predicate);
+            if (index == -1)
+            {
+                return default(T);
+            }
+
+            var element = list[index];
+            list.RemoveAt(index);
+            return element;
+        }
+
         public static (T, int) FindLastAndRemove<T>(this List<T> list, Func<T, bool> condition) where T : new()
         {
             var index = list.FindLastIndex(x => condition(x));
