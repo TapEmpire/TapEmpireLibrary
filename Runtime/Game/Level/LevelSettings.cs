@@ -19,7 +19,7 @@ namespace TapEmpire.Level
         public string CustomName;
         public int IndexName;
 
-        private void OnValidate()
+        public void OnValidate()
         {
             IndexName = int.TryParse(name.Split('_')[0], out int levelNumber) ? levelNumber : -1;
             CustomName = name.RemoveFirstBlock('_');

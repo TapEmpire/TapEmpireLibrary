@@ -11,9 +11,19 @@ namespace TapEmpire.Utility
         {
             if (Directory.Exists(folder))
             {
-                string[] files = Directory.GetFiles(folder);
+                string[] files = Directory.GetFileSystemEntries(folder);
 
-                files.Where(file => file.Contains(substring)).ForEach(file => File.Delete(file));
+                files.Where(file => file.Contains(substring)).ForEach(file =>
+                {
+                    if (File.Exists(file))
+                    {
+                        File.Delete(file);
+                    }
+                    else
+                    {
+                        Directory.Delete(file, true);
+                    }
+                });
             }
         }
 
