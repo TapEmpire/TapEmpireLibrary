@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
@@ -33,6 +34,11 @@ namespace TapEmpire.Level
     public class TransformReference : LevelReference<Transform>
     {
         public TransformReference(Transform value) : base(value) { }
+    }
+
+    public class TransformListReference : LevelReference<List<Transform>>
+    {
+        public TransformListReference(List<Transform> value) : base(value) { }
     }
 
     public class RectTransformReference : LevelReference<RectTransform>
