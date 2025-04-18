@@ -27,7 +27,8 @@ namespace TapEmpire.Services
 #if UNITY_EDITOR
                 return true;
 #else
-                return Application.internetReachability != NetworkReachability.NotReachable;
+                return true;
+                // return Application.internetReachability != NetworkReachability.NotReachable;
 #endif
             }
         }

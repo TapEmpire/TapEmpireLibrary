@@ -25,6 +25,7 @@ namespace TapEmpire.Services
         bool ShowInterstitial(System.Action action, string placement = "");
         void ShowRewarded(string placement, System.Action action);
 
+        bool AdsDisabled { get; }
         bool AdsDisabledDebug { get; set; }
         float MaxWaitingTime { get; }
         ReadOnlyReactiveProperty<bool> ShouldWaitAppOpen { get; }
