@@ -1,3 +1,7 @@
+using System.Linq;
+using System.Text.RegularExpressions;
+using ModestTree;
+
 namespace TapEmpire.Utility
 {
     public static class StringExtensions
@@ -32,6 +36,12 @@ namespace TapEmpire.Utility
         public static string ToTitleCase(this string str)
         {
             return System.Globalization.CultureInfo.CurrentCulture.TextInfo.ToTitleCase(str);
+        }
+
+        public static string ToCamelCase(this string str)
+        {
+            var strings = str.Split(' ').Select(subword => subword.Capitalize());
+            return string.Join("", strings);
         }
     }
 }
