@@ -18,6 +18,8 @@ namespace TapEmpire.Settings
         [SerializeField, ShowIf(nameof(Debug))]
         private bool _skipInters;
 
+        public bool IgnoreConnection = false;
+
         [SerializeField, ShowIf(nameof(Debug))]
         private bool _hideRewardsAds;
 
