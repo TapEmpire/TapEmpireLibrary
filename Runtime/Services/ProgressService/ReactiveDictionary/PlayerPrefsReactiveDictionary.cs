@@ -24,6 +24,12 @@ namespace TapEmpire.Services
             _dictionary.Clear();
         }
 
+        public void DeleteKey(string key)
+        {
+            _dictionary.Remove(key);
+            PlayerPrefs.DeleteKey(key);
+        }
+
         private void SetCacheValue(string key, TValue value)
         {
             _dictionary[key] = value;
