@@ -4,6 +4,16 @@ namespace TapEmpire.Utility
 {
     public static class RectTransformExtensions
     {
+        public static void FitInto(this RectTransform self, Vector2 targetSize)
+        {
+            Vector2 size = self.sizeDelta;
+
+            var scaleVector = targetSize / size;
+            float scaleFactor = Mathf.Min(scaleVector.x, scaleVector.y);
+
+            self.localScale = scaleFactor * Vector3.one;
+        }
+
         public static void CoverTargetRenderer(this RectTransform self, SpriteRenderer targetRenderer, Camera camera, RectTransform canvasRect)
         {
             var screenSize = new Vector2(Screen.width, Screen.height);
