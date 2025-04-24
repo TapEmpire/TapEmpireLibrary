@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
 
 namespace TapEmpire.Utility
 {
@@ -47,17 +48,34 @@ namespace TapEmpire.Utility
         {
             self.position = new Vector3(position.x, position.y, self.position.z);
         }
-        
+
         public static void SetXYLocal(this Transform self, Vector2 position)
         {
             self.position = new Vector3(position.x, position.y, self.position.z);
         }
-        
+
         public static void DestroyAllChildren(this Transform self)
         {
             for (var i = 0; i < self.childCount; i++)
             {
                 Object.Destroy(self.GetChild(i).gameObject);
+            }
+        }
+
+        public static void SortChildrenByName(this Transform parent)
+        {
+            var children = new List<Transform>();
+
+            foreach (Transform child in parent)
+            {
+                children.Add(child);
+            }
+
+            children.Sort((a, b) => string.Compare(a.name, b.name, System.StringComparison.Ordinal));
+
+            for (int i = 0; i < children.Count; i++)
+            {
+                children[i].SetSiblingIndex(i);
             }
         }
 
