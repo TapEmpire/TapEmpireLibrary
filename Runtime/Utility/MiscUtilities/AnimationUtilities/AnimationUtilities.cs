@@ -6,132 +6,78 @@ namespace TapEmpire.Utility
 {
     public static class AnimationUtilities
     {
-        public static float PlayFlyAnimationSequenced(Transform origin, Vector3 targetPosition, Quaternion? targetRotation,
-            float animationTime, System.Action onComplete = null)
+        public static Tweener PlayBezierAnimation(Transform target, Vector3 end, float height, float animationTime,
+            System.Action onComplete)
         {
-            const float turnAroundTime = 0.2f;
-            float duration = 0.0f;
-
-            var targetSameY = new Vector3(targetPosition.x, origin.position.y, targetPosition.z);
-
-            var rotationTimeBefore = MathUtility.GetRotationTime(origin.forward,
-                    (targetSameY - origin.position).normalized, turnAroundTime);
-            var lookAtBeforeMoveTween = origin.DOLookAt(targetSameY, rotationTimeBefore);
-            duration += rotationTimeBefore;
-
-            var moveTween = DoQuadraticMoveInternal(origin, () => targetPosition, animationTime, AnimationConstants.StandardBezierHeight)
-                .SetEase(Ease.Linear);
-            duration += animationTime;
-
-            var sequence = DOTween.Sequence(targetPosition)
-                .Append(lookAtBeforeMoveTween)
-                .Append(moveTween);
-
-            if (targetRotation.HasValue)
-            {
-                var rotationTimeAfter = MathUtility.GetRotationTime(origin.rotation, targetRotation.Value, turnAroundTime);
-                var lookAtAfterMoveTween = origin.DORotate(targetRotation.Value.eulerAngles, rotationTimeAfter);
-                duration += rotationTimeAfter;
-
-                sequence.Append(lookAtAfterMoveTween);
-            }
-
-            sequence.OnComplete(() => onComplete?.Invoke());
-
-            return duration;
-        }
-
-        public static void PlayFlyAnimation(Transform target, Transform newParent, float animationTime,
-            System.Action onComplete, bool isStatic = false, AnimationTransform animationTransform = null)
-        {
-            animationTransform ??= AnimationTransform.Default;
             target.DOKill();
-            target.SetParent(newParent, true);
 
-            var rotateTween = target.DOLocalRotate(animationTransform.Rotation, animationTime).SetEase(Ease.Linear);
-            var scaleTween = target.DOScale(animationTransform.Scale, animationTime).SetEase(Ease.Linear);
+            System.Func<Vector3> positionAction = () => end;
 
-            var position = newParent.position;
-            System.Func<Vector3> positionAction = isStatic ? () => position : () => newParent.position;
-
-            var moveTween = DoQuadraticMoveInternal(target, positionAction, animationTime, AnimationConstants.StandardBezierHeight)
-                .SetEase(Ease.Linear);
-
-            DOTween.Sequence(target)
-                .SetUpdate(UpdateType.Late)
-                .Join(rotateTween).Join(scaleTween).Join(moveTween)
+            return DoQuadraticMoveInternal(target, positionAction, animationTime, height)
+                .SetEase(Ease.Linear)
                 .OnComplete(() => onComplete?.Invoke());
         }
 
-        public static void PlayFlyAnimationLocal(Transform target, Transform newParent,
-            float animationTime, System.Action onComplete, AnimationTransform animationTransform = null)
+        public static Sequence PlayHalfBezierAnimation(Transform target, Vector3 end, float height, float animationTime,
+            System.Action onHalf)
         {
-            animationTransform ??= AnimationTransform.Default;
-            target.DOKill();
-            target.SetParent(newParent, true);
+            var moveTween = PlayBezierAnimation(target, end, height, animationTime, null);
 
-            var rotateTween = target.DOLocalRotate(animationTransform.Rotation, animationTime).SetEase(Ease.Linear);
-            var scaleTween = target.DOScale(animationTransform.Scale, animationTime).SetEase(Ease.Linear);
-
-            var moveTween = DoLocalQuadraticMove(target, animationTime, AnimationConstants.StandardBezierHeight)
-                .SetEase(Ease.Linear);
-
-            DOTween.Sequence(target).Join(rotateTween).Join(scaleTween).Join(moveTween).OnComplete(() => onComplete?.Invoke());
-        }
-
-        public static void PlayFlyAnimation(IAnimatable animatable, Transform newParent, float animationTime,
-            System.Action onComplete, bool isStatic = false, AnimationTransform animationTransform = null)
-        {
-            animationTransform ??= AnimationTransform.Default;
-            var target = animatable.MainContainer;
-            animatable.StopAnimations();
-            target.SetParent(newParent, true);
-
-            var rotateTween = target.DOLocalRotate(Vector3.zero, animationTime).SetEase(Ease.Linear);
-            var scaleTween = target.DOScale(animationTransform.Scale, animationTime).SetEase(Ease.Linear);
-
-            var position = newParent.position;
-            System.Func<Vector3> positionAction = isStatic ? () => position : () => newParent.position;
-
-            var moveTween = DoQuadraticMoveInternal(target, positionAction, animationTime, AnimationConstants.StandardBezierHeight)
-                .SetEase(Ease.Linear);
-
-            var sequence = DOTween.Sequence(target)
-                .SetUpdate(UpdateType.Late)
-                .Join(rotateTween).Join(scaleTween).Join(moveTween);
-
-            if (animatable.HasNonStandardPivot)
+            Sequence sequence = DOTween.Sequence();
+            sequence.Append(moveTween);
+            sequence.InsertCallback(moveTween.Duration() * 0.5f, () =>
             {
-                var innerRotateTween = animatable.ProxyContainer.DOLocalRotate(animationTransform.Rotation, animationTime).SetEase(Ease.Linear);
-                var positionTween = animatable.MoveCenterToPivot(animationTransform.PivotPosition, animationTime);
+                onHalf?.Invoke();
+                sequence.Kill();
+            });
+            sequence.SetLink(target.gameObject);
+            sequence.SetTarget(target);
 
-                sequence.Join(innerRotateTween).Join(positionTween);
-            }
-
-            sequence.OnComplete(() => onComplete?.Invoke());
+            return sequence;
         }
 
-        public static void PlayFlyAnimationLocal(IAnimatable animatable, Transform newParent,
-            float animationTime, System.Action onComplete, AnimationTransform animationTransform = null)
+        public static Sequence PlayHalfParabolisticAnimation(Transform target, Vector3 end, float height, float animationTime,
+            System.Action onHalf)
         {
-            animatable.StopAnimations();
-            PlayFlyAnimationLocal(animatable.MainContainer, newParent, animationTime, onComplete, animationTransform);
+            target.DOKill();
+
+            var moveTween = DoParabolisticMoveInternal(target, end, animationTime, height)
+                .SetEase(Ease.Linear);
+
+            Sequence sequence = DOTween.Sequence();
+            sequence.Append(moveTween);
+            sequence.InsertCallback(moveTween.Duration() * 0.5f, () =>
+            {
+                onHalf?.Invoke();
+                sequence.Kill();
+            });
+            sequence.SetLink(target.gameObject);
+            sequence.SetTarget(target);
+
+            return sequence;
         }
 
-        private static Tweener DoLocalQuadraticMove(Transform transform, float animationTime, float height)
-        {
-            var yShift = Mathf.Max(transform.localPosition.y, 0.0f) + height;
+        #region Parabolistic
 
-            var start = transform.localPosition;
-            var end = Vector3.zero;
-            var p0 = MathUtility.yShift(0.5f * (start + end), yShift);
+        private static Tweener DoParabolisticMoveInternal(Transform transform, Vector3 end, float animationTime, float height)
+        {
+            var yShift = Mathf.Max(transform.position.y, end.y) + height;
+            var start = transform.position;
+
             return DOVirtual
                 .Float(0.0f, 1.0f, animationTime, (t) =>
                 {
-                    transform.localPosition = BazzierUtility.CalculateQuadraticBezierPoint(t, start, p0, end);
+                    if (transform)
+                    {
+                        transform.position = ParabolisticUtility.CalculateSimpleParabolisticPoint(start, end, height, t);
+                    }
                 })
                 .SetTarget(transform);
         }
+
+        #endregion Parabolistic
+
+        #region Bezier
 
         private static Tweener DoQuadraticMoveInternal(Transform transform, Func<Vector3> targetPosition, float animationTime, float height)
         {
@@ -151,27 +97,21 @@ namespace TapEmpire.Utility
                 .SetTarget(transform);
         }
 
-        #region Simple animations
-
-        public static void PlayAppearAnimation(Transform target, System.Action onComplete = null)
+        private static Tweener DoLocalQuadraticMove(Transform transform, float animationTime, float height)
         {
-            target.DOScale(1.0f, 0.2f).SetEase(Ease.OutBack).OnComplete(() => onComplete?.Invoke());
+            var yShift = Mathf.Max(transform.localPosition.y, 0.0f) + height;
+
+            var start = transform.localPosition;
+            var end = Vector3.zero;
+            var p0 = MathUtility.yShift(0.5f * (start + end), yShift);
+            return DOVirtual
+                .Float(0.0f, 1.0f, animationTime, (t) =>
+                {
+                    transform.localPosition = BazzierUtility.CalculateQuadraticBezierPoint(t, start, p0, end);
+                })
+                .SetTarget(transform);
         }
 
-        public static void PlayDisappearAnimation(Transform target, System.Action onComplete = null)
-        {
-            target.DOScale(0.0f, 0.2f).SetEase(Ease.InBack).OnComplete(() => onComplete?.Invoke());
-        }
-
-        public static void SimpleLocalFly(IAnimatable animatable, Transform newParent, float animationTime,
-            System.Action onComplete = null)
-        {
-            var target = animatable.MainContainer;
-            animatable.StopAnimations();
-            target.SetParent(newParent, true);
-            target.DOLocalMove(Vector3.zero, animationTime).SetEase(Ease.InCubic).OnComplete(() => onComplete?.Invoke());
-        }
-
-        #endregion Simple animations
+        #endregion Bezier
     }
 }
