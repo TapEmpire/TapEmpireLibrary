@@ -73,6 +73,11 @@ namespace TapEmpire.Services
 
         public async UniTask LoadSceneAsync(SceneName sceneName, CancellationToken cancellationToken, bool manualLoadingClose = false)
         {
+            await LoadSceneAsync(sceneName.ToString(), cancellationToken, manualLoadingClose);
+        }
+
+        public async UniTask LoadSceneAsync(string sceneName, CancellationToken cancellationToken, bool manualLoadingClose = false)
+        {
             var initialProgress = _initialProgressDone; // _sceneLoadingUIViewModel != null ? _initialProgress : 0.0f;
 
             if (_sceneLoadingUIViewModel == null)
@@ -84,7 +89,7 @@ namespace TapEmpire.Services
             var startTime = Time.time;
             var koef = 1.0f - initialProgress;
 
-            AsyncOperationHandle<SceneInstance> sceneHandle = Addressables.LoadSceneAsync(sceneName.ToString(), activateOnLoad: false);
+            AsyncOperationHandle<SceneInstance> sceneHandle = Addressables.LoadSceneAsync(sceneName, activateOnLoad: false);
             await sceneHandle.ToUniTask(
                 Progress.Create<float>(progress =>
                 {
@@ -108,7 +113,8 @@ namespace TapEmpire.Services
             Action<AsyncOperation> onCompleted = manualLoadingClose ? (_) => { } :
                 (_) =>
                 {
-                    _adsService.ShowAppOpen(() => {
+                    _adsService.ShowAppOpen(() =>
+                    {
                         _uiService.TryCloseViewAsync<SceneLoadingUIViewModel>(cancellationToken).Forget();
                         _sceneLoadingUIViewModel = null;
                     });

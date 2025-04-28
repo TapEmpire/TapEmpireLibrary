@@ -8,5 +8,6 @@ namespace TapEmpire.Services
         UniTask CreateLoadingScreen(CancellationToken cancellationToken);
         UniTask CloseLoadingScreen(CancellationToken cancellationToken);
         UniTask LoadSceneAsync(SceneName sceneName, CancellationToken cancellationToken, bool manualLoadingClose = false);
+        UniTask LoadSceneAsync(string sceneName, CancellationToken cancellationToken, bool manualLoadingClose = false);
     }
 }
