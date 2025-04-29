@@ -31,6 +31,12 @@ namespace TapEmpire.Utility
             Run().Forget();
         }
 
+        public void Restart(float delay)
+        {
+            _delay = delay;
+            Restart();
+        }
+
         public void Cancel()
         {
             _tokenSource?.Cancel();

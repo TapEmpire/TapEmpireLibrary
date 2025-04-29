@@ -41,6 +41,27 @@ namespace TapEmpire.Services
             return nextValue;
         }
 
+        public static void SetCurrentTimeStamp(this IProgressService self, string key)
+        {
+            self.StringValuesDictionary.SetValue(key, System.DateTime.UtcNow.ToString());
+        }
+
+        public static void SetTimeStamp(this IProgressService self, string key, System.DateTime dateTime)
+        {
+            self.StringValuesDictionary.SetValue(key, dateTime.ToString());
+        }
+
+        public static void CleanTimeStamp(this IProgressService self, string key)
+        {
+            self.StringValuesDictionary.DeleteKey(key);
+        }
+
+        private static System.DateTime GetTimeStamp(this IProgressService self, string key)
+        {
+            var dateString = self.StringValuesDictionary.TryGetValue(key, out var value) ? value : default;
+            return System.DateTime.TryParse(dateString, out var date) ? date : System.DateTime.UtcNow;
+        }
+
         #endregion
 
         private const string RemoteConfigNameKey = "RemoteConfigNameKey";
