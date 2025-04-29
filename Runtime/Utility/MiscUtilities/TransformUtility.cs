@@ -24,7 +24,7 @@ namespace TapEmpire.Utility
             result = null;
             return false;
         }
-        
+
         public static bool TryFindAllInChildrenRecursive(this Transform self, Func<Transform, bool> findDelegate, out List<Transform> results)
         {
             results = new List<Transform>();
@@ -32,7 +32,7 @@ namespace TapEmpire.Utility
             return results.Count > 0;
         }
 
-        
+
         private static void FindAllInChildrenRecursive(this Transform self, Func<Transform, bool> findDelegate, List<Transform> results)
         {
             foreach (Transform child in self)
@@ -44,7 +44,7 @@ namespace TapEmpire.Utility
                 FindAllInChildrenRecursive(child, findDelegate, results);
             }
         }
-        
+
         public static bool TryFindAllInChildren<T>(this Transform self, out T[] results) where T : Component
         {
             using (ListScope<T>.Create(out var list))
@@ -102,6 +102,20 @@ namespace TapEmpire.Utility
             foreach (Transform child in self)
             {
                 action(child, index++);
+            }
+        }
+
+        public static void ReverseChildren(this Transform parent)
+        {
+            List<Transform> children = new List<Transform>();
+            foreach (Transform child in parent)
+            {
+                children.Add(child);
+            }
+
+            for (int i = 0; i < children.Count; i++)
+            {
+                children[i].SetSiblingIndex(children.Count - i - 1);
             }
         }
     }
