@@ -1,3 +1,5 @@
+using System.Text.RegularExpressions;
+
 namespace TapEmpire.Utility
 {
     public static class StringExtensions
@@ -37,6 +39,11 @@ namespace TapEmpire.Utility
         public static string ToTitleCase(this string str)
         {
             return System.Globalization.CultureInfo.CurrentCulture.TextInfo.ToTitleCase(str);
+        }
+
+        public static string SplitByCapitalLetters(this string str)
+        {
+            return Regex.Replace(str, "(?<!^)([A-Z0-9])", " $1");
         }
     }
 }
