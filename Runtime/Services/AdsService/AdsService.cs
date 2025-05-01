@@ -236,6 +236,16 @@ namespace TapEmpire.Services
             AdsManager.Instance.ShowAppOpen(action);
         }
 
+        public void ShowBanners(bool shouldShow)
+        {
+            if (_adsRuntimeScenario.IsEnabled)
+            {
+                _adsRuntimeScenario.ShowBanner = shouldShow;
+                System.Action action = shouldShow ? AdsManager.Instance.ShowBanner : AdsManager.Instance.HideBanner;
+                action.Invoke();
+            }
+        }
+
         public void DisableAds(bool shouldDisable)
         {
             _adsDisabled = shouldDisable;

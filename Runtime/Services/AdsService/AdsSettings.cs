@@ -21,6 +21,7 @@ namespace TapEmpire.Services
 
         public int FromLevel = 0;
         public List<TimerData> TimerData = new();
+        public List<SceneSettings> SceneSettings = new();
         
         [Button]
         public void Clear()
@@ -50,5 +51,12 @@ namespace TapEmpire.Services
     {
         public int FromLevel;
         public int Seconds;
+    }
+
+    [System.Serializable]
+    public struct SceneSettings
+    {
+        public SceneName SceneName;
+        public bool IsBannerEnabled;
     }
 }
