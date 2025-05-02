@@ -24,17 +24,23 @@ namespace TapEmpire.Game
         [Header("Settings")]
         [SerializeField]
         private GameStartSettings _startSettings;
+
+        [Header("Actions")]
+        [SerializeReference]
+        private IStartAction[] _startActions;
         
         private SceneLoadingUIViewModel _sceneLoadingUIViewModel;
         private CancellationTokenSource _cancellationTokenSource;
         private bool _isInitialized = false;
 
+        private DiContainer _diContainer;
         private ServicesContainer _servicesContainer;
         private ISceneManagementService _sceneManagementService;
         
         [Inject]
-        private void Construct(ServicesContainer servicesContainer, ISceneManagementService sceneManagementService)
+        private void Construct(DiContainer diContainer, ServicesContainer servicesContainer, ISceneManagementService sceneManagementService)
         {
+            _diContainer = diContainer;
             _servicesContainer = servicesContainer;
             _sceneManagementService = sceneManagementService;
         }
@@ -58,13 +64,19 @@ namespace TapEmpire.Game
         private async UniTask InstallServices(CancellationToken cancellationToken)
         {
             await _servicesContainer.InitializeAsync(cancellationToken);
+
+            _startActions.ForEach(action => {
+                _diContainer.Inject(action);
+                action.Apply();
+            });
+
             _isInitialized = true;
         }
 
         private void Start()
         {
 #if !UNITY_EDITOR && UNITY_ANDROID
-            Application.targetFrameRate = 30;
+            Application.targetFrameRate = _gameplaySettings.FrameRate;
 #endif
             Debug.unityLogger.filterLogType = (Debug.isDebugBuild || _startSettings.Debug) ? LogType.Log : LogType.Assert;
             InitializeEntryAsync().Forget();
