@@ -45,5 +45,10 @@ namespace TapEmpire.Utility
         {
             return Regex.Replace(str, "(?<!^)([A-Z0-9])", " $1");
         }
+
+        public static string FormatPlural(this string str, int amount)
+        {
+            return string.Format(str, amount > 1 ? "s" : "");
+        }
     }
 }
