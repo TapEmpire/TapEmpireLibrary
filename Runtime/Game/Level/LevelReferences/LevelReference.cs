@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Sirenix.OdinInspector;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace TapEmpire.Level
 {
@@ -59,5 +60,10 @@ namespace TapEmpire.Level
     public class SpriteRendererReference : LevelReference<SpriteRenderer>
     {
         public SpriteRendererReference(SpriteRenderer value) : base(value) { }
+    }
+
+    public class ButtonReference : LevelReference<Button>
+    {
+        public ButtonReference(Button value) : base(value) { }
     }
 }
