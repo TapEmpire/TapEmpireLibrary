@@ -35,7 +35,7 @@ namespace TapEmpire.UI
         private void ConfigureIap()
         {
             var localizedPrice = DerivedModel.GetPrice();
-            var buyText = _buyLocalization?.GetLocalizedString() ?? "BUY";
+            var buyText = string.IsNullOrEmpty(_buyLocalization.TableEntryReference) ? "BUY" : _buyLocalization.GetLocalizedString();
             _priceText.text = $"{buyText} {localizedPrice}";
         }
 
