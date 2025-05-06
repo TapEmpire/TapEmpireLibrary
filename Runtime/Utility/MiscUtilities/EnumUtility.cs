@@ -1,4 +1,6 @@
 
+using TMPro;
+
 namespace TapEmpire.Utility
 {
     public static class EnumUtility
@@ -29,11 +31,17 @@ namespace TapEmpire.Utility
             return GetRandomValueInternal<TValue>(1);
         }
 
-        private static TValue GetRandomValueInternal<TValue>(int start) where TValue : System.Enum
+        public static TValue GetRandomValue<TValue>(int start, int end) where TValue : System.Enum
+        {
+            return GetRandomValueInternal<TValue>(start, end);
+        }
+
+        private static TValue GetRandomValueInternal<TValue>(int start, int end = 0) where TValue : System.Enum
         {
             var values = System.Enum.GetNames(typeof(TValue));
             var random = new System.Random();
-            var value = values[random.Next(start, values.Length)];
+            end = end > 0 ? end : values.Length;
+            var value = values[random.Next(start, end)];
 
             return Parse<TValue>(value);
         }
