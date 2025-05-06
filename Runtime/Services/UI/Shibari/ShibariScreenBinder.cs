@@ -1,10 +1,11 @@
+using System;
 using UnityEngine;
 using Zenject;
 
 namespace TapEmpire.UI
 {
     [RequireComponent(typeof(RectTransform))]
-    public class ShibariScreenBinder : MonoBehaviour
+    public class ShibariScreenBinder : MonoBehaviour, IDisposable
     {
         [SerializeField]
         private string _shibariName = "";
@@ -22,6 +23,12 @@ namespace TapEmpire.UI
         {
             _uiService = uiService;
             SetShibariName(shibariName);
+        }
+
+        public void Dispose()
+        {
+            OnDisable();
+            _uiService = null;
         }
 
         public void SetShibariName(string shibariName)
