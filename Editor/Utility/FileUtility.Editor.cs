@@ -31,7 +31,7 @@ namespace TapEmpire.Utility
         {
             if (Directory.Exists(folder))
             {
-                string[] files = Directory.GetFiles(folder);
+                string[] files = Directory.GetFiles(folder, "*.*", SearchOption.AllDirectories);
 
                 return files
                     .Where(file => file.Contains(substring))
