@@ -6,6 +6,20 @@ namespace TapEmpire.Utility
 {
     public static class AnimationUtilities
     {
+        public static Tweener PlayBezierAnimation(Transform target, Vector3 end, Vector3 p0, float animationTime)
+        {
+            var start = target.position;
+            return DOVirtual
+                .Float(0.0f, 1.0f, animationTime, (t) =>
+                {
+                    if (target != null)
+                    {
+                        target.position = BazzierUtility.CalculateQuadraticBezierPoint(t, start, p0, end);
+                    }
+                })
+                .SetTarget(target);
+        }
+
         public static Tweener PlayBezierAnimation(Transform target, Vector3 end, float height, float animationTime,
             System.Action onComplete)
         {
