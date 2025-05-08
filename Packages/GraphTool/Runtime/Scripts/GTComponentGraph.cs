@@ -10,7 +10,6 @@ using TapEmpire.Utility;
 namespace TEL.GraphTool
 {
     using Data;
-    using LeTai;
     using ScriptableObjects;
 
     public class GTComponentGraph : MonoBehaviour
