@@ -16,6 +16,11 @@ namespace TapEmpire.UI
             originalScale = transform.localScale;
         }
 
+        void OnDestroy()
+        {
+            transform.DOKill();           
+        }
+
         public void OnPointerDown(PointerEventData eventData)
         {
             transform.DOKill();
