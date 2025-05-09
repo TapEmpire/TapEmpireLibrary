@@ -27,6 +27,7 @@ namespace TapEmpire.Services
 
         void ShowBanners(bool shouldShow);
 
+        bool AdsDisabled { get; }
         bool AdsDisabledDebug { get; set; }
         float MaxWaitingTime { get; }
         ReadOnlyReactiveProperty<bool> ShouldWaitAppOpen { get; }

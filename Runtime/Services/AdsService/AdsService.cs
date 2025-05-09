@@ -48,6 +48,7 @@ namespace TapEmpire.Services
         private bool _isInitialized = false;
         private AdsAnalyticsModule _analyticsModule = null;
 
+        public bool AdsDisabled => _adsDisabled;
         public bool AdsDisabledDebug { get; set; } = false;
         public float MaxWaitingTime => _adsSettings.ShouldWaitAppOpen ? _adsSettings.AppOpenWaitTime : 0.0f;
 
@@ -156,7 +157,7 @@ namespace TapEmpire.Services
 
         public bool ShowInterstitial(System.Action callback, string placement = "")
         {
-            if (!IsInterstitialReady)
+            if (!_adsRuntimeScenario.IsEnabled || !IsInterstitialReady)
             {
                 callback?.Invoke();
                 return false;

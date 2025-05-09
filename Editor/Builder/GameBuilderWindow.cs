@@ -96,6 +96,7 @@ namespace TapEmpire.Build
             startSettings.Debug = SelectedBuildConfig == Configuration.Debug;
             startSettings.SkipInters &= SelectedBuildConfig == Configuration.Debug;
             startSettings.AutoRestartLevel &= SelectedBuildConfig == Configuration.Debug;
+            startSettings.IgnoreConnection &= SelectedBuildConfig == Configuration.Debug;
             EditorUtility.SetDirty(startSettings);
 
             var adjust = AssetDatabase.LoadAssetAtPath<Adjust>($"{_projectPathSettings.DefaultServicesPath}/Adjust Variant.prefab");
