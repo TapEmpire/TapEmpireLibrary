@@ -56,10 +56,15 @@ namespace TapEmpire.Services
             self.StringValuesDictionary.DeleteKey(key);
         }
 
-        private static System.DateTime GetTimeStamp(this IProgressService self, string key)
+        public static System.DateTime GetTimeStamp(this IProgressService self, string key)
+        {
+            return self.GetTimeStampDefault(key, System.DateTime.UtcNow);
+        }
+
+        public static System.DateTime GetTimeStampDefault(this IProgressService self, string key, System.DateTime defaultValue = default)
         {
             var dateString = self.StringValuesDictionary.TryGetValue(key, out var value) ? value : default;
-            return System.DateTime.TryParse(dateString, out var date) ? date : System.DateTime.UtcNow;
+            return System.DateTime.TryParse(dateString, out var date) ? date : defaultValue;
         }
 
         #endregion
