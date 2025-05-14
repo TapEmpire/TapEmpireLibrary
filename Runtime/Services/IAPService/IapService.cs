@@ -17,7 +17,7 @@ namespace TapEmpire.Services
     {
         [SerializeField] private IapProductsSettings _iapProductsSettings;
         [SerializeField] private IapShowSettings _iapShowSettings;
-        [SerializeField] private NoAdsPopupView _noAdsPopupView;
+        [SerializeField] private UIView _noAdsPopupView;
         [SerializeReference] private IIapHandler[] _iapHandlers;
 
         private readonly Dictionary<Type, IIapHandler> _handlers = new();
