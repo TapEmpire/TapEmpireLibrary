@@ -9,6 +9,8 @@ namespace TapEmpire.UI
 {
     public class NoAdsPopupViewModel : IUIViewModel
     {
+        public IIapService IapService => _iapService;
+
         private readonly IUIService _uiService;
         private readonly IIapService _iapService;
 
