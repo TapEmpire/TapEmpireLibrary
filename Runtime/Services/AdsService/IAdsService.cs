@@ -25,7 +25,7 @@ namespace TapEmpire.Services
         bool ShowInterstitial(System.Action action, string placement = "");
         void ShowRewarded(string placement, System.Action action);
 
-        void ShowBanners(bool shouldShow);
+        bool ShowBanners(bool shouldShow); // returns whether they were shown right now
 
         bool AdsDisabled { get; }
         bool AdsDisabledDebug { get; set; }
