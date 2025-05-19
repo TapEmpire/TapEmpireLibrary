@@ -173,8 +173,8 @@ namespace TapEmpire.Services
             if (!_storeOffers.ContainsKey(iapId))
                 return;
             ProcessPurchase(_storeOffers[iapId]).Forget();
-            _onPurchaseSuccess.Execute(iapId);
             _onPurchaseSuccessDetailed.Execute(product);
+            _onPurchaseSuccess.Execute(iapId);
         }
 
         protected void OnProductPurchaseFailed(PurchaseFailArgs args)
