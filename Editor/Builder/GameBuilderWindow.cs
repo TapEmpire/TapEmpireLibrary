@@ -8,10 +8,12 @@ using com.adjust.sdk;
 using LunarConsolePlugin;
 using TapEmpire.Settings;
 using TEL.Utilities;
-using Sirenix.Utilities;
+using TapEmpire.Services;
 
 namespace TapEmpire.Build
 {
+    using Utility;
+    
     public class GameBuilderWindow : OdinEditorWindow
     {
         [SerializeField]
@@ -123,7 +125,7 @@ namespace TapEmpire.Build
             var platformData = PlatformType == PlatformType.Android ? buildSettings.Android : buildSettings.Ios;
  
             var adjust = AssetDatabase.LoadAssetAtPath<Adjust>($"{_projectPathSettings.DefaultServicesPath}/Adjust Variant.prefab");
-            adjust.appToken = platformData.Adjust;
+            adjust.appToken = platformData.Adjust.AppToken;
             EditorUtility.SetDirty(adjust);
 
             var adsManager = AssetDatabase.LoadAssetAtPath<AdsManager>($"{_projectPathSettings.DefaultServicesPath}/AdsManager Variant.prefab");
@@ -141,6 +143,11 @@ namespace TapEmpire.Build
             adsManager.MaxRewarded = platformData.ApplovinAds.RewardedId;
 
             EditorUtility.SetDirty(adsManager);
+
+            var servicesInstaller = AssetDatabase.LoadAssetAtPath<ServicesInstaller>($"{_projectPathSettings.DefaultScriptablesPath}/ServicesInstaller.asset");
+            var iapService = servicesInstaller.GetService<IIapService>();
+            ReflectionUtility.SetPrivateField(iapService as object, "<AdjustPurchaseToken>k__BackingField", platformData.Adjust.PurchaseToken);
+            EditorUtility.SetDirty(servicesInstaller);
         }
 
         private void ApplyActions()
