@@ -36,6 +36,13 @@ namespace TapEmpire.Utility
             return child;
         }
 
+        public static void SetX(this Transform self, float x)
+        {
+            var position = self.position;
+            position.x = x;
+            self.position = position;
+        }
+        
         public static void SetZ(this Transform self, float z)
         {
             var position = self.position;
