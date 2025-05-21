@@ -13,6 +13,11 @@ namespace TapEmpire.Utility
             return Mathf.Round((float)dateTime.TotalSeconds);
         }
 
+        public static int RoundedSecondsInt(this TimeSpan dateTime)
+        {
+            return Mathf.RoundToInt((float)dateTime.TotalSeconds);
+        }
+
         public static bool IsTodayUTC(this DateTime timestamp)
         {
             DateTime nowUtc = DateTime.UtcNow;
