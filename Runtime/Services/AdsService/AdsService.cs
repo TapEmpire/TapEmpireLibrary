@@ -14,6 +14,8 @@ namespace TapEmpire.Services
     [System.Serializable]
     public class AdsService : Initializable, IAdsService
     {
+        public ReadOnlyReactiveProperty<bool> AdsEnabled => _adsEnabled;
+
         public System.Action<string> OnAdReceivedRewardEvent { get; set; } = null;
         public System.Action<string> OnAdReceivedOnceRewardEvent { get; set; } = null;
         public System.Action<string> OnAdDisplayedRewardEvent { get; set; } = null;
@@ -37,6 +39,7 @@ namespace TapEmpire.Services
         [Inject]
         private DiContainer _diContainer = null;
         [SerializeField] private bool _adsDisabled;
+        private ReactiveProperty<bool> _adsEnabled = new(true);
 
         private string _currentAdPlacement = "";
 
@@ -66,6 +69,7 @@ namespace TapEmpire.Services
                 return; //  UniTask.CompletedTask;
 
             _progressService.TryGetBoolProp(ProgressBoolProp.DisableAds, out _adsDisabled);
+            _adsEnabled.Value = !_adsDisabled;
             _adsRuntimeScenario = new AdsRuntimeScenario();
             if (_adsDisabled)
             {
@@ -266,6 +270,8 @@ namespace TapEmpire.Services
                 AdsManager.Instance.DestroyBanner();
                 AdsManager.Instance.SetAppOpenAutoShow(false);
             }
+
+            _adsEnabled.Value = !_adsDisabled;
         }
 
         public void ShowInterstitialByTimer()

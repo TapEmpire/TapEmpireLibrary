@@ -4,6 +4,8 @@ namespace TapEmpire.Services
 {
     public interface IAdsService : IService
     {
+        ReadOnlyReactiveProperty<bool> AdsEnabled { get; }
+
         System.Action<string> OnAdReceivedRewardEvent { get; set; }
         System.Action<string> OnAdReceivedOnceRewardEvent { get; set; }
         System.Action<string> OnAdDisplayedRewardEvent { get; set; }
