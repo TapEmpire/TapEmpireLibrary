@@ -87,6 +87,11 @@ namespace TapEmpire.Services
             return self.IntValuesDictionary.TryGetValue(key, out var value) ? value : default;
         }
 
+        public static void ClearCyclesProgress(this IProgressService self)
+        {
+            self.SetIntProp(ProgressIntProp.CyclesCompleted, 0);
+        }
+
         public static int UpdateCyclesProgress(this IProgressService self)
         {
             return self.UpdateIntProp(ProgressIntProp.CyclesCompleted);

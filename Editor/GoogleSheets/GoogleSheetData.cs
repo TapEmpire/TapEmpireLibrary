@@ -55,10 +55,20 @@ namespace TapEmpire.Utility.GoogleSheet
         }
 
         [Button]
-        private async void LoadFromGoogle()
+        private void LoadFromGoogle()
+        {
+            LoadFromGoogleFrom(List[0].LocalizationTableName);
+        }
+
+        [Button]
+        private async void LoadFromGoogleFrom(string name)
         {
             _log.Clear();
-            var entries = List.Where(entry => !string.IsNullOrEmpty(entry.TableId));
+            var entries = List
+                .SkipWhile(entry => entry.LocalizationTableName != name)
+                .Where(entry => !string.IsNullOrEmpty(entry.TableId))
+                .ToList();
+
             foreach (var entry in entries)
             {
                 await entry.LoadFromGoogleSheet(_log);
