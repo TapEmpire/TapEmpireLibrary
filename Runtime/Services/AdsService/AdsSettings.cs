@@ -17,11 +17,15 @@ namespace TapEmpire.Services
         public bool ShowApplovinOn2GB = false;
         public float InterstitialDelay = 30.0f;
 
-        [Space(5)]
+        [Header("Interstitials by level")]
         public List<int> InterstitialAfterLevels = new();
 
+        [Header("Interstitials by timer")]
         public int FromLevel = 0;
         public List<TimerData> TimerData = new();
+
+        [Header("Scene settings")]
+        public List<SceneSettings> SceneSettings = new();
         
         [Button]
         public void Clear()
@@ -51,5 +55,12 @@ namespace TapEmpire.Services
     {
         public int FromLevel;
         public int Seconds;
+    }
+
+    [System.Serializable]
+    public struct SceneSettings
+    {
+        public SceneName SceneName;
+        public bool IsBannerEnabled;
     }
 }

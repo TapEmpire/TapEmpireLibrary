@@ -12,8 +12,8 @@ namespace TapEmpire.Utility
             var hasDefaultParent = defaultParent != null;
             _pool = new ObjectPool<T>(
                 createFunc: () => hasDefaultParent ? Object.Instantiate(prefab, defaultParent) : Object.Instantiate(prefab),
-                actionOnGet: (item) => Utilities.SetGameObjectActive(item, true),
-                actionOnRelease: (item) => Utilities.SetGameObjectActive(item, false),
+                actionOnGet: (item) => Utility.SetGameObjectActive(item, true),
+                actionOnRelease: (item) => Utility.SetGameObjectActive(item, false),
                 actionOnDestroy: (item) =>
                 {
                     if (item != null)

@@ -29,6 +29,21 @@ namespace TapEmpire.Utility
             }
         }
 
+        public static void ForEach<TSource>(this IEnumerable<TSource> source, System.Action<TSource, int> action)
+        {
+            int index = 0;
+
+            foreach (var element in source)
+            {
+                action?.Invoke(element, index++);
+            }
+        }
+
+        public static IEnumerable<TSource> Take<TSource>(this IEnumerable<TSource> source, Func<TSource, bool> predicate, int count)
+        {
+            return source.Where(predicate).Take(count);
+        }
+
         public static (IEnumerable<TSource>, IEnumerable<TSource>) Partition<TSource>(this IEnumerable<TSource> source, Func<TSource, bool> predicate)
         {
             var firstPart = source.Where(predicate);

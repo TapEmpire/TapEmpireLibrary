@@ -100,5 +100,11 @@ namespace TapEmpire.Utility
         {
             return (n + div - 1) / div;
         }
+
+        public static bool IsPointInsideBox(Vector2 center, Vector2 target, Vector2 extents)
+        {
+            return Mathf.Abs(center.x - target.x) <= extents.x &&
+                   Mathf.Abs(center.y - target.y) <= extents.y;
+        }
     }
 }

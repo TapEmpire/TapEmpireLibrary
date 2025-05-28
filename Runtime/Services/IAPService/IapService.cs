@@ -18,7 +18,7 @@ namespace TapEmpire.Services
         [field: SerializeField] public string AdjustPurchaseToken { get; private set;}
         [SerializeField] private IapProductsSettings _iapProductsSettings;
         [SerializeField] private IapShowSettings _iapShowSettings;
-        [SerializeField] private NoAdsPopupView _noAdsPopupView;
+        [SerializeField] private UIView _noAdsPopupView;
         [SerializeReference] private IIapHandler[] _iapHandlers;
 
         private readonly Dictionary<Type, IIapHandler> _handlers = new();
@@ -98,9 +98,9 @@ namespace TapEmpire.Services
             return null;
         }
 
-        public IapOffer GetOfferInfo(string storeKey)
+        public IapOffer GetOfferInfo(string key)
         {
-            return _iapProductsSettings.Products.FirstOrDefault(x => x.GetStoreID() == storeKey);
+            return _iapProductsSettings.Products.FirstOrDefault(x => x.Key == key);
         }
 
         public void RestoreProducts()

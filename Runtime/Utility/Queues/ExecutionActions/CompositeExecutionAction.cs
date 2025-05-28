@@ -20,10 +20,10 @@ namespace TapEmpire.Utility
             _actions.ForEach(action => action.OnDone.Subscribe(OnDoneCallback).AddTo(_disposables));
         }
 
-        public override void Execute(T flow = default)
+        public override void Execute(ExecutionState state = ExecutionState.True, T flow = default)
         {
             _flow = flow;
-            OnDoneCallback(true);
+            OnDoneCallback(state);
         }
 
         public override void Reinitialize()
@@ -43,9 +43,9 @@ namespace TapEmpire.Utility
             // 
         }
 
-        private void OnDoneCallback(bool isDone)
+        private void OnDoneCallback(ExecutionState state)
         {
-            if (!isDone) return;
+            if (state == ExecutionState.NotDone) return;
 
             if (++_index >= _actions.Length)
             {
@@ -53,7 +53,7 @@ namespace TapEmpire.Utility
                 return;
             }
 
-            _actions[_index].Execute(_flow);
+            _actions[_index].Execute(state, _flow);
         }
     }
 }

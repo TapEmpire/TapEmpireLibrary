@@ -4,6 +4,8 @@ namespace TapEmpire.Services
 {
     public interface IAdsService : IService
     {
+        ReadOnlyReactiveProperty<bool> AdsEnabled { get; }
+
         System.Action<string> OnAdReceivedRewardEvent { get; set; }
         System.Action<string> OnAdReceivedOnceRewardEvent { get; set; }
         System.Action<string> OnAdDisplayedRewardEvent { get; set; }
@@ -24,6 +26,8 @@ namespace TapEmpire.Services
 
         bool ShowInterstitial(System.Action action, string placement = "");
         void ShowRewarded(string placement, System.Action action);
+
+        bool ShowBanners(bool shouldShow); // returns whether they were shown right now
 
         bool AdsDisabled { get; }
         bool AdsDisabledDebug { get; set; }

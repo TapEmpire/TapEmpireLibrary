@@ -56,7 +56,7 @@ namespace TEL.GraphTool
 
                 if (IsAutoUnlockable)
                 {
-                    Utilities.Delay(0.0f, () => Unlock(false).Forget());
+                    Utility.Delay(0.0f, () => Unlock(false).Forget());
                 }
             }
         }

@@ -197,14 +197,14 @@ namespace TapEmpire.Services
         {
             _isInitialized.Value = false;
             _onInitializationFailed.OnNext((InitializationFailureReason)error);
-            Debug.Log($"IAP OnInitializeFailed {error}");
+            Debug.LogError($"IAP OnInitializeFailed {error}");
         }
 
         public void OnInitializeFailed(UnityEngine.Purchasing.InitializationFailureReason error, string message)
         {
             _isInitialized.Value = false;
             _onInitializationFailed.OnNext((InitializationFailureReason)error);
-            Debug.Log($"IAP OnInitializeFailed {message}");
+            Debug.LogError($"IAP OnInitializeFailed {message}");
         }
 
         public PurchaseProcessingResult ProcessPurchase(PurchaseEventArgs args)

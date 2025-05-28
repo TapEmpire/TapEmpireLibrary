@@ -6,7 +6,7 @@ using DG.Tweening;
 
 namespace TapEmpire.Utility
 {
-    public static class Utilities
+    public static class Utility
     {
         public static void IfElse(bool condition, System.Action doIf, System.Action doElse)
         {
@@ -55,6 +55,14 @@ namespace TapEmpire.Utility
             if (behaviour != null)
             {
                 SetActive(behaviour.gameObject, active);
+            }
+        }
+
+        public static void DestroySafe(GameObject gameObject)
+        {
+            if (gameObject != null)
+            {
+                GameObject.Destroy(gameObject);
             }
         }
         

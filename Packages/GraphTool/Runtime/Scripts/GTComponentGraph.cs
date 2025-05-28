@@ -293,7 +293,7 @@ namespace TEL.GraphTool
             var tempSimulationQueue = list.Select(nodeData => sceneNodes[nodeData.SceneID]).ToList();
             UnlockNodeListAsQueue(tempSimulationQueue);
             
-            TapEmpire.Utility.Utilities.RestartScene();
+            TapEmpire.Utility.Utility.RestartScene();
 
             IsDebugUnlockOn.SetValue(false);
         }

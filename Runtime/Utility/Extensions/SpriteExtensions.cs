@@ -3,6 +3,8 @@ using System.Linq;
 using System.Reflection;
 using UnityEditor;
 using UnityEngine;
+using System.Collections.Generic;
+
 
 #if UNITY_EDITOR
 using UnityEditor.U2D.PSD;
@@ -22,6 +24,50 @@ namespace TapEmpire.Utility
             texture.SetPixels(pixels);
             texture.Apply();
             return texture;
+        }
+
+        public static List<Vector2> GetPhysicsShape(this Sprite self)
+        {
+            var physicsShape = new List<Vector2>();
+
+            self.GetPhysicsShape(0, physicsShape);
+            return physicsShape;
+        }
+
+        public static Vector2 GetAspectFitRect(this Sprite self, Vector2 bounds)
+        {
+            var spriteSize = self.bounds.size;
+            var spriteRatio = spriteSize.x / spriteSize.y;
+            var rectRatio = bounds.x / bounds.y;
+
+            if (spriteRatio > rectRatio)
+            {
+                bounds.y = bounds.x * (1.0f / spriteRatio);
+            }
+            else
+            {
+                bounds.x = bounds.y * spriteRatio;
+            }
+
+            return bounds;
+        }
+
+        public static Rect GetAspectFitRect(this Sprite self, Rect rect)
+        {
+            var spriteSize = self.bounds.size;
+            var spriteRatio = spriteSize.x / spriteSize.y;
+            var rectRatio = rect.width / rect.height;
+
+            if (spriteRatio > rectRatio)
+            {
+                rect.height = rect.width * (1.0f / spriteRatio);
+            }
+            else
+            {
+                rect.width = rect.height * spriteRatio;
+            }
+
+            return rect;
         }
 
 #if UNITY_EDITOR

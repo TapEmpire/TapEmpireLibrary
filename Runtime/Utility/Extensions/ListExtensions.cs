@@ -31,9 +31,9 @@ namespace TapEmpire.Utility
             return firstElement;
         }
 
-        public static T PopFrontSafe<T>(this List<T> list)
+        public static T PopFrontSafe<T>(this List<T> list, T defaultValue = default)
         {
-            return list.Empty() ? default(T) : list.PopFront();
+            return list.Empty() ? defaultValue : list.PopFront();
         }
 
         public static void RemoveFrom<T>(this List<T> list, int from)
@@ -51,6 +51,19 @@ namespace TapEmpire.Utility
             list.RemoveRange(list.Count - count, count);
         }
 
+        public static T FindAndRemove<T>(this List<T> list, Func<T, bool> predicate)
+        {
+            var index = list.FindIndex(predicate);
+            if (index == -1)
+            {
+                return default(T);
+            }
+
+            var element = list[index];
+            list.RemoveAt(index);
+            return element;
+        }
+
         public static (T, int) FindLastAndRemove<T>(this List<T> list, Func<T, bool> condition) where T : new()
         {
             var index = list.FindLastIndex(x => condition(x));
@@ -62,6 +75,11 @@ namespace TapEmpire.Utility
             var element = list[index];
             list.RemoveAt(index);
             return (element, index);
+        }
+
+        public static void AddRange<T>(this List<T> list, int count, T value = default(T))
+        {
+            list.AddRange(Enumerable.Repeat(value, count));
         }
 
         public static void Resize<T>(this List<T> list, int count, T value = default(T))

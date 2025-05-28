@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using UnityEngine.Localization.SmartFormat.PersistentVariables;
 
 namespace TapEmpire.Utility
 {
@@ -41,12 +42,23 @@ namespace TapEmpire.Utility
             }
         }
 
-        public static void AddIfNone<TKey, TValue>(this Dictionary<TKey, TValue> self, TKey key, TValue value)
+        public static void AddIfNone<TKey, TValue>(this IDictionary<TKey, TValue> self, TKey key, TValue value)
         {
             if (!self.ContainsKey(key))
             {
                 self.Add(key, value);
             }
+        }
+
+        public static TValue GetAndRemove<TKey, TValue>(this IDictionary<TKey, TValue> self, TKey key)
+        {
+            if (self.TryGetValue(key, out var value))
+            {
+                self.Remove(key);
+                return value;
+            }
+
+            return default;
         }
         
         public static void RemoveAll<TKey, TValue>(this Dictionary<TKey, TValue> self, Func<TValue, bool> conditionToRemove)
@@ -64,7 +76,7 @@ namespace TapEmpire.Utility
             }
         }
 
-        public static TValue TryGetValue<TKey, TValue>(this Dictionary<TKey, TValue> self, TKey key)
+        public static TValue TryGetValue<TKey, TValue>(this IDictionary<TKey, TValue> self, TKey key)
         {
             return self.TryGetValue(key, out var value) ? value : default(TValue);
         }

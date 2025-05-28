@@ -15,7 +15,7 @@ namespace TapEmpire.Game
         [Inject]
         private ServicesContainer _servicesContainer;
         
-        private void Awake()
+        private void Start()
         {
             StartSceneAsync(Application.exitCancellationToken).Forget();
         }
