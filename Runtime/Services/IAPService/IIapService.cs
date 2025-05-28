@@ -20,7 +20,8 @@ namespace TapEmpire.Services
         public Observable<PurchaseFailArgs> OnPurchaseFailed { get; }
         public Observable<IIapHandler> OnIapHandle { get; }
         Product GetProductInfo(string key);
-        IapOffer GetOfferInfo(string key);
+        IapOffer GetOfferInfoByStoreId(string key);
+        IapOffer GetOfferInfoById(string key);
         void ShowOnLevel(int dataLevelIndex, Action callback);
     }
 }

@@ -43,7 +43,7 @@ namespace TapEmpire.Services
         private void OnPurchaseSuccessDetailed(Product product)
         {
             var iapId = product.definition.id;
-            var offer = _iapService.GetOfferInfo(iapId);
+            var offer = _iapService.GetOfferInfoByStoreId(iapId);
             if (offer == null)
             {
                 Debug.LogError($"cant find pack with id: {iapId}, stop sending analytics");
