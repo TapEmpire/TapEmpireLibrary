@@ -10,6 +10,7 @@ namespace TapEmpire.Services
     {
         [Header("On-Off")]
         public bool EnableAppOpen = true;
+        public bool EnableBanners = true;
         public bool ShouldWaitAppOpen = false;
         public float AppOpenWaitTime = 10.0f;
 

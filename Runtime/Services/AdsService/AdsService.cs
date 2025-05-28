@@ -86,7 +86,7 @@ namespace TapEmpire.Services
                 _adsRuntimeScenario.EnableAppOpen = _adsSettings.EnableAppOpen;
                 _adsRuntimeScenario.ShouldWaitAppOpen = _adsSettings.ShouldWaitAppOpen;
                 _adsRuntimeScenario.InterstitialAfterLevels = _adsSettings.InterstitialAfterLevels;
-                _adsRuntimeScenario.ShowBanner = !AdsDisabledDebug;
+                _adsRuntimeScenario.ShowBanner = _adsSettings.EnableBanners && !AdsDisabledDebug;
                 _adsRuntimeScenario.FromLevel = _adsSettings.FromLevel;
             }
 
