@@ -18,6 +18,7 @@ namespace TapEmpire.Build
         [Title("Project specific")]
 
         [ShowInInspector] public string ProjectScriptablesPath => $"{DefaultGamePath}/Scriptables";
+        [ShowInInspector] public string ProjectArtPath => $"{DefaultGamePath}/Art";
 
         private static ProjectPathSettings _instance = null;
 

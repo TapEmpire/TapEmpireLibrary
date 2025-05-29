@@ -1,6 +1,5 @@
 using System.Linq;
 using System.Text.RegularExpressions;
-using ModestTree;
 
 namespace TapEmpire.Utility
 {
@@ -10,6 +9,11 @@ namespace TapEmpire.Utility
         {
             int lastIndex = str.LastIndexOf(substring);
             return lastIndex != -1 ? str.Remove(lastIndex, substring.Length) : str;
+        }
+
+        public static string RemoveFirstBlock(this string str, char symbol)
+        {
+            return str.Substring(str.IndexOf(symbol) + 1);
         }
 
         public static string Escape(this string str)
@@ -42,6 +46,16 @@ namespace TapEmpire.Utility
         {
             var strings = str.Split(' ').Select(subword => subword.Capitalize());
             return string.Join("", strings);
+        }
+
+        public static string SplitByCapitalLetters(this string str)
+        {
+            return Regex.Replace(str, "(?<!^)([A-Z0-9])", " $1");
+        }
+
+        public static string FormatPlural(this string str, int amount)
+        {
+            return string.Format(str, amount > 1 ? "s" : "");
         }
     }
 }

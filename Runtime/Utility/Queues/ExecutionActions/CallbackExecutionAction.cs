@@ -11,7 +11,7 @@ namespace TapEmpire.Utility
             _action = action;
         }
 
-        public override void Execute(T flow = default)
+        public override void Execute(ExecutionState state, T flow = default)
         {
             _action?.Invoke(flow);
             MarkComplete();

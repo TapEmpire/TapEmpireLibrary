@@ -5,5 +5,6 @@ namespace TapEmpire.Services
         Entry,
         Core,
         Menu,
+        Meta
     }
 }

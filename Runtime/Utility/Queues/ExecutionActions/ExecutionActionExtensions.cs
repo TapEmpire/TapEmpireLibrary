@@ -23,7 +23,7 @@ namespace TapEmpire.Utility
 
         public static IExecutionAction<T> RunExecute<T>(this IExecutionAction<T> action, T flow) where T : Enum
         {
-            action.Execute(flow);
+            action.Execute(ExecutionState.True, flow);
             return action;
         }
     }
