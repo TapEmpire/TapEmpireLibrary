@@ -11,5 +11,7 @@ namespace TapEmpire.Services
         bool TryGetValue(string key, out TValue value, bool canUseCached = true, bool canUseDefault = true, bool setNotCached = true);
 
         void ClearCache();
+
+        void DeleteKey(string key);
     }
 }

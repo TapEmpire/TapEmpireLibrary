@@ -14,11 +14,12 @@ namespace TapEmpire.Utility
         private ReactiveProperty<float> _timeLeft = new();
         private CancellationTokenSource _cancellationTokenSource = new();
 
-        private async UniTask Run(float duration, float tickInterval)
+        private async UniTask Run(float duration, float tickInterval, float startValue = 0.0f)
         {
             try
             {
-                float elapsedTime = 0.0f;
+                float elapsedTime = startValue;
+                _timeLeft.Value = duration - elapsedTime;
 
                 while (elapsedTime < duration)
                 {
@@ -47,12 +48,13 @@ namespace TapEmpire.Utility
             _cancellationTokenSource?.Cancel();
             _cancellationTokenSource?.Dispose();
             _timeLeft.Dispose();
+            OnTimerDone.Dispose();
         }
 
-        public static UniTaskTimer Create(float duration, float tickInterval)
+        public static UniTaskTimer Create(float duration, float tickInterval, float startValue = 0.0f)
         {
             var timer = new UniTaskTimer();
-            timer.Run(duration, tickInterval).Forget();
+            timer.Run(duration, tickInterval, startValue).Forget();
             return timer;
         }
     }

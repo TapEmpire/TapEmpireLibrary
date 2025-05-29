@@ -41,6 +41,32 @@ namespace TapEmpire.Services
             return nextValue;
         }
 
+        public static void SetCurrentTimeStamp(this IProgressService self, string key)
+        {
+            self.StringValuesDictionary.SetValue(key, System.DateTime.UtcNow.ToString());
+        }
+
+        public static void SetTimeStamp(this IProgressService self, string key, System.DateTime dateTime)
+        {
+            self.StringValuesDictionary.SetValue(key, dateTime.ToString());
+        }
+
+        public static void CleanTimeStamp(this IProgressService self, string key)
+        {
+            self.StringValuesDictionary.DeleteKey(key);
+        }
+
+        public static System.DateTime GetTimeStamp(this IProgressService self, string key)
+        {
+            return self.GetTimeStampDefault(key, System.DateTime.UtcNow);
+        }
+
+        public static System.DateTime GetTimeStampDefault(this IProgressService self, string key, System.DateTime defaultValue = default)
+        {
+            var dateString = self.StringValuesDictionary.TryGetValue(key, out var value) ? value : default;
+            return System.DateTime.TryParse(dateString, out var date) ? date : defaultValue;
+        }
+
         #endregion
 
         private const string RemoteConfigNameKey = "RemoteConfigNameKey";
@@ -87,6 +113,11 @@ namespace TapEmpire.Services
             return self.IntValuesDictionary.TryGetValue(key, out var value) ? value : default;
         }
 
+        public static void ClearCyclesProgress(this IProgressService self)
+        {
+            self.SetIntProp(ProgressIntProp.CyclesCompleted, 0);
+        }
+
         public static int UpdateCyclesProgress(this IProgressService self)
         {
             return self.UpdateIntProp(ProgressIntProp.CyclesCompleted);
@@ -114,7 +145,7 @@ namespace TapEmpire.Services
             var list = new List<int>();
             if (self.StringValuesDictionary.TryGetValue(IapShowProgressKey, out var value, canUseDefault: false))
             {
-                list = JsonConvert.DeserializeObject<List<int>>(value);
+                list = JsonConvert.DeserializeObject<List<int>>(value) ?? new();
             }
 
             return list;
@@ -125,6 +156,11 @@ namespace TapEmpire.Services
             var serializedObject = JsonConvert.SerializeObject(value);
 
             self.StringValuesDictionary.SetValue(IapShowProgressKey, serializedObject);
+        }
+
+        public static void CleanIapShowProgress(this IProgressService self)
+        {
+            self.StringValuesDictionary.SetValue(IapShowProgressKey, "");
         }
         
         #endregion

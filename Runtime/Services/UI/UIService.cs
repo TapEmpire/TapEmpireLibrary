@@ -84,7 +84,7 @@ namespace TapEmpire.UI
 
         private void SceneContextsService_OnSceneContextInstalled(string contextId, SceneContext context)
         {
-            if (contextId != "Core" && contextId != "Menu")
+            if (contextId != "Core" && contextId != "Menu" && contextId != "Meta")
             {
                 return;
             }
@@ -253,7 +253,7 @@ namespace TapEmpire.UI
 
         public void AddToContext(string name, RectTransform transform)
         {
-            ShibariContext.Add(name, transform);
+            ShibariContext.AddIfNone(name, transform);
         }
 
         public void RemoveFromContext(string name)

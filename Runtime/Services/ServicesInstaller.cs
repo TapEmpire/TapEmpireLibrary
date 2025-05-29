@@ -29,6 +29,27 @@ namespace TapEmpire.Services
             _orderedServices.ForEachIndexed(ConfigureService);
             _services.ForEach(service => ConfigureService(service, -1));
         }
+
+        public T GetService<T>() where T : IService
+        {
+            foreach (var service in _orderedServices)
+            {
+                if (service is T targetService)
+                {
+                    return targetService;
+                }
+            }
+
+            foreach (var service in _services)
+            {
+                if (service is T targetService)
+                {
+                    return targetService;
+                }
+            }
+
+            return default;
+        }
         
         private void ConfigureService(IService service, int order)
         {

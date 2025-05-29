@@ -18,6 +18,8 @@ namespace TapEmpire.Settings
         [SerializeField, ShowIf(nameof(Debug))]
         private bool _skipInters;
 
+        public bool IgnoreConnection = false;
+
         [SerializeField, ShowIf(nameof(Debug))]
         private bool _hideRewardsAds;
 
@@ -26,6 +28,8 @@ namespace TapEmpire.Settings
         
         [SerializeField, ShowIf(nameof(Debug)), HideIf(nameof(_editorStartFromPrefLevel))]
         private int _editorEditorDebugStartLevelIndexIndex = -1;
+
+        [field:SerializeField] public int FrameRate { get; private set; } = 60;
 
         public bool Debug
         {
