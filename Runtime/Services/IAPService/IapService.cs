@@ -179,7 +179,7 @@ namespace TapEmpire.Services
                 return;
             ProcessPurchase(_storeOffers[iapId]).Forget();
             _onPurchaseSuccessDetailed.Execute(product);
-            _onPurchaseSuccess.Execute(iapId);
+            _onPurchaseSuccess.Execute(_storeOffers[iapId].Key);
         }
 
         protected void OnProductPurchaseFailed(PurchaseFailArgs args)
