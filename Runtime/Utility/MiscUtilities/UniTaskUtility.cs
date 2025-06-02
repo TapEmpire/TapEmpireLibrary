@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading;
 using Cysharp.Threading.Tasks;
+using R3;
 
 namespace TapEmpire.Utility
 {
@@ -92,6 +93,16 @@ namespace TapEmpire.Utility
             }
 
             await UniTask.WhenAll(tasks);
+        }
+
+        public static CancellableTask Delay(float seconds, Action callback)
+        {
+            return new CancellableTask(token => ExecuteAfterSeconds(seconds, callback, cancellationToken: token));
+        }
+
+        public static CancellableTask ExecuteNextFrame(Action callback)
+        {
+            return new CancellableTask(token => ExecuteNextFrame(callback, cancellationToken: token));
         }
     }
 }

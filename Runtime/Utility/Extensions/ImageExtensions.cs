@@ -1,4 +1,5 @@
-﻿using UnityEngine.UI;
+﻿using UnityEngine;
+using UnityEngine.UI;
 
 namespace TapEmpire.Utility
 {
@@ -9,6 +10,11 @@ namespace TapEmpire.Utility
             var color = self.color;
             color.a = alpha;
             self.color = color;
+        }
+
+        public static float GetAlpha(this Image self)
+        {
+            return self.color.a;
         }
     }
 }

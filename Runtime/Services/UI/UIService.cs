@@ -84,7 +84,7 @@ namespace TapEmpire.UI
 
         private void SceneContextsService_OnSceneContextInstalled(string contextId, SceneContext context)
         {
-            if (contextId != "Core" && contextId != "Menu")
+            if (contextId != "Core" && contextId != "Menu" && contextId != "Meta")
             {
                 return;
             }
@@ -221,6 +221,11 @@ namespace TapEmpire.UI
             try
             {
                 _views.Remove(viewModel);
+
+                if (viewModel is IDisposable)
+                {
+                    (viewModel as IDisposable).Dispose();
+                }
                 Object.Destroy(view.gameObject);
             }
             catch (Exception e)
@@ -248,7 +253,7 @@ namespace TapEmpire.UI
 
         public void AddToContext(string name, RectTransform transform)
         {
-            ShibariContext.Add(name, transform);
+            ShibariContext.AddIfNone(name, transform);
         }
 
         public void RemoveFromContext(string name)

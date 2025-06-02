@@ -5,10 +5,15 @@ using System.Linq;
 using Sirenix.OdinInspector;
 using System;
 using com.adjust.sdk;
+using LunarConsolePlugin;
 using TapEmpire.Settings;
+using TEL.Utilities;
+using TapEmpire.Services;
 
 namespace TapEmpire.Build
 {
+    using Utility;
+    
     public class GameBuilderWindow : OdinEditorWindow
     {
         [SerializeField]
@@ -84,12 +89,16 @@ namespace TapEmpire.Build
         {
             ApplyBuildMode();
             ApplyPlatform();
+            ApplyActions();
         }
 
         private void ApplyBuildMode()
         {
             var startSettings = AssetDatabase.LoadAssetAtPath<GameStartSettings>(_projectPathSettings.GameStartSettingsPath);
             startSettings.Debug = SelectedBuildConfig == Configuration.Debug;
+            startSettings.SkipInters &= SelectedBuildConfig == Configuration.Debug;
+            startSettings.AutoRestartLevel &= SelectedBuildConfig == Configuration.Debug;
+            startSettings.IgnoreConnection &= SelectedBuildConfig == Configuration.Debug;
             EditorUtility.SetDirty(startSettings);
 
             var adjust = AssetDatabase.LoadAssetAtPath<Adjust>($"{_projectPathSettings.DefaultServicesPath}/Adjust Variant.prefab");
@@ -101,6 +110,13 @@ namespace TapEmpire.Build
             var adsManager = AssetDatabase.LoadAssetAtPath<AdsManager>($"{_projectPathSettings.DefaultServicesPath}/AdsManager Variant.prefab");
             adsManager.TestAds = SelectedBuildConfig == Configuration.Debug;
             EditorUtility.SetDirty(adsManager);
+
+            var console = FindObjectOfType<LunarConsole>(true);
+            if (console)
+            {
+                console.gameObject.SetActive(SelectedBuildConfig == Configuration.Debug);
+                EditorTools.SetDirty(console);
+            }
         }
 
         private void ApplyPlatform()
@@ -109,7 +125,7 @@ namespace TapEmpire.Build
             var platformData = PlatformType == PlatformType.Android ? buildSettings.Android : buildSettings.Ios;
  
             var adjust = AssetDatabase.LoadAssetAtPath<Adjust>($"{_projectPathSettings.DefaultServicesPath}/Adjust Variant.prefab");
-            adjust.appToken = platformData.Adjust;
+            adjust.appToken = platformData.Adjust.AppToken;
             EditorUtility.SetDirty(adjust);
 
             var adsManager = AssetDatabase.LoadAssetAtPath<AdsManager>($"{_projectPathSettings.DefaultServicesPath}/AdsManager Variant.prefab");
@@ -127,6 +143,18 @@ namespace TapEmpire.Build
             adsManager.MaxRewarded = platformData.ApplovinAds.RewardedId;
 
             EditorUtility.SetDirty(adsManager);
+
+            var servicesInstaller = AssetDatabase.LoadAssetAtPath<ServicesInstaller>($"{_projectPathSettings.DefaultScriptablesPath}/ServicesInstaller.asset");
+            var iapService = servicesInstaller.GetService<IIapService>();
+            ReflectionUtility.SetPrivateField(iapService as object, "<AdjustPurchaseToken>k__BackingField", platformData.Adjust.PurchaseToken);
+            EditorUtility.SetDirty(servicesInstaller);
+        }
+
+        private void ApplyActions()
+        {
+            var buildSettings = AssetDatabase.LoadAssetAtPath<GameBuildSettings>(_projectPathSettings.GameBuildSettingsPath);
+            var isDebug = SelectedBuildConfig == Configuration.Debug;
+            buildSettings.BuildActions.ForEach(action => action.Apply(isDebug));   
         }
 
         [Button, BoxGroup("Keystore"), ShowIf(nameof(UseCustomKeystore))]

@@ -4,9 +4,9 @@ namespace TapEmpire.Services
     {
         public static string LocaleKey = "Locale";
 
-        public static string GetLocale(this IProgressService self)
+        public static string GetLocale(this IProgressService self, string defaultValue = "English")
         {
-            return self.StringValuesDictionary.TryGetValue(LocaleKey, out var value, canUseDefault: false) ? value : "English";
+            return self.StringValuesDictionary.TryGetValue(LocaleKey, out var value, canUseDefault: false) ? value : defaultValue;
         }
 
         public static void SetLocale(this IProgressService self, string value)

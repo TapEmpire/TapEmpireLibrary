@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using TapEmpire.Utility;
 using UnityEngine;
 
@@ -9,6 +10,7 @@ namespace TapEmpire.Services
         public abstract AudioData GetAudioData<TAudioId>(TAudioId audioId) where TAudioId : Enum;
 
         public abstract AudioData GetAudioData(string audioId);
+        public abstract bool HasAudioData(string audioId);
     }
 
     public class AudioBankBase<TAudioId> : IAudioBank where TAudioId : Enum
@@ -25,6 +27,16 @@ namespace TapEmpire.Services
         public override AudioData GetAudioData(string audioId)
         {
             return AudioDataDictionary[EnumUtility.Parse<TAudioId>(audioId)];
+        }
+
+        public override bool HasAudioData(string audioId)
+        {
+            if (!Enum.GetNames(typeof(TAudioId)).Any(enumName => enumName.Equals(audioId, StringComparison.CurrentCultureIgnoreCase)))
+            {
+                return false;
+            }
+
+            return AudioDataDictionary.ContainsKey(EnumUtility.Parse<TAudioId>(audioId));
         }
     }
 }

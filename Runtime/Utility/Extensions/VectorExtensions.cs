@@ -69,5 +69,20 @@ namespace TapEmpire.Utility
             var z = self.x * other.y - self.y * other.x;
             return Mathf.Approximately(z, 0);
         }
+
+        public static Vector2Int ClampExcluded(this Vector2Int self, Vector2Int min, Vector2Int max)
+        {
+            return new Vector2Int(Mathf.Clamp(self.x, min.x, max.x - 1), Mathf.Clamp(self.y, min.y, max.y - 1));
+        }
+
+        public static float SignX(this Vector3 self, Vector3 from)
+        {
+            return self.x < from.x ? -1.0f : 1.0f;
+        }
+
+        public static float DiffX(this Vector3 self, Vector3 from)
+        {
+            return self.x - from.x;
+        }
     }
 }

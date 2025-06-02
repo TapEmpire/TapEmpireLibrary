@@ -9,7 +9,7 @@ namespace TapEmpire.Utility
         private List<int> _chances = null;
         private List<int> _currentChances = null;
 
-        public List<int> CurrentChances => _currentChances; 
+        public List<int> CurrentChances => _currentChances;
 
         public FalseRandomizerInt(List<int> chances, List<int> currentChances)
         {
@@ -81,6 +81,41 @@ namespace TapEmpire.Utility
         {
             _indices.Clear();
             _chances.ForEachIndexed((chance, index) => _indices.AddRange(Enumerable.Repeat(index, chance)));
+        }
+    }
+
+    public class BoxRandomizer<T>
+    {
+        private List<T> _elements;
+        private List<T> _currentElements = new();
+
+        public BoxRandomizer(List<T> elements, List<T> currentElements = null)
+        {
+            _elements = elements;
+            _currentElements = currentElements ?? FillElements();
+        }
+
+        public T GetRandomElement()
+        {
+            if (_currentElements.Count == 0)
+            {
+                FillElements();
+            }
+
+            return _currentElements.Pop();
+        }
+
+        public void ReturnToPool(T element)
+        {
+            _currentElements.Insert(0, element);
+        }
+
+        private List<T> FillElements()
+        {
+            _currentElements.Clear();
+            _currentElements.AddRange(_elements);
+            _currentElements.Shuffle();
+            return _currentElements;
         }
     }
 }

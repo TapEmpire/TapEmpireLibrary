@@ -31,9 +31,9 @@ namespace TapEmpire.Utility
             return firstElement;
         }
 
-        public static T PopFrontSafe<T>(this List<T> list)
+        public static T PopFrontSafe<T>(this List<T> list, T defaultValue = default)
         {
-            return list.Empty() ? default(T) : list.PopFront();
+            return list.Empty() ? defaultValue : list.PopFront();
         }
 
         public static void RemoveFrom<T>(this List<T> list, int from)
@@ -41,9 +41,27 @@ namespace TapEmpire.Utility
             list.RemoveRange(from, list.Count - from);
         }
 
+        public static List<T> GetRangeFrom<T>(this List<T> list, int from)
+        {
+            return list.GetRange(from, list.Count - from);
+        }
+
         public static void RemoveLast<T>(this List<T> list, int count)
         {
             list.RemoveRange(list.Count - count, count);
+        }
+
+        public static T FindAndRemove<T>(this List<T> list, Func<T, bool> predicate)
+        {
+            var index = list.FindIndex(predicate);
+            if (index == -1)
+            {
+                return default(T);
+            }
+
+            var element = list[index];
+            list.RemoveAt(index);
+            return element;
         }
 
         public static (T, int) FindLastAndRemove<T>(this List<T> list, Func<T, bool> condition) where T : new()
@@ -57,6 +75,11 @@ namespace TapEmpire.Utility
             var element = list[index];
             list.RemoveAt(index);
             return (element, index);
+        }
+
+        public static void AddRange<T>(this List<T> list, int count, T value = default(T))
+        {
+            list.AddRange(Enumerable.Repeat(value, count));
         }
 
         public static void Resize<T>(this List<T> list, int count, T value = default(T))
@@ -137,7 +160,50 @@ namespace TapEmpire.Utility
 
         public static T GetRandomElement<T>(this List<T> list)
         {
-            return list[UnityEngine.Random.Range(0, list.Count - 1)];
+            return list[UnityEngine.Random.Range(0, list.Count)];
+        }
+
+        public static List<T> Shuffle<T>(this List<T> self)
+        {
+            return self.Shuffle(0, self.Count);
+        }
+
+        public static List<T> Shuffle<T>(this List<T> self, int start, int end)
+        {
+            for (int i = end - 1; i > start; i--)
+            {
+                int j = UnityEngine.Random.Range(start, i + 1);
+                (self[i], self[j]) = (self[j], self[i]);
+            }
+
+            return self;
+        }
+
+        public static bool Contains<T>(this List<T> self, System.Predicate<T> predicate)
+        {
+            return self.FindIndex(element => predicate.Invoke(element)) != -1;
+        }
+
+        public static List<T> InterleaveLists<T>(params List<T>[] lists)
+        {
+            if (lists == null || lists.Length == 0)
+                return new List<T>();
+
+            List<T> result = new List<T>();
+            int maxCount = lists.Max(list => list.Count);
+
+            for (int i = 0; i < maxCount; i++)
+            {
+                foreach (var list in lists)
+                {
+                    if (i < list.Count)
+                    {
+                        result.Add(list[i]);
+                    }
+                }
+            }
+
+            return result;
         }
         
                 

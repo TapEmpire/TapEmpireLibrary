@@ -31,8 +31,8 @@ namespace TapEmpire.Services
         private readonly ReactiveProperty<InitializationFailureReason> _onInitializationFailed = new();
         public Observable<InitializationFailureReason> OnInitializationFailed => _onInitializationFailed;
 
-        private readonly ReactiveCommand<string> _onPurchaseSuccess = new();
-        public Observable<string> OnPurchaseSuccess => _onPurchaseSuccess;
+        private readonly ReactiveCommand<Product> _onPurchaseSuccess = new();
+        public Observable<Product> OnPurchaseSuccess => _onPurchaseSuccess;
 
         private readonly ReactiveCommand<string> _onPurchaseRestored = new();
         public Observable<string> OnPurchaseRestored => _onPurchaseRestored;
@@ -197,14 +197,14 @@ namespace TapEmpire.Services
         {
             _isInitialized.Value = false;
             _onInitializationFailed.OnNext((InitializationFailureReason)error);
-            Debug.Log($"IAP OnInitializeFailed {error}");
+            Debug.LogError($"IAP OnInitializeFailed {error}");
         }
 
         public void OnInitializeFailed(UnityEngine.Purchasing.InitializationFailureReason error, string message)
         {
             _isInitialized.Value = false;
             _onInitializationFailed.OnNext((InitializationFailureReason)error);
-            Debug.Log($"IAP OnInitializeFailed {message}");
+            Debug.LogError($"IAP OnInitializeFailed {message}");
         }
 
         public PurchaseProcessingResult ProcessPurchase(PurchaseEventArgs args)
@@ -225,7 +225,7 @@ namespace TapEmpire.Services
             }
             else
             {
-                _onPurchaseSuccess.Execute(id);
+                _onPurchaseSuccess.Execute(args.purchasedProduct);
             }
 
             _purchaseInProgress.Value = string.Empty;

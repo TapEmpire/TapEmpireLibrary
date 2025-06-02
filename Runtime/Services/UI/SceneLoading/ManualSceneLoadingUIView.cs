@@ -1,6 +1,7 @@
 ﻿using System.Threading;
 using Cysharp.Threading.Tasks;
 using DG.Tweening;
+using R3;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -19,16 +20,24 @@ namespace TapEmpire.UI
 
         [SerializeField]
         private Ease _ease = Ease.OutQuad;
+
+        [SerializeField]
+        private GameObject _loadingPart = null;
+
+        private CompositeDisposable _disposables = new();
         
         protected override UniTask OnOpenAsync(CancellationToken cancellationToken)
         {
             _fillImage.rectTransform.sizeDelta = _emptyTransform.sizeDelta;
             _fillImage.rectTransform.position = _emptyTransform.position;
+            DerivedModel.IsLoadingVisible.Subscribe(value => _loadingPart.SetActive(value)).AddTo(_disposables);
             return base.OnOpenAsync(cancellationToken);
         }
         
         protected override UniTask OnCloseAsync(CancellationToken cancellationToken)
         {
+            _fillImage.rectTransform.DOKill();
+            _disposables.Dispose();
             return base.OnCloseAsync(cancellationToken);
         }
 

@@ -6,7 +6,6 @@ using DG.Tweening;
 using UnityEngine;
 using System.Linq;
 using Zenject;
-using GoogleMobileAds.Ump.Api;
 using TapEmpire.Utility;
 using R3;
 
@@ -15,6 +14,8 @@ namespace TapEmpire.Services
     [System.Serializable]
     public class AdsService : Initializable, IAdsService
     {
+        public ReadOnlyReactiveProperty<bool> AdsEnabled => _adsEnabled;
+
         public System.Action<string> OnAdReceivedRewardEvent { get; set; } = null;
         public System.Action<string> OnAdReceivedOnceRewardEvent { get; set; } = null;
         public System.Action<string> OnAdDisplayedRewardEvent { get; set; } = null;
@@ -35,15 +36,11 @@ namespace TapEmpire.Services
         [SerializeField]
         private AdsSettings _adsSettings = null;
 
-        // [SerializeField]
-        // private AppMetrica _appMetricaPrefab = null;
-
         [Inject]
         private DiContainer _diContainer = null;
-
-        [SerializeField] private bool _adsDisabledDebug;
         [SerializeField] private bool _adsDisabled;
-        
+        private ReactiveProperty<bool> _adsEnabled = new(true);
+
         private string _currentAdPlacement = "";
 
         [Inject]
@@ -54,13 +51,15 @@ namespace TapEmpire.Services
         private bool _isInitialized = false;
         private AdsAnalyticsModule _analyticsModule = null;
 
-        public bool DebugAdsDisabled => _adsDisabledDebug;
+        public bool AdsDisabled => _adsDisabled;
+        public bool AdsDisabledDebug { get; set; } = false;
         public float MaxWaitingTime => _adsSettings.ShouldWaitAppOpen ? _adsSettings.AppOpenWaitTime : 0.0f;
 
         private CancellationTokenSource _cancellationTokenSource;
 
         private ReactiveProperty<bool> _shouldWaitAppOpen = null;
         public ReadOnlyReactiveProperty<bool> ShouldWaitAppOpen { get; private set; } = new ReactiveProperty<bool>(true);
+        public AdsSettings Settings => _adsSettings;
 
         private AdsRuntimeScenario _adsRuntimeScenario;
 
@@ -70,57 +69,57 @@ namespace TapEmpire.Services
                 return; //  UniTask.CompletedTask;
 
             _progressService.TryGetBoolProp(ProgressBoolProp.DisableAds, out _adsDisabled);
+            _adsEnabled.Value = !_adsDisabled;
             _adsRuntimeScenario = new AdsRuntimeScenario();
             if (_adsDisabled)
             {
+                _adsRuntimeScenario.IsEnabled = false;
                 _adsRuntimeScenario.EnableAppOpen = false;
                 _adsRuntimeScenario.ShouldWaitAppOpen = false;
                 _adsRuntimeScenario.InterstitialAfterLevels = new List<int>();
                 _adsRuntimeScenario.ShowBanner = false;
+                _adsRuntimeScenario.FromLevel = 0;
             }
             else
             {
+                _adsRuntimeScenario.IsEnabled = true;
                 _adsRuntimeScenario.EnableAppOpen = _adsSettings.EnableAppOpen;
                 _adsRuntimeScenario.ShouldWaitAppOpen = _adsSettings.ShouldWaitAppOpen;
                 _adsRuntimeScenario.InterstitialAfterLevels = _adsSettings.InterstitialAfterLevels;
-                _adsRuntimeScenario.ShowBanner = true;
-            }
-            
-            if (!_adsDisabledDebug)
-            {
-                GameObject.Instantiate(_adsManagerPrefab);
-                // GameObject.Instantiate(_appMetricaPrefab);
-                GameObject.Instantiate(_adjustPrefab);
-
-                _analyticsModule = new AdsAnalyticsModule(_diContainer);
-                _analyticsModule.Initialize();
-
-                // global::AdsManager.Instance.OnInitialized += OnInitialized;
-                global::AdsManager.Instance.EnableAppOpen = _adsRuntimeScenario.EnableAppOpen;
-                global::AdsManager.Instance.SetAppOpenAutoShow(true);
-                global::AdsManager.Instance.OnConsentObtained += OnConsentObtained;
-                global::AdsManager.Instance.Initialize_AdNetworks(_adsSettings, _adsRuntimeScenario)
-                    .ContinueWith(() => PeriodicAdCheck()).Forget();
-
-                _shouldWaitAppOpen = new ReactiveProperty<bool>(_adsRuntimeScenario.ShouldWaitAppOpen);
-
-                ShouldWaitAppOpen = _shouldWaitAppOpen.CombineLatest(global::AdsManager.Instance.ShouldWaitAppOpen,
-                    (timer, appOpen) => timer && appOpen).ToReadOnlyReactiveProperty();
-
-                _isInitialized = true;
-
-                _cancellationTokenSource = new CancellationTokenSource();
-                UniTaskUtility.ExecuteAfterSeconds(MaxWaitingTime,
-                    () =>
-                    {
-                        _shouldWaitAppOpen.Value = false;
-                        global::AdsManager.Instance.ShouldWaitAppOpen.Value = false;
-                    }, _cancellationTokenSource.Token);
-
-                await UniTask.WaitUntil(() => ShouldWaitAppOpen.CurrentValue == false, cancellationToken: cancellationToken);
+                _adsRuntimeScenario.ShowBanner = _adsSettings.EnableBanners && !AdsDisabledDebug;
+                _adsRuntimeScenario.FromLevel = _adsSettings.FromLevel;
             }
 
-            // return UniTask.CompletedTask;
+            GameObject.Instantiate(_adsManagerPrefab);
+            // GameObject.Instantiate(_appMetricaPrefab);
+            GameObject.Instantiate(_adjustPrefab);
+
+            _analyticsModule = new AdsAnalyticsModule(_diContainer);
+            _analyticsModule.Initialize();
+
+            // global::AdsManager.Instance.OnInitialized += OnInitialized;
+            global::AdsManager.Instance.EnableAppOpen = _adsRuntimeScenario.EnableAppOpen;
+            global::AdsManager.Instance.SetAppOpenAutoShow(true);
+            global::AdsManager.Instance.OnConsentObtained += OnConsentObtained;
+            global::AdsManager.Instance.Initialize_AdNetworks(_adsSettings, _adsRuntimeScenario)
+                .ContinueWith(() => PeriodicAdCheck()).Forget();
+
+            _shouldWaitAppOpen = new ReactiveProperty<bool>(_adsRuntimeScenario.ShouldWaitAppOpen);
+
+            ShouldWaitAppOpen = _shouldWaitAppOpen.CombineLatest(global::AdsManager.Instance.ShouldWaitAppOpen,
+                (timer, appOpen) => timer && appOpen).ToReadOnlyReactiveProperty();
+
+            _isInitialized = true;
+
+            _cancellationTokenSource = new CancellationTokenSource();
+            UniTaskUtility.ExecuteAfterSeconds(MaxWaitingTime,
+                () =>
+                {
+                    _shouldWaitAppOpen.Value = false;
+                    global::AdsManager.Instance.ShouldWaitAppOpen.Value = false;
+                }, _cancellationTokenSource.Token);
+
+            await UniTask.WaitUntil(() => ShouldWaitAppOpen.CurrentValue == false, cancellationToken: cancellationToken);
         }
 
         protected override void OnRelease()
@@ -137,7 +136,7 @@ namespace TapEmpire.Services
             global::AdsManager.Instance?.OnRelease();
         }
 
-        public void ShowInterstitial(int levelIndex, System.Action callback)
+        public void ShowInterstitial(int levelIndex, System.Action callback, string placement = "")
         {
             bool shouldShow = ShouldShowInterstital(levelIndex);
 
@@ -149,7 +148,7 @@ namespace TapEmpire.Services
                     callback?.Invoke();
                 };
 
-                if (!ShowInterstitial())
+                if (!ShowInterstitial(placement))
                 {
                     OnAdReceivedOnceRewardEvent?.Invoke("");
                 }
@@ -160,21 +159,45 @@ namespace TapEmpire.Services
             }
         }
 
-        public bool ShowInterstitial()
+        public bool ShowInterstitial(System.Action callback, string placement = "")
         {
-            if (_adsDisabledDebug)
+            if (!_adsRuntimeScenario.IsEnabled || !IsInterstitialReady)
             {
-                OnAdReceivedReward();
-                return true;
+                callback?.Invoke();
+                return false;
             }
 
+            OnAdReceivedOnceRewardEvent = (adType) =>
+                {
+                    OnAdReceivedOnceRewardEvent = null;
+                    callback?.Invoke();
+                };
+
+            if (!ShowInterstitial(placement))
+            {
+                OnAdReceivedOnceRewardEvent.Invoke(string.Empty);
+                return false;
+            }
+
+            return true;
+        }
+
+        public bool ShowInterstitial(string placement = "")
+        {
             if (_currentAdPlacement != "" || !_isInitialized)
             {
                 ResetInterstitialByTimer();
                 return false;
             }
 
-            _currentAdPlacement = AdType_New.Interstital.ToString();
+            _currentAdPlacement = string.IsNullOrEmpty(placement) ? AdType_New.Interstital.ToString() : placement;
+
+            if (AdsDisabledDebug)
+            {
+                OnAdReceivedReward();
+                return true;
+            }
+            
             // OnAdClickedEvent?.Invoke(_currentAdType);
             OnInterstitialAdShowRequested?.Invoke(global::AdsManager.Instance.HasInterstitial);
 
@@ -184,21 +207,32 @@ namespace TapEmpire.Services
 
         public void ShowRewarded(string adPlacement)
         {
-            if (_adsDisabledDebug)
+            _currentAdPlacement = adPlacement;
+            OnAdClickedEvent?.Invoke(_currentAdPlacement);
+
+            if (AdsDisabledDebug)
             {
                 OnAdReceivedReward();
                 return;
             }
 
-            _currentAdPlacement = adPlacement;
-            OnAdClickedEvent?.Invoke(_currentAdPlacement);
-
             global::AdsManager.Instance.ShowRewarded(() => OnAdReceivedReward(), adPlacement);
+        }
+
+        public void ShowRewarded(string placement, System.Action action)
+        {
+            OnAdReceivedOnceRewardEvent = (adType) =>
+                {
+                    OnAdReceivedOnceRewardEvent = null;
+                    action?.Invoke();
+                };
+
+            ShowRewarded(placement);
         }
 
         public void ShowAppOpen(System.Action action)
         {
-            if (_adsDisabledDebug)
+            if (AdsDisabledDebug)
             {
                 action?.Invoke();
                 return;
@@ -207,24 +241,37 @@ namespace TapEmpire.Services
             AdsManager.Instance.ShowAppOpen(action);
         }
 
+        public bool ShowBanners(bool shouldShow)
+        {
+            if (_adsRuntimeScenario.ShowBanner)
+            {
+                var hasBanners = _adsRuntimeScenario.ShowBanner;
+                _adsRuntimeScenario.ShowBanner = shouldShow;
+                System.Action action = shouldShow ? AdsManager.Instance.ShowBanner : AdsManager.Instance.HideBanner;
+                action.Invoke();
+                return hasBanners;
+            }
+
+            return false;
+        }
+
         public void DisableAds(bool shouldDisable)
         {
             _adsDisabled = shouldDisable;
             _progressService.SetBoolProp(ProgressBoolProp.DisableAds, _adsDisabled);
+            _adsRuntimeScenario.IsEnabled = false;
             _adsRuntimeScenario.EnableAppOpen = false;
             _adsRuntimeScenario.ShouldWaitAppOpen = false;
             _adsRuntimeScenario.InterstitialAfterLevels = new List<int>();
             _adsRuntimeScenario.ShowBanner = false;
+            _adsRuntimeScenario.FromLevel = 0;
             if (_adsDisabled && AdsManager.Instance != null)
             {
                 AdsManager.Instance.DestroyBanner();
                 AdsManager.Instance.SetAppOpenAutoShow(false);
             }
-        }
 
-        public void DisableAdsDebug(bool disableAdsDebug)
-        {
-            _adsDisabledDebug = disableAdsDebug;
+            _adsEnabled.Value = !_adsDisabled;
         }
 
         public void ShowInterstitialByTimer()
@@ -290,9 +337,13 @@ namespace TapEmpire.Services
 
         private bool ShouldShowInterstital(int levelIndex)
         {
-            bool shouldShow = _adsRuntimeScenario.InterstitialAfterLevels.Any(interstitialLevel => interstitialLevel == levelIndex + 1);
+            if (_adsRuntimeScenario.IsEnabled && levelIndex + 1 >= _adsRuntimeScenario.FromLevel)
+            {
+                return _adsRuntimeScenario.InterstitialAfterLevels.Count == 0 || 
+                    _adsRuntimeScenario.InterstitialAfterLevels.Any(interstitialLevel => interstitialLevel == levelIndex + 1);
+            }
 
-            return shouldShow;
+            return false;
         }
     }
 }

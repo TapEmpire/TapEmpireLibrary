@@ -4,6 +4,8 @@ namespace TapEmpire.Services
 {
     public interface IAdsService : IService
     {
+        ReadOnlyReactiveProperty<bool> AdsEnabled { get; }
+
         System.Action<string> OnAdReceivedRewardEvent { get; set; }
         System.Action<string> OnAdReceivedOnceRewardEvent { get; set; }
         System.Action<string> OnAdDisplayedRewardEvent { get; set; }
@@ -15,16 +17,23 @@ namespace TapEmpire.Services
         bool IsRewardedAdReady { get; }
         bool IsInterstitialReady { get; }
 
-        bool ShowInterstitial();
-        void ShowInterstitial(int level, System.Action action);
+        bool ShowInterstitial(string placement = "");
+        void ShowInterstitial(int level, System.Action action, string placement = "");
         void ShowRewarded(string adType);
         void DisableAds(bool shouldDisable);
-        void DisableAdsDebug(bool disableAdsDebug);
         void ShowInterstitialByTimer();
         void ShowAppOpen(System.Action action);
 
-        bool DebugAdsDisabled { get; }
+        bool ShowInterstitial(System.Action action, string placement = "");
+        void ShowRewarded(string placement, System.Action action);
+
+        bool ShowBanners(bool shouldShow); // returns whether they were shown right now
+
+        bool AdsDisabled { get; }
+        bool AdsDisabledDebug { get; set; }
         float MaxWaitingTime { get; }
         ReadOnlyReactiveProperty<bool> ShouldWaitAppOpen { get; }
+
+        AdsSettings Settings { get; }
     }
 }

@@ -29,6 +29,21 @@ namespace TapEmpire.Utility
             }
         }
 
+        public static void ForEach<TSource>(this IEnumerable<TSource> source, System.Action<TSource, int> action)
+        {
+            int index = 0;
+
+            foreach (var element in source)
+            {
+                action?.Invoke(element, index++);
+            }
+        }
+
+        public static IEnumerable<TSource> Take<TSource>(this IEnumerable<TSource> source, Func<TSource, bool> predicate, int count)
+        {
+            return source.Where(predicate).Take(count);
+        }
+
         public static (IEnumerable<TSource>, IEnumerable<TSource>) Partition<TSource>(this IEnumerable<TSource> source, Func<TSource, bool> predicate)
         {
             var firstPart = source.Where(predicate);
@@ -47,6 +62,28 @@ namespace TapEmpire.Utility
             }
         }
 
+        public static void ForEachIndexed<TSource>(this IEnumerable<TSource> source, System.Action<int> action)
+        {
+            for (int i = 0; i < source.Count(); ++i)
+            {
+                action?.Invoke(i);
+            }
+        }
+
+        public static int FindIndex<T>(this IEnumerable<T> source, Func<T, bool> predicate)
+        {
+            int index = 0;
+            foreach (var item in source)
+            {
+                if (predicate(item))
+                {
+                    return index;
+                }
+                index++;
+            }
+            return -1;
+        }
+
         public static bool TryGetIndex<T>(this T[] self, T indexOfItem, out int index) where T : class
         {
             for (var i = 0; i < self.Length; i++)
@@ -61,7 +98,7 @@ namespace TapEmpire.Utility
             index = -1;
             return false;
         }
-        
+
         public static bool TryGetFirst<T>(this IEnumerable<T> self, Predicate<T> predicate, out T value)
         {
             foreach (var item in self)
@@ -78,7 +115,7 @@ namespace TapEmpire.Utility
             value = default;
             return false;
         }
-        
+
         public static bool TryGetFirstOfType<T1, T2>(this IEnumerable<T1> self, out T2 value)
         {
             foreach (var item in self)
@@ -93,7 +130,7 @@ namespace TapEmpire.Utility
             value = default;
             return false;
         }
-        
+
         public static T GetWithMax<T>(this IEnumerable<T> self, Func<T, float> getValueDelegate)
         {
             var max = float.NegativeInfinity;
@@ -109,7 +146,7 @@ namespace TapEmpire.Utility
             }
             return maxItem;
         }
-        
+
         public static T GetWithMin<T>(this IEnumerable<T> self, Func<T, float> getValueDelegate)
         {
             var min = float.PositiveInfinity;
@@ -125,7 +162,7 @@ namespace TapEmpire.Utility
             }
             return minItem;
         }
-        
+
         public static bool TryGetAt<T>(this IList<T> self, int index, out T item)
         {
             if (self.Count > index)
@@ -136,34 +173,87 @@ namespace TapEmpire.Utility
             item = default;
             return false;
         }
-        
+
         public static T[] RemoveItem<T>(this T[] self, T itemToRemove)
         {
             // Find the index of the item to remove.
             int index = Array.IndexOf(self, itemToRemove);
-        
+
             // If the item is not found, return the original array.
             if (index < 0)
             {
                 return self;
             }
-        
+
             // Create a new array with a size one less than the original.
             T[] newArray = new T[self.Length - 1];
-        
+
             // Copy the items before the removed item.
             if (index > 0)
             {
                 Array.Copy(self, 0, newArray, 0, index);
             }
-        
+
             // Copy the items after the removed item.
             if (index < self.Length - 1)
             {
                 Array.Copy(self, index + 1, newArray, index, self.Length - index - 1);
             }
-        
+
             return newArray;
+        }
+
+        public static (T First, T Second) FindFirstPairByCallback<T, TResult>(this IEnumerable<T> source, Func<T, TResult> callback)
+        {
+            var dictionary = new Dictionary<TResult, T>();
+
+            foreach (var item in source)
+            {
+                var result = callback(item);
+
+                if (dictionary.TryGetValue(result, out var existingItem))
+                {
+                    return (existingItem, item);
+                }
+
+                dictionary[result] = item;
+            }
+
+            return default;
+        }
+
+        public static (T First, T Second) FindPairByCallback<T, TResult>(this IEnumerable<T> source, Func<T, TResult> callback, Func<T, int> extraCondition)
+        {
+            var dictionary = new Dictionary<TResult, List<T>>();
+
+            foreach (var item in source)
+            {
+                var result = callback(item);
+
+                if (dictionary.TryGetValue(result, out var existingList))
+                {
+                    var extraValue = extraCondition(item);
+                    var existingItem = existingList.Find(element => extraCondition(element) != extraValue);
+                    if (existingItem != null)
+                    {
+                        return (existingItem, item);
+                    }
+
+                    existingList.Add(item);
+                    continue;
+                }
+
+                dictionary[result] = new List<T>() { item };
+            }
+
+            var matches = dictionary.FirstOrDefault(pair => pair.Value.Count >= 2);
+
+            if (matches.Value != null)
+            {
+                return (matches.Value[0], matches.Value[1]);
+            }
+
+            return default;
         }
     }
 

@@ -9,14 +9,17 @@ namespace TapEmpire.UI
 {
     public class NoAdsPopupViewModel : IUIViewModel
     {
+        public IIapService IapService => _iapService;
+        public IUIService UiService => _uiService;
+
         private readonly IUIService _uiService;
         private readonly IIapService _iapService;
 
         public static readonly string IapKey = "no_ads_default";
         public string Placement { get; private set; } = String.Empty;
 
-        private CompositeDisposable _disposable = new ();
-        
+        private CompositeDisposable _disposables = new();
+
         public NoAdsPopupViewModel(IUIService uiService, IIapService iapService, string placement)
         {
             _uiService = uiService;
@@ -24,14 +27,14 @@ namespace TapEmpire.UI
             Placement = placement;
         }
 
-        public void StartPurchase()
+        public void StartPurchase(string key = null)
         {
             Unsubscribe();
-            _disposable = new CompositeDisposable();
-            
-            _disposable.Add(_iapService.OnPurchaseSuccess.Subscribe(OnPurchaseSuccess));
-            _disposable.Add(_iapService.OnPurchaseFailed.Subscribe(OnPurchaseFailed));
-            _iapService.BuyProduct(IapKey);
+            _disposables = new CompositeDisposable();
+
+            _iapService.OnPurchaseSuccess.Subscribe(OnPurchaseSuccess).AddTo(_disposables);
+            _iapService.OnPurchaseFailed.Subscribe(OnPurchaseFailed).AddTo(_disposables);
+            _iapService.BuyProduct(key ?? IapKey);
         }
 
         public void Close()
@@ -39,9 +42,9 @@ namespace TapEmpire.UI
             _uiService.CloseViewAsync(this, CancellationToken.None);
         }
 
-        public string GetPrice()
+        public string GetPrice(string key = null)
         {
-            var product = _iapService.GetProductInfo(IapKey);
+            var product = _iapService.GetProductInfo(key ?? IapKey);
             return product.metadata.localizedPriceString;
         }
 
@@ -59,7 +62,7 @@ namespace TapEmpire.UI
 
         private void Unsubscribe()
         {
-            _disposable.Dispose();
+            _disposables.Dispose();
         }
     }
 }

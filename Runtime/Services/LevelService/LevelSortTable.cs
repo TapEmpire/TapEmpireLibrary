@@ -7,5 +7,7 @@ namespace TapEmpire.Services
     public class LevelSortTable : ScriptableObject
     {
         public int[] Order = Array.Empty<int>();
+        public int[] Indices = Array.Empty<int>();
+        public string[] Names = Array.Empty<string>();
     }
 }
