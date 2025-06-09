@@ -190,6 +190,28 @@ namespace TapEmpire.Services
             ScheduleRelease(pool, instanceKey, instance, length);
         }
 
+        public void PauseLoopSounds()
+        {
+            _audioSources.ForEach(x =>
+            {
+                if (x.Value.loop)
+                {
+                    x.Value.Pause();
+                }
+            });
+        }
+        
+        public void ResumeLoopSounds()
+        {
+            _audioSources.ForEach(x =>
+            {
+                if (x.Value.loop)
+                {
+                    x.Value.Play();
+                }
+            });
+        }
+
         private void ScheduleRelease(ComponentPool<AudioSource> pool, string instanceKey, AudioSource instance, float delay)
         {
             UniTaskUtility.ExecuteAfterSeconds(delay + 1.0f, () =>
