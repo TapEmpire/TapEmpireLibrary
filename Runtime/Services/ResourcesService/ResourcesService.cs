@@ -1,14 +1,13 @@
-using System;
 using System.Collections.Generic;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using R3;
-using StickerGame.Services;
-using StickerGame.Settings;
 using TapEmpire.Services.Analytics;
 using Zenject;
 using UnityEngine;
 using Sirenix.Utilities;
+using SlimeAway.CoreSystems;
+using SlimeAway.Services;
 
 namespace TapEmpire.Services
 {
