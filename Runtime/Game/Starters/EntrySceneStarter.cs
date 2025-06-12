@@ -75,7 +75,7 @@ namespace TapEmpire.Game
 
         private void Start()
         {
-#if !UNITY_EDITOR && UNITY_ANDROID
+#if !UNITY_EDITOR
             Application.targetFrameRate = _startSettings.FrameRate;
 #endif
             Debug.unityLogger.filterLogType = (Debug.isDebugBuild || _startSettings.Debug) ? LogType.Log : LogType.Assert;
