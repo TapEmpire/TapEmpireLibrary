@@ -21,6 +21,8 @@ namespace TapEmpire.Game
         [SerializeField]
         private bool _autoLoadSceneOnStart = true;
 
+        [SerializeField] private bool _shouldManualClose = false;
+
         [Header("Settings")]
         [SerializeField]
         private GameStartSettings _startSettings;
@@ -91,7 +93,7 @@ namespace TapEmpire.Game
             await UniTask.WaitUntil(() => _isInitialized, cancellationToken: _cancellationTokenSource.Token);
             if (_autoLoadSceneOnStart)
             {
-                _sceneManagementService.LoadSceneAsync(_sceneName, _cancellationTokenSource.Token).Forget();
+                _sceneManagementService.LoadSceneAsync(_sceneName, _cancellationTokenSource.Token, _shouldManualClose).Forget();
             }
         }
     }
