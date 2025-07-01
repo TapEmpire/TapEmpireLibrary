@@ -35,6 +35,21 @@ namespace TapEmpire.Utility
             }
         }
 
+        public static void ForEach<TSource>(this IEnumerable<TSource> source, System.Action<TSource, int> action)
+        {
+            int index = 0;
+
+            foreach (var element in source)
+            {
+                action?.Invoke(element, index++);
+            }
+        }
+
+        public static IEnumerable<TSource> Take<TSource>(this IEnumerable<TSource> source, Func<TSource, bool> predicate, int count)
+        {
+            return source.Where(predicate).Take(count);
+        }
+
         public static (IEnumerable<TSource>, IEnumerable<TSource>) Partition<TSource>(this IEnumerable<TSource> source, Func<TSource, bool> predicate)
         {
             var firstPart = source.Where(predicate);
@@ -53,6 +68,14 @@ namespace TapEmpire.Utility
             }
         }
 
+        public static void ForEachIndexed<TSource>(this IEnumerable<TSource> source, System.Action<int> action)
+        {
+            for (int i = 0; i < source.Count(); ++i)
+            {
+                action?.Invoke(i);
+            }
+        }
+
         public static int FindIndex<T>(this IEnumerable<T> source, Func<T, bool> predicate)
         {
             int index = 0;
@@ -65,6 +88,26 @@ namespace TapEmpire.Utility
                 index++;
             }
             return -1;
+        }
+
+        public static LinkedListNode<T> First<T>(this LinkedList<T> list, Func<T, bool> condition, int from = 0)
+        {
+            var count = 0;
+            foreach (var node in list)
+            {
+                if (count < from)
+                {
+                    count++;
+                    continue;
+                }
+                
+                if (condition(node))
+                {
+                    return list.Find(node);
+                }
+            }
+
+            return null;
         }
 
         public static bool TryGetIndex<T>(this T[] self, T indexOfItem, out int index) where T : class

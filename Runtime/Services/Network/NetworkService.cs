@@ -2,6 +2,7 @@
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using Sirenix.OdinInspector;
+using TapEmpire.Settings;
 using TapEmpire.UI;
 using UnityEngine;
 using Zenject;
@@ -20,6 +21,9 @@ namespace TapEmpire.Services
         [SerializeField]
         private NoInternetUIView _noInternetUIViewPrefab;
 
+        [SerializeField]
+        private GameStartSettings _gameStartSettings;
+
         public bool HasConnection
         {
             get
@@ -27,7 +31,7 @@ namespace TapEmpire.Services
 #if UNITY_EDITOR
                 return true;
 #else
-                return Application.internetReachability != NetworkReachability.NotReachable;
+                return _gameStartSettings.IgnoreConnection || Application.internetReachability != NetworkReachability.NotReachable;
 #endif
             }
         }

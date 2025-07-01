@@ -15,9 +15,16 @@ namespace TapEmpire.Build
     }
 
     [Serializable]
+    public class AdjustData
+    {
+        public string AppToken;
+        public string PurchaseToken;
+    }
+
+    [Serializable]
     public class PlatformData
     {
-        public string Adjust;
+        public AdjustData Adjust;
         public AdsData ApplovinAds;
         public AdsData GoogleAds;
     }
@@ -27,5 +34,8 @@ namespace TapEmpire.Build
     {
         public PlatformData Android;
         public PlatformData Ios;
+
+        [SerializeReference][Space(5)]
+        public IBuildAction[] BuildActions;
     }
 }

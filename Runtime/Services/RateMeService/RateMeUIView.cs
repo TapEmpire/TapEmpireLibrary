@@ -2,6 +2,7 @@
 using Cysharp.Threading.Tasks;
 using R3;
 using TapEmpire.UI;
+using TapEmpire.Utility;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -11,11 +12,15 @@ namespace TapEmpire.Services
     {
         [SerializeField] private Button _accept;
         [SerializeField] private Button _reject;
+        [SerializeField] private Button _close;
+
+        private CompositeDisposable _disposables = new();
 
         public override UniTask OpenAsync(CancellationToken cancellationToken)
         {
-            _accept.onClick.AddListener(Accept);
-            _reject.onClick.AddListener(Reject);
+            _accept.onClick.Subscribe(Accept).AddTo(_disposables);
+            _reject.onClick.Subscribe(Reject).AddTo(_disposables);
+            _close?.onClick.Subscribe(Reject).AddTo(_disposables);
             return UniTask.CompletedTask;
         }
 
@@ -31,8 +36,7 @@ namespace TapEmpire.Services
 
         public override UniTask CloseAsync(CancellationToken cancellationToken)
         {
-            _accept.onClick.RemoveAllListeners();
-            _reject.onClick.RemoveAllListeners();
+            _disposables.Dispose();
             return UniTask.CompletedTask;
         }
     }

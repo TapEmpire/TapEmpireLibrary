@@ -1,0 +1,13 @@
+{
+    "name": "custom.gdl.graphtool",
+    "version": "0.1.0",
+    "displayName": "Graph Tool",
+    "description": "Tool to visualize node unlock order",
+    "unity": "2020.3",
+    "dependencies": {},
+    "author": {
+      "name": "Coruscus Alchemista",
+      "email": "ecandentia@gmail.com"
+    }
+  }
+  

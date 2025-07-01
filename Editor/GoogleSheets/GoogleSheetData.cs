@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using Cysharp.Threading.Tasks;
 using Sirenix.OdinInspector;
 using UnityEditor;
@@ -19,10 +20,14 @@ namespace TapEmpire.Utility.GoogleSheet
         public string TemplateSheetId = string.Empty;
         public List<LevelGoogleData> List = new();
 
+        [SerializeReference] public List<ILocalizationConverter> Converters = new();
+
         [HideInInspector]
         public ConnectionData ConnectionData = null;
 
         private static GoogleSheetData _instance = null;
+
+        private StringBuilder _log = new();
 
         public static GoogleSheetData Instance
         {
@@ -48,6 +53,46 @@ namespace TapEmpire.Utility.GoogleSheet
                 await entry.CheckAndCreateGoogleSheetAsync();
             }
         }
+
+        [Button]
+        private void LoadFromGoogle()
+        {
+            LoadFromGoogleFrom(List[0].LocalizationTableName);
+        }
+
+        [Button]
+        private async void LoadFromGoogleFrom(string name)
+        {
+            _log.Clear();
+            var entries = List
+                .SkipWhile(entry => entry.LocalizationTableName != name)
+                .Where(entry => !string.IsNullOrEmpty(entry.TableId))
+                .ToList();
+
+            foreach (var entry in entries)
+            {
+                await entry.LoadFromGoogleSheet(_log);
+            }
+
+            if (_log.Length > 0)
+            {
+                Debug.LogError(_log.ToString());
+            }
+        }
+
+        [Button]
+        private void ClearFrom(string name)
+        {
+            var entries = List
+                .SkipWhile(entry => entry.LocalizationTableName != name)
+                .Where(entry => !string.IsNullOrEmpty(entry.TableId))
+                .ToList();
+
+            foreach (var entry in entries)
+            {
+                entry.TableId = string.Empty;
+            }
+        }
     }
 
     [Serializable]
@@ -59,9 +104,15 @@ namespace TapEmpire.Utility.GoogleSheet
         [Button]
         public async void LoadFromGoogle()
         {
+            await LoadFromGoogleSheet();
+        }
+
+        public async UniTask LoadFromGoogleSheet(StringBuilder log = null)
+        {
             var googleSheetData = GoogleSheetData.Instance;
             var provider = new GoogleSheetsSettingsProvider();
             var localizationData = await provider.GetLocalization(googleSheetData.SpreadSheetId, TableId);
+            googleSheetData.Converters.ForEach(converter => localizationData = converter.Deconvert(LocalizationTableName, localizationData, log));
 
             var collection = LocalizationEditorSettings.GetStringTableCollection(LocalizationTableName);
             var dict = new Dictionary<string, StringTable>();

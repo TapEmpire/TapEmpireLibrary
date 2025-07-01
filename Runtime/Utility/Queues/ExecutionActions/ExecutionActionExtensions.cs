@@ -1,10 +1,11 @@
+using System;
 using Cysharp.Threading.Tasks;
 
 namespace TapEmpire.Utility
 {
     public static class ExecutionActionExtensions
     {
-        public static UniTask<bool> ToUniTask(this IExecutionAction action)
+        public static UniTask<bool> ToUniTask<T>(this IExecutionAction<T> action) where T : Enum
         {
             var completion = new UniTaskCompletionSource<bool>();
             return completion.Task;
@@ -20,9 +21,9 @@ namespace TapEmpire.Utility
         //     return await tcs.Task;
         // }
 
-        public static IExecutionAction RunExecute(this IExecutionAction action)
+        public static IExecutionAction<T> RunExecute<T>(this IExecutionAction<T> action, T flow) where T : Enum
         {
-            action.Execute();
+            action.Execute(ExecutionState.True, flow);
             return action;
         }
     }

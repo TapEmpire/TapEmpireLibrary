@@ -14,6 +14,11 @@ namespace TapEmpire.Services
             return self.BoolValuesDictionary.TryGetValue(RateMeTag, out var value) ? value : default;
         }
 
+        public static void CleanRateMe(this IProgressService self)
+        {
+            self.BoolValuesDictionary.SetValue(RateMeTag, default);
+        }
+
         /*public static void SetRateMeLevelIndex(this IProgressService self, int value)
         {
             var key = $"{RateMeTag}_{value}";

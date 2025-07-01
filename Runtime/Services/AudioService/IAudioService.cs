@@ -22,6 +22,8 @@ namespace TapEmpire.Services
         void StopSound(string audioId, string uniqueId = "");
         void StopSound<TAudioId>(TAudioId audioId, string uniqueId = "") where TAudioId : Enum;
         void StopAllSounds();
+        public void PauseLoopSounds();
+        public void ResumeLoopSounds();
         void SetCustomAudioBank(IAudioBank audioBank);
 
         bool MusicMode { get; }

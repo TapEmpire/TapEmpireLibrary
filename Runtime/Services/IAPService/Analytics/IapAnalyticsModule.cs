@@ -6,6 +6,7 @@ using Newtonsoft.Json.Linq;
 using R3;
 using TapEmpire.UI;
 using UnityEngine;
+using UnityEngine.Purchasing;
 using Zenject;
 
 namespace TapEmpire.Services
@@ -27,7 +28,7 @@ namespace TapEmpire.Services
 
         public void Initialize()
         {
-            _iapService.OnPurchaseSuccess.Subscribe(OnPurchaseSuccess);
+            _iapService.OnPurchaseSuccessDetailed.Subscribe(OnPurchaseSuccessDetailed);
             _iapService.OnPurchaseFailed.Subscribe(OnPurchaseFailed);
             _iapService.OnPurchaseRestored.Subscribe(OnPurchaseRestored);
 
@@ -39,9 +40,10 @@ namespace TapEmpire.Services
             _uiService.OnBeforeOpenView -= UiService_OnBeforeOpenView;
         }
 
-        private void OnPurchaseSuccess(string iapId)
+        private void OnPurchaseSuccessDetailed(Product product)
         {
-            var offer = _iapService.GetOfferInfo(iapId);
+            var iapId = product.definition.id;
+            var offer = _iapService.GetOfferInfoByStoreId(iapId);
             if (offer == null)
             {
                 Debug.LogError($"cant find pack with id: {iapId}, stop sending analytics");
@@ -55,20 +57,23 @@ namespace TapEmpire.Services
                 { "purchase_id", iapId },
                 { "level", levelsCompleted }
             });
+
+            var price = product.metadata.localizedPrice;
+            var isoCode = product.metadata.isoCurrencyCode;
             
-            var revenue = new Revenue((long)offer.Price, "USD");
+            var revenue = new Revenue((long)price, isoCode);
             AppMetrica.ReportRevenue(revenue);
             
-            var purchaseEventToken = "iap_purchase";
-            AdjustEvent adjustEvent = new AdjustEvent(purchaseEventToken);
-            adjustEvent.setRevenue(offer.Price, "USD");
-            adjustEvent.setPurchaseToken(purchaseEventToken);
+            AdjustEvent adjustEvent = new AdjustEvent(_iapService.AdjustPurchaseToken);
+            adjustEvent.setRevenue((double)price, isoCode);
+            adjustEvent.setProductId(iapId);
+            adjustEvent.setPurchaseToken(product.transactionID);
             Adjust.trackEvent(adjustEvent);
 
             FirebaseAnalytics.LogEvent(IapAnalyticsEvents.IapPurchased, new Parameter[]
             {
-                new("value", offer.Price),
-                new("currency", "USD"),
+                new("value", price.ToString()),
+                new("currency", isoCode),
             });
 
             _analyticsService.LogEvent(IapAnalyticsStrings.AdsPlacements, new Dictionary<string, object>()

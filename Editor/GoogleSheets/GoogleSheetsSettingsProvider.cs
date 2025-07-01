@@ -85,7 +85,7 @@ namespace TapEmpire.Utility.GoogleSheet
             var result = new List<T>();
             foreach (var row in rows.Skip(1))
             {
-                var rowItems = row.Split(tableSeparator);
+                var rowItems = row.Split(tableSeparator).Select(element => System.Text.RegularExpressions.Regex.Unescape(element)).ToArray();
                 for (var i = 0; i < headerItems.Length; i++)
                     lookup[headerItems[i]] = rowItems[i];
 

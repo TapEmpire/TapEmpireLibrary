@@ -14,6 +14,8 @@ namespace TapEmpire.Services
     [System.Serializable]
     public class AdsService : Initializable, IAdsService
     {
+        public ReadOnlyReactiveProperty<bool> AdsEnabled => _adsEnabled;
+
         public System.Action<string> OnAdReceivedRewardEvent { get; set; } = null;
         public System.Action<string> OnAdReceivedOnceRewardEvent { get; set; } = null;
         public System.Action<string> OnAdDisplayedRewardEvent { get; set; } = null;
@@ -37,6 +39,7 @@ namespace TapEmpire.Services
         [Inject]
         private DiContainer _diContainer = null;
         [SerializeField] private bool _adsDisabled;
+        private ReactiveProperty<bool> _adsEnabled = new(true);
 
         private string _currentAdPlacement = "";
 
@@ -48,6 +51,7 @@ namespace TapEmpire.Services
         private bool _isInitialized = false;
         private AdsAnalyticsModule _analyticsModule = null;
 
+        public bool AdsDisabled => _adsDisabled;
         public bool AdsDisabledDebug { get; set; } = false;
         public float MaxWaitingTime => _adsSettings.ShouldWaitAppOpen ? _adsSettings.AppOpenWaitTime : 0.0f;
 
@@ -65,6 +69,7 @@ namespace TapEmpire.Services
                 return; //  UniTask.CompletedTask;
 
             _progressService.TryGetBoolProp(ProgressBoolProp.DisableAds, out _adsDisabled);
+            _adsEnabled.Value = !_adsDisabled;
             _adsRuntimeScenario = new AdsRuntimeScenario();
             if (_adsDisabled)
             {
@@ -81,7 +86,7 @@ namespace TapEmpire.Services
                 _adsRuntimeScenario.EnableAppOpen = _adsSettings.EnableAppOpen;
                 _adsRuntimeScenario.ShouldWaitAppOpen = _adsSettings.ShouldWaitAppOpen;
                 _adsRuntimeScenario.InterstitialAfterLevels = _adsSettings.InterstitialAfterLevels;
-                _adsRuntimeScenario.ShowBanner = true;
+                _adsRuntimeScenario.ShowBanner = _adsSettings.EnableBanners && !AdsDisabledDebug;
                 _adsRuntimeScenario.FromLevel = _adsSettings.FromLevel;
             }
 
@@ -156,7 +161,7 @@ namespace TapEmpire.Services
 
         public bool ShowInterstitial(System.Action callback, string placement = "")
         {
-            if (!IsInterstitialReady)
+            if (!_adsRuntimeScenario.IsEnabled || !IsInterstitialReady)
             {
                 callback?.Invoke();
                 return false;
@@ -236,6 +241,20 @@ namespace TapEmpire.Services
             AdsManager.Instance.ShowAppOpen(action);
         }
 
+        public bool ShowBanners(bool shouldShow)
+        {
+            if (_adsRuntimeScenario.ShowBanner)
+            {
+                var hasBanners = _adsRuntimeScenario.ShowBanner;
+                _adsRuntimeScenario.ShowBanner = shouldShow;
+                System.Action action = shouldShow ? AdsManager.Instance.ShowBanner : AdsManager.Instance.HideBanner;
+                action.Invoke();
+                return hasBanners;
+            }
+
+            return false;
+        }
+
         public void DisableAds(bool shouldDisable)
         {
             _adsDisabled = shouldDisable;
@@ -251,6 +270,8 @@ namespace TapEmpire.Services
                 AdsManager.Instance.DestroyBanner();
                 AdsManager.Instance.SetAppOpenAutoShow(false);
             }
+
+            _adsEnabled.Value = !_adsDisabled;
         }
 
         public void ShowInterstitialByTimer()
