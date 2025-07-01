@@ -84,6 +84,26 @@ namespace TapEmpire.Utility
             return -1;
         }
 
+        public static LinkedListNode<T> First<T>(this LinkedList<T> list, Func<T, bool> condition, int from = 0)
+        {
+            var count = 0;
+            foreach (var node in list)
+            {
+                if (count < from)
+                {
+                    count++;
+                    continue;
+                }
+                
+                if (condition(node))
+                {
+                    return list.Find(node);
+                }
+            }
+
+            return null;
+        }
+
         public static bool TryGetIndex<T>(this T[] self, T indexOfItem, out int index) where T : class
         {
             for (var i = 0; i < self.Length; i++)

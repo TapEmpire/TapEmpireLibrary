@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using StickerGame.Services;
 using UnityEngine;
 
 namespace TapEmpire.Services
