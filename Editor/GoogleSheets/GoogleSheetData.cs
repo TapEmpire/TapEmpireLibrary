@@ -79,6 +79,20 @@ namespace TapEmpire.Utility.GoogleSheet
                 Debug.LogError(_log.ToString());
             }
         }
+
+        [Button]
+        private void ClearFrom(string name)
+        {
+            var entries = List
+                .SkipWhile(entry => entry.LocalizationTableName != name)
+                .Where(entry => !string.IsNullOrEmpty(entry.TableId))
+                .ToList();
+
+            foreach (var entry in entries)
+            {
+                entry.TableId = string.Empty;
+            }
+        }
     }
 
     [Serializable]
