@@ -61,9 +61,7 @@ namespace TapEmpire.Services
         {
             _sceneLoadingUIViewModel = new SceneLoadingUIViewModel();
             _sceneLoadingUIViewModel.IsLoadingVisible.Value = isLoadingVisible;
-            Debug.Log("loading scree create");
             await _uiService.OpenViewAsync(_sceneLoadingUIPrefab, _sceneLoadingUIViewModel, cancellationToken);
-            Debug.Log("loading scree conplete");
             _sceneLoadingUIViewModel.SetProgressCallback(initialProgress, initialTime);
             _initialProgressDone = initialProgress;
         }
