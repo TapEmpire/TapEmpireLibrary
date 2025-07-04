@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Newtonsoft.Json;
+using UnityEngine;
 
 namespace TapEmpire.Services
 {
@@ -132,6 +134,27 @@ namespace TapEmpire.Services
         public static int UpdateAdsWatchedProgress(this IProgressService self)
         {
             return self.UpdateIntProp(ProgressIntProp.TotalAdsWatched);
+        }
+
+        private const string AdRevenueKey = "AdRevenue";
+        private const float MillionFloat = 1000000.0f;
+
+        private static int GetIntAdRevenue(this IProgressService self)
+        {
+            return self.IntValuesDictionary.TryGetValue(AdRevenueKey, out var value, canUseDefault: false) ? value : 0;
+        }
+
+        public static float GetAdRevenue(this IProgressService self)
+        {
+            return self.GetIntAdRevenue() / MillionFloat;
+        }
+
+        public static float UpdateAdRevenue(this IProgressService self, double revenue)
+        {
+            var total = self.GetIntAdRevenue();
+            total += (int)Math.Floor(revenue * MillionFloat);
+            self.IntValuesDictionary.SetValue(AdRevenueKey, total);
+            return total / MillionFloat;
         }
 
         #endregion

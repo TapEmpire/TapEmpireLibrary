@@ -101,6 +101,12 @@ namespace TapEmpire.Utility
             return (isFirstLaunch, GetDateFromString(firstLaunchDate));
         }
 
+        public static System.DateTime GetFirstLaunchDate()
+        {
+            var firstLaunchDate = PlayerPrefs.GetString(FirstLaunchDateKey, "");
+            return GetDateFromString(firstLaunchDate);
+        }
+
         public static void SetSessionStart()
         {
             // var sessionEnd = GetDate(SessionEndKey);
