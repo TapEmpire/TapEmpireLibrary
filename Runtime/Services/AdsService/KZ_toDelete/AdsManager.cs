@@ -45,6 +45,7 @@ public class AdsManager : MonoBehaviour
     public bool IsForFamily = false;
     public bool TestAds = false;
     public bool EnableAppOpen = true;
+    public bool EnableBanner = false;
 
     [Header("References")]
     [SerializeField] AdNetworkAdmob Admob;
@@ -169,7 +170,7 @@ public class AdsManager : MonoBehaviour
 
         await UniTask.Yield(PlayerLoopTiming.LastPostLateUpdate);
 
-        if (_adsRuntimeScenario.ShowBanner) 
+        if (_adsRuntimeScenario.ShowBanner && EnableBanner) 
             Instance.ShowBanner();
     }
 

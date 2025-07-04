@@ -6,8 +6,6 @@ using TapEmpire.Services.Analytics;
 using Zenject;
 using UnityEngine;
 using Sirenix.Utilities;
-using SlimeAway.CoreSystems;
-using SlimeAway.Services;
 
 namespace TapEmpire.Services
 {
@@ -26,18 +24,16 @@ namespace TapEmpire.Services
         protected IProgressService _progressService;
         protected DiContainer _diContainer;
         protected ResourcesAnalyticsModule<T> _analyticsModule;
-        protected GameplaySettings _gameplaySettings;
 
         protected Dictionary<T, ResourceRuntimeData<T>> _resources = new();
 
         public ResourceRuntimeData<T> GetResourceData(T type) => _resources[type];
 
         [Inject]
-        private void Construct(IProgressService progressService, DiContainer diContainer, IGameGenericService gameGenericService)
+        private void Construct(IProgressService progressService, DiContainer diContainer)
         {
             _diContainer = diContainer;
             _progressService = progressService;
-            _gameplaySettings = gameGenericService.GameplaySettings;
         }
 
         protected override UniTask OnInitializeAsync(CancellationToken cancellationToken)

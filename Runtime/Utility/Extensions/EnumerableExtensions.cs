@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Object = UnityEngine.Object;
 
 namespace TapEmpire.Utility
 {
@@ -9,6 +10,11 @@ namespace TapEmpire.Utility
         public static T Random<T>(this IEnumerable<T> enumerable)
         {
             return EnumerableHelper<T>.Random(enumerable);
+        }
+        
+        public static T Random<T>(this IEnumerable<T> enumerable, Random random)
+        {
+            return EnumerableHelper<T>.Random(enumerable, random);
         }
 
         public static bool Empty<T>(this IEnumerable<T> enumerable)
@@ -289,6 +295,11 @@ namespace TapEmpire.Utility
         public static T Random<T>(IEnumerable<T> enumerable)
         {
             return enumerable.ElementAt(random.Next(enumerable.Count()));
+        }
+        
+        public static T Random<T>(IEnumerable<T> enumerable, Random otherRandom)
+        {
+            return enumerable.ElementAt(otherRandom.Next(enumerable.Count()));
         }
     }
 }

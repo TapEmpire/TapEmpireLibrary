@@ -37,6 +37,13 @@ namespace TapEmpire.Utility
             return child;
         }
 
+        public static void SetX(this Transform self, float x)
+        {
+            var position = self.position;
+            position.x = x;
+            self.position = position;
+        }
+        
         public static void SetZ(this Transform self, float z)
         {
             var position = self.position;
@@ -51,7 +58,7 @@ namespace TapEmpire.Utility
 
         public static void SetXYLocal(this Transform self, Vector2 position)
         {
-            self.position = new Vector3(position.x, position.y, self.position.z);
+            self.localPosition = new Vector3(position.x, position.y, self.localPosition.z);
         }
 
         public static void DestroyAllChildren(this Transform self)

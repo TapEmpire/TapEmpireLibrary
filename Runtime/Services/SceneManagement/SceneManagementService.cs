@@ -62,7 +62,6 @@ namespace TapEmpire.Services
             _sceneLoadingUIViewModel = new SceneLoadingUIViewModel();
             _sceneLoadingUIViewModel.IsLoadingVisible.Value = isLoadingVisible;
             await _uiService.OpenViewAsync(_sceneLoadingUIPrefab, _sceneLoadingUIViewModel, cancellationToken);
-
             _sceneLoadingUIViewModel.SetProgressCallback(initialProgress, initialTime);
             _initialProgressDone = initialProgress;
         }
@@ -73,8 +72,7 @@ namespace TapEmpire.Services
             await _uiService.TryCloseViewAsync<SceneLoadingUIViewModel>(cancellationToken);
         }
 
-        public async UniTask LoadSceneAsync(SceneName sceneName, CancellationToken cancellationToken,
-            bool manualLoadingClose = false, bool isLoadingVisible = true)
+        public async UniTask LoadSceneAsync(SceneName sceneName, CancellationToken cancellationToken, bool manualLoadingClose = false, bool isLoadingVisible = true)
         {
             var initialProgress = _initialProgressDone; // _sceneLoadingUIViewModel != null ? _initialProgress : 0.0f;
 
@@ -111,7 +109,8 @@ namespace TapEmpire.Services
             Action<AsyncOperation> onCompleted = manualLoadingClose ? (_) => { } :
                 (_) =>
                 {
-                    _adsService.ShowAppOpen(() => {
+                    _adsService.ShowAppOpen(() =>
+                    {
                         _uiService.TryCloseViewAsync<SceneLoadingUIViewModel>(cancellationToken).Forget();
                         _sceneLoadingUIViewModel = null;
                     });
