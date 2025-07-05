@@ -130,7 +130,7 @@ namespace TapEmpire.Services
 
         private void OnAdRevenue(double price)
         {
-            if (_isRevenueEnough || System.DateTime.UtcNow < _revenueWindowEnd)
+            if (_isRevenueEnough || System.DateTime.UtcNow > _revenueWindowEnd)
             {
                 return;
             }
@@ -146,7 +146,7 @@ namespace TapEmpire.Services
                 {
                     if (TapEmpire.Services.FirebaseService.IsInitializedDeprecated)
                     {
-                        UnityEngine.Debug.LogError(layer.Name);
+                        // UnityEngine.Debug.LogError(layer.Name);
                         FirebaseAnalytics.LogEvent(layer.Name);
                     }
                 }
