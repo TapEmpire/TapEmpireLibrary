@@ -85,6 +85,18 @@ namespace TapEmpire.Services
             self.StringValuesDictionary.SetValue(RemoteConfigNameKey, configName);
         }
 
+        private static string VersionKey = "VersionKey";
+
+        public static string GetVersion(this IProgressService self)
+        {
+            return self.StringValuesDictionary.TryGetValue(VersionKey, out var value, canUseDefault: false) ? value : string.Empty;
+        }
+
+        public static void SetVersion(this IProgressService self)
+        {
+            self.StringValuesDictionary.SetValue(VersionKey, Application.version);
+        }
+
         #endregion
 
         #region analytics

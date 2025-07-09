@@ -60,6 +60,14 @@ namespace TapEmpire.Services
             return Amount.Value;
         }
 
+        public int Set(int amount)
+        {
+            Amount.Value = amount;
+            _progressService.SetResourceCount(_resourceName, Amount.Value);
+            CheckRefill();
+            return Amount.Value;
+        }
+
         private void CheckAbsentTime()
         {
             if (Amount.Value >= _settings.MaxAmount) return;

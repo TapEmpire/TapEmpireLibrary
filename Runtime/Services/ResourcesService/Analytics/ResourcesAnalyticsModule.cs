@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-// using Game.Services;
 using Newtonsoft.Json.Linq;
 using R3;
 using Zenject;
@@ -56,6 +55,8 @@ namespace TapEmpire.Services.Analytics
                     ))
                 ))}
             });
+        
+            SendGeneralEvents(data.resource, data.reason);
         }
 
         private void SendGeneralEvents(ResourceType resource, string reason)
@@ -63,7 +64,9 @@ namespace TapEmpire.Services.Analytics
             var level = _progressService.GetLevelProgress() + 1;
 
             _analyticsService.LogEvent(CoreAnalyticsStrings.GameData, new Dictionary<string, object>{
-                    { $"Level_{level}", new JObject(new JProperty(ResourcesAnalyticsStrings.Tag, reason)) }
+                    { $"Level_{level}", new JObject(new JProperty(ResourcesAnalyticsStrings.Tag,
+                        new JObject(new JProperty(resource.ToString(), reason))))
+                    }
                 });
         }
     }

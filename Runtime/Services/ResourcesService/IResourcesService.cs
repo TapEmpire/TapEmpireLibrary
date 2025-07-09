@@ -12,6 +12,8 @@ namespace TapEmpire.Services
         void Subtract(T resource, int amount, string reason = "");
         bool HasAmount(T resource, int amount);
 
+        void Set(T resource, int amount); // For update purposes.
+
         ResourceRuntimeData<T> GetResourceData(T type);
 
         void AddVirtual(T resource, int amount, string reason);
