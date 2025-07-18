@@ -7,6 +7,12 @@ namespace TapEmpire.Services
 {
     public static class IIapServiceExtensions
     {
+        public static IEnumerable<AddResourceProduct<ResourceType>> GetRewards<ResourceType>(this IIapService service, string key)
+        {
+            var offer = service.GetOfferInfoById(key);
+            return offer.Products.OfType<AddResourceProduct<ResourceType>>();
+        }
+
         public static int GetReward<ResourceType>(this IIapService service, string key)
         {
             var offer = service.GetOfferInfoById(key);
@@ -31,13 +37,9 @@ namespace TapEmpire.Services
             return 0;
         }
 
-        public static void SetResources<ResourcesType>(this IIapService service, string key, List<TMP_Text> resources)
+        public static void SetResources<ResourcesType>(this IIapService service, string key, IEnumerable<TMP_Text> resources)
         {
-            var offer = service.GetOfferInfoById(key);
-            var products = offer.Products
-                .Select(product => product is AddResourceProduct<ResourcesType> resourceProduct ? resourceProduct : null)
-                .Where(product => product != null)
-                .ToList();
+            var products = service.GetRewards<ResourcesType>(key).ToList();
 
             resources.ForEach((resource, index) =>
             {

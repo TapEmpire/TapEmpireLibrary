@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -34,7 +36,7 @@ namespace TapEmpire.Utility
             return totalHeight;
         }
 
-        public static float CalculateHeightAsVertical(this LayoutGroup self, int elementsCount)
+        public static float CalculateHeightAsVertical(this LayoutGroup self, IEnumerable<RectTransform> elements)
         {
             var layoutGroup = self as VerticalLayoutGroup;
             RectOffset padding = layoutGroup.padding;
@@ -43,19 +45,22 @@ namespace TapEmpire.Utility
             float totalHeight = padding.top + padding.bottom;
             int activeChildCount = 0;
 
-            foreach (RectTransform child in layoutGroup.transform)
-            {
-                if (!child.gameObject.activeInHierarchy)
-                    continue;
+            totalHeight += elements.Sum(element => element.rect.height);
+            activeChildCount += elements.Count();
 
-                LayoutElement le = child.GetComponent<LayoutElement>();
-                float preferredHeight = le != null && le.ignoreLayout == false && le.preferredHeight >= 0
-                    ? le.preferredHeight
-                    : LayoutUtility.GetPreferredHeight(child);
+            // foreach (RectTransform child in layoutGroup.transform)
+            // {
+            //     if (!child.gameObject.activeInHierarchy)
+            //         continue;
 
-                totalHeight += preferredHeight;
-                activeChildCount++;
-            }
+            //     LayoutElement le = child.GetComponent<LayoutElement>();
+            //     float preferredHeight = le != null && le.ignoreLayout == false && le.preferredHeight >= 0
+            //         ? le.preferredHeight
+            //         : child.rect.height; // LayoutUtility.GetPreferredHeight(child);
+
+            //     totalHeight += preferredHeight;
+            //     activeChildCount++;
+            // }
 
             if (activeChildCount > 1)
                 totalHeight += spacing * (activeChildCount - 1);
