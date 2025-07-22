@@ -281,6 +281,33 @@ namespace TapEmpire.Utility
 
             return default;
         }
+        
+        public static List<T> FindItemsByCallback<T, TResult>(this IEnumerable<T> source, Func<T, TResult> callback, int count)
+        {
+            var dictionary = new Dictionary<TResult, List<T>>();
+
+            foreach (var item in source)
+            {
+                var result = callback(item);
+
+                if (dictionary.TryGetValue(result, out var existingList))
+                {
+                    existingList.Add(item);
+                    continue;
+                }
+
+                dictionary[result] = new List<T>() {item};
+            }
+
+            var matches = dictionary.FirstOrDefault(pair => pair.Value.Count >= count);
+
+            if (matches.Value != null)
+            {
+                return matches.Value.ToList();
+            }
+
+            return default;
+        }
     }
 
     public static class EnumerableHelper<E>
