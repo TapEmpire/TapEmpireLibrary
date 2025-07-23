@@ -243,7 +243,7 @@ namespace TapEmpire.Services
 
         public bool ShowBanners(bool shouldShow)
         {
-            if (_adsRuntimeScenario.ShowBanner)
+            if (_adsRuntimeScenario.IsEnabled && _adsSettings.EnableBanners)
             {
                 var hasBanners = _adsRuntimeScenario.ShowBanner;
                 _adsRuntimeScenario.ShowBanner = shouldShow;

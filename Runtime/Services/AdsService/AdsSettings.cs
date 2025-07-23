@@ -26,13 +26,16 @@ namespace TapEmpire.Services
 
         [Header("Scene settings")]
         public List<SceneSettings> SceneSettings = new();
-        
+
+        [Header("Analytics settings")]
+        public List<RevenueLayer> RevenueLayers = new();
+
         [Button]
         public void Clear()
         {
             InterstitialAfterLevels.Clear();
         }
-        
+
         [Button]
         public void AddLevelsBasedOnPattern(LevelsPattern pattern, int length)
         {
@@ -62,5 +65,12 @@ namespace TapEmpire.Services
     {
         public SceneName SceneName;
         public bool IsBannerEnabled;
+    }
+
+    [System.Serializable]
+    public struct RevenueLayer
+    {
+        public string Name;
+        public float Value;
     }
 }

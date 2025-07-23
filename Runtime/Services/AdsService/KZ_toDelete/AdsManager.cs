@@ -45,7 +45,7 @@ public class AdsManager : MonoBehaviour
     public bool IsForFamily = false;
     public bool TestAds = false;
     public bool EnableAppOpen = true;
-    public bool EnableBanner = false;
+    public bool EnableBanner = true;
 
     [Header("References")]
     [SerializeField] AdNetworkAdmob Admob;
@@ -427,6 +427,7 @@ public class AdsManager : MonoBehaviour
 
         OnRewardComplete = UserReward;
         AnalyticsManager.PlacementName = placementName;
+        // AnalyticsManager.OnAdPayed?.Invoke(placementName, "Debug", "Debug", AdFormat.Rewarded, 0.25);
 
         if (Applovin.HasRewarded(true)) { ExtendAppOpenTime(); ExtendInterstitialTime(); Applovin.ShowRewardedAd(); }
         else if (Admob.HasRewarded(true)) { ExtendAppOpenTime(); ExtendInterstitialTime(); Admob.ShowRewardedAd(); }
