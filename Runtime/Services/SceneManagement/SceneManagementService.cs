@@ -118,5 +118,10 @@ namespace TapEmpire.Services
 
             sceneHandle.Result.ActivateAsync().completed += onCompleted;
         }
+        
+        public void ChangeLoadingScreen(SceneLoadingUIView loadingUIView)
+        {
+            _sceneLoadingUIPrefab = loadingUIView;
+        }
     }
 }
