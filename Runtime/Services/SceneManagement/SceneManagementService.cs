@@ -27,6 +27,7 @@ namespace TapEmpire.Services
         private IUIService _uiService;
         private IAdsService _adsService;
 
+        private SceneLoadingUIView _runtimeSceneLoadingUIView;
         private SceneLoadingUIViewModel _sceneLoadingUIViewModel;
 
         private float _initialProgressDone = 0.0f;
@@ -38,6 +39,8 @@ namespace TapEmpire.Services
         {
             _uiService = uiService;
             _adsService = adsService;
+
+            _runtimeSceneLoadingUIView = _sceneLoadingUIPrefab;
         }
 
         public async UniTask CreateLoadingScreen(CancellationToken cancellationToken, bool isLoadingVisible)
@@ -61,7 +64,7 @@ namespace TapEmpire.Services
         {
             _sceneLoadingUIViewModel = new SceneLoadingUIViewModel();
             _sceneLoadingUIViewModel.IsLoadingVisible.Value = isLoadingVisible;
-            await _uiService.OpenViewAsync(_sceneLoadingUIPrefab, _sceneLoadingUIViewModel, cancellationToken);
+            await _uiService.OpenViewAsync(_runtimeSceneLoadingUIView, _sceneLoadingUIViewModel, cancellationToken);
             _sceneLoadingUIViewModel.SetProgressCallback(initialProgress, initialTime);
             _initialProgressDone = initialProgress;
         }
@@ -121,7 +124,7 @@ namespace TapEmpire.Services
         
         public void ChangeLoadingScreen(SceneLoadingUIView loadingUIView)
         {
-            _sceneLoadingUIPrefab = loadingUIView;
+            _runtimeSceneLoadingUIView = loadingUIView;
         }
     }
 }
