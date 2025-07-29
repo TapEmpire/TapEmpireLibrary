@@ -253,6 +253,12 @@ namespace TapEmpire.Services
                 Debug.LogWarning($"No available AudioSource in pool for sound: {audioId}");
                 return;
             }
+            
+            if (audioData == null)
+            {
+                Debug.LogWarning($"[AUDIO] AudioData for {audioId} not found.");
+                return;
+            }
 
             if (position.HasValue)
             {
