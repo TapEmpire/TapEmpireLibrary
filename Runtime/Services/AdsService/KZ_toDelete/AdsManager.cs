@@ -170,7 +170,7 @@ public class AdsManager : MonoBehaviour
 
         await UniTask.Yield(PlayerLoopTiming.LastPostLateUpdate);
 
-        if (_adsRuntimeScenario.ShowBanner && EnableBanner) 
+        if (_adsRuntimeScenario.ShowBanner && EnableBanner)
             Instance.ShowBanner();
     }
 
@@ -199,6 +199,10 @@ public class AdsManager : MonoBehaviour
 
     private async UniTask Retry_Consent()
     {
+#if UNITY_IOS
+        ConsentManager.GatherConsentIos().Forget();
+        await UniTask.WaitWhile(() => ConsentManager.IsFetching);
+#else
         ConsentManager.GatherConsent(TestAds, IsForFamily,
             (status, message) =>
             {
@@ -212,6 +216,7 @@ public class AdsManager : MonoBehaviour
         {
             await UniTask.WaitWhile(() => ConsentManager.IsFetching);
         }
+#endif
     }
 
     private void SubscribeToMaxBanners()
