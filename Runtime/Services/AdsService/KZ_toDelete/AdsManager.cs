@@ -199,7 +199,7 @@ public class AdsManager : MonoBehaviour
 
     private async UniTask Retry_Consent()
     {
-#if UNITY_IOS
+#if UNITY_IOS && TEL_ATT
         ConsentManager.GatherConsentIos().Forget();
         await UniTask.WaitWhile(() => ConsentManager.IsFetching);
 #else
