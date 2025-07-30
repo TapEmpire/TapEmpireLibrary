@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using UnityEngine.Audio;
 
 namespace TapEmpire.Services
 {
@@ -10,6 +11,8 @@ namespace TapEmpire.Services
         void WarmUpSources(bool warmUpSoundsPool, bool warmUp3DSoundsPool, bool warmUpMusicInstance);
         
         AudioData GetAudioData<TAudioId>(TAudioId audioId) where TAudioId : Enum;
+        AudioMixer GetMixer();
+        string GetCurrentMixerSnapshot();
 
         void PlaySoundOneShotAtPoint<TAudioId>(TAudioId audioId, Vector3 position, string uniqueId = "") where TAudioId : Enum;
 
@@ -32,5 +35,6 @@ namespace TapEmpire.Services
         bool SoundsMode { get; }
 
         void ChangeSoundsMode(bool mode, bool withFade);
+        void SetMixerSnapshot(string snapshotId, float transitionTime);
     }
 }

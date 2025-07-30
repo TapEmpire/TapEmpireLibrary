@@ -46,6 +46,8 @@ namespace TapEmpire.Services
 
         private Dictionary<string, AudioSource> _audioSources;
 
+        private string _currentMixerSnapshot;
+
         public float MusicVolume { get; private set; }
         public float SoundsVolume { get; private set; }
 
@@ -107,6 +109,13 @@ namespace TapEmpire.Services
         {
             return _audioBank.GetAudioData(audioId);
         }
+        
+        public AudioMixer GetMixer()
+        {
+            return _audioMixer;
+        }
+
+        public string GetCurrentMixerSnapshot() => _currentMixerSnapshot;
 
         private void SetMusicVolume(float volume01)
         {
@@ -336,6 +345,14 @@ namespace TapEmpire.Services
         public void ChangeSoundsMode(bool mode, bool withFade)
         {
             SetSoundsVolume(mode ? 1 : 0);
+        }
+        public void SetMixerSnapshot(string snapshotId, float transitionTime)
+        {
+            var snapshot = _audioMixer.FindSnapshot(snapshotId);
+            if (snapshot == null)
+                return;
+            snapshot.TransitionTo(transitionTime);
+            _currentMixerSnapshot = snapshotId;
         }
     }
 }
