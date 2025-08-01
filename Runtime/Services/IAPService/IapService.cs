@@ -98,6 +98,11 @@ namespace TapEmpire.Services
             return null;
         }
 
+        public Product GetProductInfoByStoreId(string key)
+        {
+            return _purchasingModule.GetProductDetail(key);
+        }
+
         public IapOffer GetOfferInfoByStoreId(string key)
         {
             return _iapProductsSettings.Products.FirstOrDefault(x => x.GetStoreID() == key);

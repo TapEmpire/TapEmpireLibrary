@@ -95,7 +95,8 @@ namespace TapEmpire.Services
             });
         }
 
-        private void OnAdPayed(string adType, string network, string mediation, AdFormat format, double price)
+        private void OnAdPayed(string adType, string network, string mediation, AdFormat format, double price,
+            string currencyCode, string unitId)
         {
             OnAdRevenue(price);
 
@@ -126,6 +127,19 @@ namespace TapEmpire.Services
             }
 
             _analyticsService.LogEvent(AdsAnalyticsStrings.AdsPlacements, parameters);
+
+            _analyticsService.LogAdjustEvent(new Dictionary<string, object>
+            {
+                { "adjust_event_name", "ad_impression" },
+                { "level", levelsCompleted },
+                { "ad_platform", mediation },
+                { "ad_source", network },
+                { "ad_unit_name", unitId },
+                { "ad_format", format.ToString() },
+                { "ad_placement", adType },
+                { "ad_revenue", price },
+                { "currency", currencyCode }
+            });
         }
 
         private void OnAdRevenue(double price)

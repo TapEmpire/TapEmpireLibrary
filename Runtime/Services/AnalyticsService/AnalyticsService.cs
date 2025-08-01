@@ -14,6 +14,7 @@ namespace TapEmpire.Services
     [Serializable]
     public class AnalyticsService : Initializable, IAnalyticsService
     {
+        [field: SerializeField] public string AdjustEventToken { get; private set;}
         private static readonly Dictionary<string, object> EmptyDictionary = new();
 
         [SerializeField]
@@ -214,6 +215,18 @@ namespace TapEmpire.Services
         public void FlushEvents()
         {
             _innerService.FlushEvents();
+        }
+
+        public void LogAdjustEvent(IDictionary<string, object> properties)
+        {
+            AdjustEvent adjustEvent = new AdjustEvent(AdjustEventToken);
+
+            foreach (var pair in properties)
+            {
+                adjustEvent.addCallbackParameter(pair.Key, pair.Value.ToString());
+            }
+
+            Adjust.trackEvent(adjustEvent);
         }
 
         /*public static void LogEventStatic(string eventName, Dictionary<string, object> details = null)

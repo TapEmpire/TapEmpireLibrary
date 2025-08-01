@@ -15,7 +15,8 @@ public class AdData
 
 public static class AnalyticsManager
 {
-    public static System.Action<string, string, string, AdFormat, double> OnAdPayed = null;
+    // Placement, Network, Mediation, Format, Price, Currency, UnitId
+    public static System.Action<string, string, string, AdFormat, double, string, string> OnAdPayed = null;
     public static AdData LastAdData = new AdData();
 
     static StringBuilder stringBuilder = new StringBuilder();
@@ -65,7 +66,7 @@ public static class AnalyticsManager
         LastAdData.Network = "AdMob";
         LastAdData.Mediation = "AdMob Mediation";
         LastAdData.Format = data.Format;
-        OnAdPayed?.Invoke(targetPlacement, LastAdData.Network, LastAdData.Mediation, data.Format, revenue);
+        OnAdPayed?.Invoke(targetPlacement, LastAdData.Network, LastAdData.Mediation, data.Format, revenue, admobAd.CurrencyCode, data.AdUnit);
 
         //Rev Event for Appsflyer
         //Dictionary<string, string> dic = new Dictionary<string, string>();
@@ -124,7 +125,7 @@ public static class AnalyticsManager
         LastAdData.Network = maxAd.NetworkName;
         LastAdData.Mediation = "Applovin";
         LastAdData.Format = format;
-        OnAdPayed?.Invoke(targetPlacement, LastAdData.Network, LastAdData.Mediation, format, revenue);
+        OnAdPayed?.Invoke(targetPlacement, LastAdData.Network, LastAdData.Mediation, format, revenue, "USD", maxAd.AdUnitIdentifier);
 
         //Rev Event for Appsflyer
         //Dictionary<string, string> dic = new Dictionary<string, string>();
