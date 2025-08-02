@@ -36,7 +36,11 @@ namespace TapEmpire.Services
 
         public static int UpdateIntProp(this IProgressService self, ProgressIntProp prop)
         {
-            var key = $"{prop}";
+            return UpdateInt(self, $"{prop}");
+        }
+
+        public static int UpdateInt(this IProgressService self, string key)
+        {
             var currentValue = self.IntValuesDictionary.TryGetValue(key, out var value) ? value : default;
             var nextValue = currentValue + 1;
             self.IntValuesDictionary.SetValue(key, nextValue);

@@ -183,6 +183,7 @@ namespace TapEmpire.Services
             if (!_storeOffers.ContainsKey(iapId))
                 return;
             ProcessPurchase(_storeOffers[iapId]).Forget();
+            _progressService.AddPurchase();
             _onPurchaseSuccessDetailed.Execute(product);
             _onPurchaseSuccess.Execute(_storeOffers[iapId].Key);
         }
@@ -200,6 +201,7 @@ namespace TapEmpire.Services
             if (!_storeOffers.ContainsKey(iapId))
                 return;
             ProcessPurchase(_storeOffers[iapId]).Forget();
+            _progressService.AddPurchase();
             _onPurchaseRestored.Execute(iapId);
         }
 
