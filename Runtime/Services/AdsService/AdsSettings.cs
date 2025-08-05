@@ -29,6 +29,7 @@ namespace TapEmpire.Services
 
         [Header("Analytics settings")]
         public List<RevenueLayer> RevenueLayers = new();
+        public AdsAnalyticsSettings AdsAnalyticsSettings = null;
 
         [Button]
         public void Clear()

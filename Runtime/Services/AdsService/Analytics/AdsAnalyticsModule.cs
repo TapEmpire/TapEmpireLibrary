@@ -17,6 +17,8 @@ namespace TapEmpire.Services
         private System.DateTime _revenueWindowEnd;
         private bool _isRevenueEnough = false;
         private float _currentRevenue = 0.0f;
+        private double _batchedRevenue = 0.0f;
+        private bool _isBatchedOnce = false;
 
         public AdsAnalyticsModule(DiContainer diContainer)
         {
@@ -38,6 +40,9 @@ namespace TapEmpire.Services
             _revenueWindowEnd = PlayerPrefsUtility.GetFirstLaunchDate().AddDays(1);
             _currentRevenue = _progressService.GetAdRevenue();
             CheckIsRevenueEnough();
+
+            _batchedRevenue = _progressService.GetAdRevenueBatched();
+            _isBatchedOnce = _progressService.GetOnceBatched();
 
             adsService.OnAdClickedEvent += OnAdClickedEvent;
             adsService.OnAdDisplayedRewardEvent += OnAdShowing;
@@ -99,6 +104,7 @@ namespace TapEmpire.Services
             string currencyCode, string unitId)
         {
             OnAdRevenue(price);
+            OnBatchedRevenue(price);
 
             var levelsCompleted = _progressService.GetLevelProgress();
             _analyticsService.LogEvent(AdsAnalyticsEvents.AdsPayed, new Dictionary<string, object>{
@@ -175,6 +181,51 @@ namespace TapEmpire.Services
             if (_currentRevenue >= _settings.RevenueLayers.Last().Value)
             {
                 _isRevenueEnough = true;
+            }
+        }
+
+        private void OnBatchedRevenue(double price)
+        {
+            var settings = _settings.AdsAnalyticsSettings;
+
+            switch (settings.BatchType)
+            {
+                case BatchType.Taichi:
+                    UpdateBatchedRevenue(price);
+                    break;
+                case BatchType.Once:
+                    if (!_isBatchedOnce && UpdateBatchedRevenue(price))
+                    {
+                        _progressService.SetOnceBatched();
+                        _isBatchedOnce = true;
+                    }
+                    break;
+                case BatchType.None:
+                default:
+                    return;
+            }
+        }
+
+        private bool UpdateBatchedRevenue(double price)
+        {
+            _batchedRevenue += price;
+
+            if (_batchedRevenue >= _settings.AdsAnalyticsSettings.Threshold)
+            {
+                var impressionParameters = new[] {
+                    new Parameter(FirebaseAnalytics.ParameterValue, _batchedRevenue),
+                    new Parameter(FirebaseAnalytics.ParameterCurrency, "USD"),
+                };
+                FirebaseAnalytics.LogEvent("ad_revenue_batched", impressionParameters);
+
+                _progressService.ClearAdRevenueBatched();
+                _batchedRevenue = 0.0;
+                return true;
+            }
+            else
+            {
+                _progressService.SetAdRevenueBatched(_batchedRevenue);
+                return false;
             }
         }
     }
