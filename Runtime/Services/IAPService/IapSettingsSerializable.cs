@@ -28,7 +28,8 @@ namespace TapEmpire.Services
 
         public void DeserializeJson(JToken token)
         {
-            var model = token.ToObject<IapRemoteModel>();
+            var settings = GetJsonSettings();
+            var model = token.ToObject<IapRemoteModel>(JsonSerializer.Create(settings));
             InsertModel(model);
         }
 
