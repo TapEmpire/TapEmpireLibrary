@@ -302,13 +302,14 @@ namespace TapEmpire.Services
                 ThreadDispatcher.Enqueue(() => ProvidePurchase(product, isSuccess));
             };
 
-#if UNITY_EDITOR
+#if !UNITY_EDITOR
             callback.Invoke(new AdjustPurchaseVerificationInfo() { code = 200, message = "Debug", verificationStatus = "success" });
 #elif UNITY_ANDROID
             var unityReceipt = JsonUtility.FromJson<UnityReceipt>(product.receipt);
-            var googleReceipt = JsonUtility.FromJson<GooglePlayReceipt>(unityReceipt.Payload);
+            var googleReceiptJson = JsonUtility.FromJson<GooglePlayReceiptJson>(unityReceipt.Payload);
+            var googleReceipt = JsonUtility.FromJson<GooglePlayReceipt>(googleReceiptJson.json);
 
-            var adjustPlayStorePurchase = new AdjustPlayStorePurchase(product.definition.id, googleReceipt.purchaseToken);
+            var adjustPlayStorePurchase = new AdjustPlayStorePurchase(googleReceipt.productID, googleReceipt.purchaseToken);
             Adjust.verifyPlayStorePurchase(adjustPlayStorePurchase, callback);
 #elif UNITY_IOS
             var adjustAppStorePurchase = new AdjustAppStorePurchase(product.transactionID, product.definition.id, product.receipt);
@@ -341,5 +342,11 @@ namespace TapEmpire.Services
         public string Store;
         public string TransactionID;
         public string Payload; // stringified JSON
+    }
+
+    [System.Serializable]
+    public class GooglePlayReceiptJson
+    {
+        public string json;
     }
 }
