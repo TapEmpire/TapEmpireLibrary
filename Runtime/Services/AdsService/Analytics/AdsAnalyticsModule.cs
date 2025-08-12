@@ -130,6 +130,7 @@ namespace TapEmpire.Services
             else
             {
                 parameters.Add(format.ToString(), null);
+                adType = string.Empty;
             }
 
             _analyticsService.LogEvent(AdsAnalyticsStrings.AdsPlacements, parameters);
