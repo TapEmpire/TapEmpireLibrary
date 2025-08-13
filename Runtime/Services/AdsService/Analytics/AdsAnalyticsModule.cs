@@ -42,7 +42,7 @@ namespace TapEmpire.Services
             CheckIsRevenueEnough();
 
             _batchedRevenue = _progressService.GetAdRevenueBatched();
-            _isBatchedOnce = _progressService.GetOnceBatched();
+            _isBatchedOnce = _settings.AdsAnalyticsSettings.BatchType == BatchType.Once && _progressService.GetOnceBatched();
 
             adsService.OnAdClickedEvent += OnAdClickedEvent;
             adsService.OnAdDisplayedRewardEvent += OnAdShowing;
@@ -195,7 +195,7 @@ namespace TapEmpire.Services
                     UpdateBatchedRevenue(price);
                     break;
                 case BatchType.Once:
-                    if (!_isBatchedOnce && UpdateBatchedRevenue(price))
+                    if (UpdateBatchedRevenue(price))
                     {
                         _progressService.SetOnceBatched();
                         _isBatchedOnce = true;
@@ -211,7 +211,7 @@ namespace TapEmpire.Services
         {
             _batchedRevenue += price;
 
-            if (_batchedRevenue >= _settings.AdsAnalyticsSettings.Threshold)
+            if (_batchedRevenue >= _settings.AdsAnalyticsSettings.Threshold || _isBatchedOnce)
             {
                 var impressionParameters = new[] {
                     new Parameter(FirebaseAnalytics.ParameterValue, _batchedRevenue),
