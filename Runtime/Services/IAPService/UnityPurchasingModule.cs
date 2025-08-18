@@ -302,7 +302,7 @@ namespace TapEmpire.Services
                 ThreadDispatcher.Enqueue(() => ProvidePurchase(product, isSuccess));
             };
 
-#if !UNITY_EDITOR
+#if UNITY_EDITOR
             callback.Invoke(new AdjustPurchaseVerificationInfo() { code = 200, message = "Debug", verificationStatus = "success" });
 #elif UNITY_ANDROID
             var unityReceipt = JsonUtility.FromJson<UnityReceipt>(product.receipt);
