@@ -98,6 +98,11 @@ namespace TapEmpire.Services
             return null;
         }
 
+        public Product GetProductInfoByStoreId(string key)
+        {
+            return _purchasingModule.GetProductDetail(key);
+        }
+
         public IapOffer GetOfferInfoByStoreId(string key)
         {
             return _iapProductsSettings.Products.FirstOrDefault(x => x.GetStoreID() == key);
@@ -178,6 +183,7 @@ namespace TapEmpire.Services
             if (!_storeOffers.ContainsKey(iapId))
                 return;
             ProcessPurchase(_storeOffers[iapId]).Forget();
+            _progressService.AddPurchase();
             _onPurchaseSuccessDetailed.Execute(product);
             _onPurchaseSuccess.Execute(_storeOffers[iapId].Key);
         }
@@ -195,6 +201,7 @@ namespace TapEmpire.Services
             if (!_storeOffers.ContainsKey(iapId))
                 return;
             ProcessPurchase(_storeOffers[iapId]).Forget();
+            _progressService.AddPurchase();
             _onPurchaseRestored.Execute(iapId);
         }
 

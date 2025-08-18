@@ -1,5 +1,6 @@
 
-using TMPro;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace TapEmpire.Utility
 {
@@ -44,6 +45,18 @@ namespace TapEmpire.Utility
             var value = values[random.Next(start, end)];
 
             return Parse<TValue>(value);
+        }
+
+        public static Dictionary<T, U> CreateDefaultDictionary<T, U>(U defaultValue) where T : System.Enum
+        {
+            return System.Enum.GetValues(typeof(T))
+                .Cast<T>()
+                .ToDictionary(key => key, _ => defaultValue);
+        }
+
+        public static IEnumerable<T> CreateIEnumerable<T>() where T : System.Enum
+        {
+            return System.Enum.GetValues(typeof(T)).Cast<T>();
         }
     }
 }

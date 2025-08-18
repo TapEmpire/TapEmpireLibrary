@@ -49,7 +49,7 @@ namespace TapEmpire.Services
                 Debug.LogError($"cant find pack with id: {iapId}, stop sending analytics");
                 return;
             }
-            
+
             var progressService = _diContainer.Resolve<IProgressService>();
             var levelsCompleted = progressService.GetLevelProgress();
             _analyticsService.LogEvent(IapAnalyticsEvents.IapPurchased, new Dictionary<string, object>()
@@ -60,10 +60,10 @@ namespace TapEmpire.Services
 
             var price = product.metadata.localizedPrice;
             var isoCode = product.metadata.isoCurrencyCode;
-            
+
             var revenue = new Revenue((long)price, isoCode);
             AppMetrica.ReportRevenue(revenue);
-            
+
             AdjustEvent adjustEvent = new AdjustEvent(_iapService.AdjustPurchaseToken);
             adjustEvent.setRevenue((double)price, isoCode);
             adjustEvent.setProductId(iapId);
@@ -80,8 +80,19 @@ namespace TapEmpire.Services
             {
                 { iapId, "Purchased"}
             });
+            
+            _analyticsService.LogAdjustEvent(new Dictionary<string, object>
+            {
+                { "adjust_event_name", "iap_purchased" },
+                { "level", levelsCompleted },
+                { "iap_status", "Success" },
+                { "iap_product_id", iapId },
+                { "iap_order_id", product.transactionID },
+                { "iap_price", price },
+                { "iap_currency", isoCode }
+            });
         }
-        
+
         private void OnPurchaseFailed(PurchaseFailArgs args)
         {
             var progressService = _diContainer.Resolve<IProgressService>();
@@ -90,6 +101,19 @@ namespace TapEmpire.Services
             {
                 { "purchase_id", args.IapId },
                 { "level", levelsCompleted }
+            });
+
+            var product = _iapService.GetProductInfoByStoreId(args.IapId);
+            
+            _analyticsService.LogAdjustEvent(new Dictionary<string, object>
+            {
+                { "adjust_event_name", "iap_purchased" },
+                { "level", levelsCompleted },
+                { "iap_status", args.Reason.ToString() },
+                { "iap_product_id", args.IapId },
+                // { "iap_order_id", product.transactionID },
+                { "iap_price", product.metadata.localizedPrice },
+                { "iap_currency", product.metadata.localizedPriceString }
             });
         }
 

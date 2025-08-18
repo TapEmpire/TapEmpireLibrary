@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using com.adjust.sdk;
 using Cysharp.Threading.Tasks;
 using R3;
 using Unity.Services.Core;
@@ -8,6 +9,7 @@ using Unity.Services.Core.Environments;
 using UnityEngine;
 using UnityEngine.Purchasing;
 using UnityEngine.Purchasing.Extension;
+using UnityEngine.Purchasing.Security;
 
 namespace TapEmpire.Services
 {
@@ -56,9 +58,9 @@ namespace TapEmpire.Services
         private const string Environment = "production";
 
         private List<string> _restoredProducts = new();
-        
+
         private readonly IProgressService _progressService;
-        
+
         public UnityPurchasingModule(IProgressService progressService)
         {
             _progressService = progressService;
@@ -66,7 +68,7 @@ namespace TapEmpire.Services
 
         public void Init(IReadOnlyCollection<IapOffer> iapSettings)
         {
-            if (!_progressService.TryLoad(IapDataKeys.RestoredIapKey, out _restoredProducts)) 
+            if (!_progressService.TryLoad(IapDataKeys.RestoredIapKey, out _restoredProducts))
                 _restoredProducts = new List<string>();
 
             if (_isInitialized.Value)
@@ -124,7 +126,7 @@ namespace TapEmpire.Services
 
                 var product = _controller.products.WithID(productId);
                 Debug.Log($"IAP Trying to find product with Id: '{productId}'");
-                if (product is {availableToPurchase: true})
+                if (product is { availableToPurchase: true })
                 {
                     Debug.Log($"IAP Purchasing product: '{product.definition.id}'");
                     _controller.InitiatePurchase(product);
@@ -219,17 +221,14 @@ namespace TapEmpire.Services
                 return PurchaseProcessingResult.Complete;
             }
 
-            if (_restoreInProgress.Value)
+            if (!VerifyLocal(args))
             {
-                _onPurchaseRestored.Execute(id);
-            }
-            else
-            {
-                _onPurchaseSuccess.Execute(args.purchasedProduct);
+                Debug.LogError($"Invalid product (prodID): {args.purchasedProduct.definition.id}");
+                return PurchaseProcessingResult.Complete;
             }
 
-            _purchaseInProgress.Value = string.Empty;
-            return PurchaseProcessingResult.Complete;
+            VerifyAdjust(args);
+            return PurchaseProcessingResult.Pending;
         }
 
         public void OnInitialized(IStoreController controller, IExtensionProvider extensions)
@@ -271,5 +270,83 @@ namespace TapEmpire.Services
             _disposables.Clear();
             _onDispose.Dispose();
         }
+
+        private bool VerifyLocal(PurchaseEventArgs args)
+        {
+#if UNITY_EDITOR
+            return true;
+#else
+            CrossPlatformValidator validator = new CrossPlatformValidator(GooglePlayTangle.Data(), AppleTangle.Data(), Application.identifier);
+            try
+            {
+                var result = validator.Validate(args.purchasedProduct.receipt);
+                return true;
+            }
+            catch (IAPSecurityException e)
+            {
+                Debug.LogWarning($"[IAP] Invalid receipt: {e.Message}");
+                return false;
+            }
+#endif
+        }
+
+        private void VerifyAdjust(PurchaseEventArgs args)
+        {
+            Product product = args.purchasedProduct;
+
+            Action<AdjustPurchaseVerificationInfo> callback = (AdjustPurchaseVerificationInfo result) =>
+            {
+                Debug.Log($"Adjust verification result: {result}");
+                bool isSuccess = result.verificationStatus == "success";
+
+                ThreadDispatcher.Enqueue(() => ProvidePurchase(product, isSuccess));
+            };
+
+#if UNITY_EDITOR
+            callback.Invoke(new AdjustPurchaseVerificationInfo() { code = 200, message = "Debug", verificationStatus = "success" });
+#elif UNITY_ANDROID
+            var unityReceipt = JsonUtility.FromJson<UnityReceipt>(product.receipt);
+            var googleReceiptJson = JsonUtility.FromJson<GooglePlayReceiptJson>(unityReceipt.Payload);
+            var googleReceipt = JsonUtility.FromJson<GooglePlayReceipt>(googleReceiptJson.json);
+
+            var adjustPlayStorePurchase = new AdjustPlayStorePurchase(googleReceipt.productID, googleReceipt.purchaseToken);
+            Adjust.verifyPlayStorePurchase(adjustPlayStorePurchase, callback);
+#elif UNITY_IOS
+            var adjustAppStorePurchase = new AdjustAppStorePurchase(product.transactionID, product.definition.id, product.receipt);
+            Adjust.verifyAppStorePurchase(adjustAppStorePurchase, callback);
+#endif
+        }
+
+        private void ProvidePurchase(Product product, bool isSuccess)
+        {
+            if (isSuccess)
+            {
+                if (_restoreInProgress.Value)
+                {
+                    _onPurchaseRestored.Execute(product.definition.id);
+                }
+                else
+                {
+                    _onPurchaseSuccess.Execute(product);
+                }
+            }
+
+            _purchaseInProgress.Value = string.Empty;
+            _controller.ConfirmPendingPurchase(product);
+        }
+    }
+
+    [System.Serializable]
+    public class UnityReceipt
+    {
+        public string Store;
+        public string TransactionID;
+        public string Payload; // stringified JSON
+    }
+
+    [System.Serializable]
+    public class GooglePlayReceiptJson
+    {
+        public string json;
     }
 }
