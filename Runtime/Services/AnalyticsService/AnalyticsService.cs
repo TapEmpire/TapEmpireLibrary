@@ -177,6 +177,7 @@ namespace TapEmpire.Services
             if (isFirstLaunch)
             {
                 _innerService.LogEvent(AnalyticsEvents.LaunchFirstTime, null);
+                _progressService.SetVersion();
             }
 
             // AdsService.Initialize();

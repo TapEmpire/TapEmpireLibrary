@@ -32,6 +32,6 @@ namespace TapEmpire.Services
 
         public abstract UniTask Handle(T product);
         public abstract void Initialize(DiContainer diContainer);
-        public Type GetProductType() => typeof(T);
+        public virtual Type GetProductType() => typeof(T);
     }
 }

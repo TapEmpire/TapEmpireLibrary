@@ -73,6 +73,11 @@ namespace TapEmpire.Services
             }
         }
 
+        public void Set(T resource, int amount)
+        {
+            _resources[resource].Set(amount);
+        }
+
         public bool HasAmount(T resource, int amount)
         {
             return _resources[resource].HasAmount(amount);

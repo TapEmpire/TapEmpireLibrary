@@ -13,21 +13,15 @@ namespace TapEmpire.Services
         [SerializeField, JsonProperty("Key")] private string _key;
         
         [Header("Store IDs")]
-        [SerializeField, JsonProperty("AppStoreId")] private string _appStoreId;
-        [SerializeField, JsonProperty("GooglePlayId")] private string _googlePlayId;
-        
-        [Header("Pricing")]
-        [SerializeField, JsonProperty("Price")] private float _price;
+        [SerializeField, JsonProperty("AppStoreId"), JsonIgnore] private string _appStoreId;
+        [SerializeField, JsonProperty("GooglePlayId"), JsonIgnore] private string _googlePlayId;
 
         [Header("Product Type")]
-        [SerializeField, JsonProperty("ProductType")] private ProductType _productType = ProductType.NonConsumable;
+        [SerializeField, JsonProperty("ProductType"), JsonIgnore] private ProductType _productType = ProductType.NonConsumable;
     
         [Header("Rewards")]
-        [SerializeReference, JsonIgnore]
+        [SerializeReference, JsonProperty("Products")]
         private List<IIapProduct> _includedProducts = new();
-        
-        [JsonIgnore]
-        public float Price => _price;
         [JsonIgnore]
         public IReadOnlyList<IIapProduct> Products => _includedProducts.AsReadOnly();
         [JsonIgnore]

@@ -50,16 +50,16 @@ namespace TapEmpire.Utility
             self.anchoredPosition = (screenMin + screenMax) * 0.5f - (sizeDelta * 0.5f);
             self.sizeDelta = (screenMax - screenMin);// / scaleFactor;
         }
-        
+
         public static void PositionBetweenUIAndWorld(this RectTransform target, RectTransform topRect, SpriteRenderer bottomSprite, RectTransform root, Camera camera)
         {
             var topY = topRect.position.y;
-            
+
             var bounds = bottomSprite.bounds;
             var spriteTopPoint = new Vector2(bounds.center.x, bounds.max.y);
             Vector3 spriteTopScreen = RectTransformUtility.WorldToScreenPoint(camera, spriteTopPoint);
             var bottomY = spriteTopScreen.y;
-            
+
             var middleY = (topY - bottomY) / 2 + bottomY;
             var middleScreen = new Vector2(spriteTopScreen.x, middleY);
 
@@ -72,6 +72,13 @@ namespace TapEmpire.Utility
 
             target.SetParent(originalParent, true);
             target.localPosition = new Vector2(0, target.localPosition.y);
+        }
+
+        public static void SetHeight(this RectTransform self, float height)
+        {
+            Vector2 size = self.sizeDelta;
+            size.y = height;
+            self.sizeDelta = size;
         }
     }
 }

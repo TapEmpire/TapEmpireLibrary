@@ -43,7 +43,7 @@ namespace TapEmpire.Utility
             position.x = x;
             self.position = position;
         }
-        
+
         public static void SetZ(this Transform self, float z)
         {
             var position = self.position;
@@ -63,9 +63,9 @@ namespace TapEmpire.Utility
 
         public static void DestroyAllChildren(this Transform self)
         {
-            for (var i = 0; i < self.childCount; i++)
+            for (int i = self.childCount - 1; i >= 0; i--)
             {
-                Object.Destroy(self.GetChild(i).gameObject);
+                Utility.DestroyObject(self.GetChild(i).gameObject);
             }
         }
 
