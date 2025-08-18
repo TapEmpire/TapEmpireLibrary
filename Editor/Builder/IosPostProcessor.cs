@@ -1,4 +1,5 @@
 #if UNITY_IOS
+using System.IO;
 using UnityEditor;
 using UnityEditor.Callbacks;
 using UnityEditor.iOS.Xcode;
@@ -22,6 +23,27 @@ namespace TapEmpire.Build
             project.WriteToFile(projectPath);
 
             Debug.Log("Updated Always Embed Swift Standard Libraries to NO for UnityFramework target.");
+
+            InjectToPlist(pathToBuiltProject);
+        }
+
+        private static void InjectToPlist(string pathToBuiltProject)
+        {
+            string plistPath = Path.Combine(pathToBuiltProject, "Info.plist");
+            PlistDocument plist = new PlistDocument();
+            plist.ReadFromFile(plistPath);
+
+            PlistElementDict rootDict = plist.root;
+
+            const string trackingKey = "NSUserTrackingUsageDescription";
+            const string trackingMessage = "We use your data to deliver personalized ads.";
+
+            if (!rootDict.values.ContainsKey(trackingKey))
+            {
+                rootDict.SetString(trackingKey, trackingMessage);
+            }
+
+            plist.WriteToFile(plistPath);
         }
     }
 }

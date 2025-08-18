@@ -19,14 +19,16 @@ namespace TapEmpire.Services
 
     public interface IAnalyticsService : IService
     {
-        void LogEvent(string eventName, Dictionary<string,object> eventParams);
+        void LogEvent(string eventName, Dictionary<string, object> eventParams);
         void SetUserProperty(string propertyName, int value);
         void SetUserProperty(string propertyName, string value);
         void SetUserProperties(IDictionary<string, object> properties);
         void FlushEvents();
-        
+
         void LogEvent(string eventName, int value);
 
         void LogProgressionEvent(ProgressionState state, string progression01, string progression02, string progression03);
+
+        void LogAdjustEvent(IDictionary<string, object> properties);
     }
 }

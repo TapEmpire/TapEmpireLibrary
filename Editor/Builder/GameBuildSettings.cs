@@ -19,6 +19,7 @@ namespace TapEmpire.Build
     {
         public string AppToken;
         public string PurchaseToken;
+        public string EventToken;
     }
 
     [Serializable]

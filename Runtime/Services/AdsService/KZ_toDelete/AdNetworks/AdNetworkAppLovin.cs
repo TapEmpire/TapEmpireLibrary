@@ -75,6 +75,7 @@ public class AdNetworkAppLovin : AdNetworkBase
 
             // MaxSdk.SetBannerExtraParameter(BannerID, "ad-refresh-rate", AdsManager.Instance.BannerRefreshRate.ToString());
             MaxSdk.SetBannerExtraParameter(BannerID, "adaptive_banner", "false");
+            MaxSdk.SetBannerExtraParameter(BannerID, "collapsible", "none");
             MaxSdk.SetBannerBackgroundColor(BannerID, Color.black);
 
             MaxSdkCallbacks.Banner.OnAdLoadFailedEvent += Banner_OnAdLoadFailedEvent;
