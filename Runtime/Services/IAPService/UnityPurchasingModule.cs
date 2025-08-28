@@ -307,9 +307,9 @@ namespace TapEmpire.Services
 #elif UNITY_ANDROID
             var unityReceipt = JsonUtility.FromJson<UnityReceipt>(product.receipt);
             var googleReceiptJson = JsonUtility.FromJson<GooglePlayReceiptJson>(unityReceipt.Payload);
-            var googleReceipt = JsonUtility.FromJson<GooglePlayReceipt>(googleReceiptJson.json);
+            var googleReceipt = JsonUtility.FromJson<GooglePlayReceiptFixed>(googleReceiptJson.json);
 
-            var adjustPlayStorePurchase = new AdjustPlayStorePurchase(googleReceipt.productID, googleReceipt.purchaseToken);
+            var adjustPlayStorePurchase = new AdjustPlayStorePurchase(googleReceipt.productId, googleReceipt.purchaseToken);
             Adjust.verifyPlayStorePurchase(adjustPlayStorePurchase, callback);
 #elif UNITY_IOS
             var adjustAppStorePurchase = new AdjustAppStorePurchase(product.transactionID, product.definition.id, product.receipt);
@@ -339,8 +339,8 @@ namespace TapEmpire.Services
     [System.Serializable]
     public class UnityReceipt
     {
-        public string Store;
-        public string TransactionID;
+        // public string Store;
+        // public string TransactionID;
         public string Payload; // stringified JSON
     }
 
@@ -348,5 +348,12 @@ namespace TapEmpire.Services
     public class GooglePlayReceiptJson
     {
         public string json;
+    }
+
+    [System.Serializable]
+    public class GooglePlayReceiptFixed
+    {
+        public string productId;
+        public string purchaseToken;
     }
 }
