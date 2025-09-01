@@ -57,6 +57,19 @@ namespace TapEmpire.Utility.GoogleSheet
                 ["id"] = (c, v) => c.Entries.Add(new TranslationEntry() { Locale = "id", LocalizedString = v }),
                 ["hi"] = (c, v) => c.Entries.Add(new TranslationEntry() { Locale = "hi", LocalizedString = v }),
                 ["ru"] = (c, v) => c.Entries.Add(new TranslationEntry() { Locale = "ru", LocalizedString = v }),
+                ["ar"] = (c, v) => c.Entries.Add(new TranslationEntry() { Locale = "ar", LocalizedString = v }),
+                ["he"] = (c, v) => c.Entries.Add(new TranslationEntry() { Locale = "he", LocalizedString = v }),
+                ["fa"] = (c, v) => c.Entries.Add(new TranslationEntry() { Locale = "fa", LocalizedString = v }),
+                ["nl"] = (c, v) => c.Entries.Add(new TranslationEntry() { Locale = "nl", LocalizedString = v }),
+                ["da"] = (c, v) => c.Entries.Add(new TranslationEntry() { Locale = "da", LocalizedString = v }),
+                ["sv"] = (c, v) => c.Entries.Add(new TranslationEntry() { Locale = "sv", LocalizedString = v }),
+                ["no"] = (c, v) => c.Entries.Add(new TranslationEntry() { Locale = "no", LocalizedString = v }),
+                ["fi"] = (c, v) => c.Entries.Add(new TranslationEntry() { Locale = "fi", LocalizedString = v }),
+                ["pl"] = (c, v) => c.Entries.Add(new TranslationEntry() { Locale = "pl", LocalizedString = v }),
+                ["tr"] = (c, v) => c.Entries.Add(new TranslationEntry() { Locale = "tr", LocalizedString = v }),
+                ["az"] = (c, v) => c.Entries.Add(new TranslationEntry() { Locale = "az", LocalizedString = v }),
+                ["fil"] = (c, v) => c.Entries.Add(new TranslationEntry() { Locale = "fil", LocalizedString = v }),
+                ["kk"] = (c, v) => c.Entries.Add(new TranslationEntry() { Locale = "kk", LocalizedString = v }),
             };
 
             var tables = ParsePlainData(res.downloadHandler.text, parsers, Selectors.AddNewElement, ParseAsTable);
