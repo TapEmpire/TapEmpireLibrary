@@ -67,7 +67,7 @@ namespace TapEmpire.Services
             AdjustEvent adjustEvent = new AdjustEvent(_iapService.AdjustPurchaseToken);
             adjustEvent.setRevenue((double)price, isoCode);
             adjustEvent.setProductId(iapId);
-            adjustEvent.setPurchaseToken(product.transactionID);
+            SetupVerificationData(adjustEvent, product);
             Adjust.trackEvent(adjustEvent);
 
             FirebaseAnalytics.LogEvent(IapAnalyticsEvents.IapPurchased, new Parameter[]
@@ -80,7 +80,7 @@ namespace TapEmpire.Services
             {
                 { iapId, "Purchased"}
             });
-            
+
             _analyticsService.LogAdjustEvent(new Dictionary<string, object>
             {
                 { "adjust_event_name", "iap_purchased" },
@@ -104,7 +104,7 @@ namespace TapEmpire.Services
             });
 
             var product = _iapService.GetProductInfoByStoreId(args.IapId);
-            
+
             _analyticsService.LogAdjustEvent(new Dictionary<string, object>
             {
                 { "adjust_event_name", "iap_purchased" },
@@ -144,6 +144,22 @@ namespace TapEmpire.Services
             {
                 { NoAdsPopupViewModel.IapKey, new JObject(new JProperty("Shown", model.Placement)) }
             });
+        }
+
+        private void SetupVerificationData(AdjustEvent adjustEvent, Product product)
+        {
+            var unityReceipt = JsonUtility.FromJson<UnityReceipt>(product.receipt);
+
+#if UNITY_EDITOR
+            return;
+#elif UNITY_ANDROID
+            var googleReceiptJson = JsonUtility.FromJson<GooglePlayReceiptJson>(unityReceipt.Payload);
+            var googleReceipt = JsonUtility.FromJson<GooglePlayReceiptFixed>(googleReceiptJson.json);
+            adjustEvent.setPurchaseToken(googleReceipt.purchaseToken);
+#elif UNITY_IOS
+            adjustEvent.setTransactionId(product.transactionID);
+            adjustEvent.setReceipt(unityReceipt.Payload);
+#endif
         }
     }
 }

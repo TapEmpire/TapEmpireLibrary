@@ -223,7 +223,7 @@ namespace TapEmpire.Services
 
             if (!VerifyLocal(args))
             {
-                Debug.LogError($"Invalid product (prodID): {args.purchasedProduct.definition.id}");
+                Debug.LogError($"IAP Invalid product (prodID): {args.purchasedProduct.definition.id}");
                 return PurchaseProcessingResult.Complete;
             }
 
@@ -284,7 +284,7 @@ namespace TapEmpire.Services
             }
             catch (IAPSecurityException e)
             {
-                Debug.LogWarning($"[IAP] Invalid receipt: {e.Message}");
+                Debug.LogWarning($"IAP Invalid receipt: {e.Message}");
                 return false;
             }
 #endif
@@ -302,17 +302,18 @@ namespace TapEmpire.Services
                 ThreadDispatcher.Enqueue(() => ProvidePurchase(product, isSuccess));
             };
 
+            var unityReceipt = JsonUtility.FromJson<UnityReceipt>(product.receipt);
+
 #if UNITY_EDITOR || IGNORE_VERIFICATION
             callback.Invoke(new AdjustPurchaseVerificationInfo() { code = 200, message = "Debug", verificationStatus = "success" });
 #elif UNITY_ANDROID
-            var unityReceipt = JsonUtility.FromJson<UnityReceipt>(product.receipt);
             var googleReceiptJson = JsonUtility.FromJson<GooglePlayReceiptJson>(unityReceipt.Payload);
             var googleReceipt = JsonUtility.FromJson<GooglePlayReceiptFixed>(googleReceiptJson.json);
 
             var adjustPlayStorePurchase = new AdjustPlayStorePurchase(googleReceipt.productId, googleReceipt.purchaseToken);
             Adjust.verifyPlayStorePurchase(adjustPlayStorePurchase, callback);
 #elif UNITY_IOS
-            var adjustAppStorePurchase = new AdjustAppStorePurchase(product.transactionID, product.definition.id, product.receipt);
+            var adjustAppStorePurchase = new AdjustAppStorePurchase(product.transactionID, product.definition.id, unityReceipt.Payload);
             Adjust.verifyAppStorePurchase(adjustAppStorePurchase, callback);
 #endif
         }
