@@ -120,7 +120,7 @@ namespace AppLovinMax.Scripts.IntegrationManager.Editor
             // `DexingArtifactTransform` has been removed in Gradle 8+ which is the default Gradle version for Unity 6.
 #if !UNITY_6000_0_OR_NEWER
             // Disable dexing using artifact transform (it causes issues for ExoPlayer with Gradle plugin 3.5.0+)
-            gradlePropertiesUpdated.Add(PropertyDexingArtifactTransform + DisableProperty);
+            // gradlePropertiesUpdated.Add(PropertyDexingArtifactTransform + DisableProperty);
 #endif
 
             try
