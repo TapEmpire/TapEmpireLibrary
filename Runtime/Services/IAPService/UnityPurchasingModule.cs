@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using com.adjust.sdk;
+using AdjustSdk;
 using Cysharp.Threading.Tasks;
 using R3;
 using Unity.Services.Core;
@@ -294,10 +294,10 @@ namespace TapEmpire.Services
         {
             Product product = args.purchasedProduct;
 
-            Action<AdjustPurchaseVerificationInfo> callback = (AdjustPurchaseVerificationInfo result) =>
+            Action<AdjustPurchaseVerificationResult> callback = (AdjustPurchaseVerificationResult result) =>
             {
                 Debug.Log($"Adjust verification result: {result}");
-                bool isSuccess = result.verificationStatus == "success";
+                bool isSuccess = result.VerificationStatus == "success";
 
                 ThreadDispatcher.Enqueue(() => ProvidePurchase(product, isSuccess));
             };
@@ -305,16 +305,16 @@ namespace TapEmpire.Services
             var unityReceipt = JsonUtility.FromJson<UnityReceipt>(product.receipt);
 
 #if UNITY_EDITOR || IGNORE_VERIFICATION
-            callback.Invoke(new AdjustPurchaseVerificationInfo() { code = 200, message = "Debug", verificationStatus = "success" });
+            callback.Invoke(new AdjustPurchaseVerificationResult() { Code = 200, Message = "Ignore", VerificationStatus = "success" });
 #elif UNITY_ANDROID
             var googleReceiptJson = JsonUtility.FromJson<GooglePlayReceiptJson>(unityReceipt.Payload);
             var googleReceipt = JsonUtility.FromJson<GooglePlayReceiptFixed>(googleReceiptJson.json);
 
             var adjustPlayStorePurchase = new AdjustPlayStorePurchase(googleReceipt.productId, googleReceipt.purchaseToken);
-            Adjust.verifyPlayStorePurchase(adjustPlayStorePurchase, callback);
+            Adjust.VerifyPlayStorePurchase(adjustPlayStorePurchase, callback);
 #elif UNITY_IOS
             var adjustAppStorePurchase = new AdjustAppStorePurchase(product.transactionID, product.definition.id, unityReceipt.Payload);
-            Adjust.verifyAppStorePurchase(adjustAppStorePurchase, callback);
+            Adjust.VerifyAppStorePurchase(adjustAppStorePurchase, callback);
 #endif
         }
 

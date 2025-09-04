@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using com.adjust.sdk;
+using AdjustSdk;
 using Firebase.Analytics;
 using Io.AppMetrica;
 using Newtonsoft.Json.Linq;
@@ -65,10 +65,10 @@ namespace TapEmpire.Services
             AppMetrica.ReportRevenue(revenue);
 
             AdjustEvent adjustEvent = new AdjustEvent(_iapService.AdjustPurchaseToken);
-            adjustEvent.setRevenue((double)price, isoCode);
-            adjustEvent.setProductId(iapId);
-            SetupVerificationData(adjustEvent, product);
-            Adjust.trackEvent(adjustEvent);
+            adjustEvent.SetRevenue((double)price, isoCode);
+            adjustEvent.ProductId = iapId;
+            // SetupVerificationData(adjustEvent, product);
+            Adjust.TrackEvent(adjustEvent);
 
             FirebaseAnalytics.LogEvent(IapAnalyticsEvents.IapPurchased, new Parameter[]
             {

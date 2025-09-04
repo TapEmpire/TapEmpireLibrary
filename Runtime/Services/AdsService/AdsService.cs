@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Threading;
-using com.adjust.sdk;
 using Cysharp.Threading.Tasks;
 using DG.Tweening;
 using UnityEngine;
@@ -8,6 +7,7 @@ using System.Linq;
 using Zenject;
 using TapEmpire.Utility;
 using R3;
+using AdjustSdk;
 
 namespace TapEmpire.Services
 {

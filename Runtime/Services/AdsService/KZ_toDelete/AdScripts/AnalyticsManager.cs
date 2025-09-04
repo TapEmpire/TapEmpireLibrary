@@ -3,8 +3,8 @@ using System.Collections;
 using GoogleMobileAds.Api;
 using System.Text;
 using Firebase.Analytics;
-using com.adjust.sdk;
 using Io.AppMetrica;
+using AdjustSdk;
 
 public class AdData
 {
@@ -48,9 +48,9 @@ public static class AnalyticsManager
         }
 
         //Rev Event for Adjust
-        AdjustAdRevenue adjustAdRevenue = new AdjustAdRevenue(AdjustConfig.AdjustAdRevenueSourceAdMob);
-        adjustAdRevenue.setRevenue(revenue, "USD");
-        Adjust.trackAdRevenue(adjustAdRevenue);
+        AdjustAdRevenue adjustAdRevenue = new AdjustAdRevenue("admob_sdk");
+        adjustAdRevenue.SetRevenue(revenue, "USD");
+        Adjust.TrackAdRevenue(adjustAdRevenue);
 
         // GameAnalytics.NewAdEvent(GAAdAction.Show, GetAdType(data.Format), "Admob", targetPlacement);
 
@@ -103,13 +103,13 @@ public static class AnalyticsManager
         }
 
         //Rev Event for Adjust
-        AdjustAdRevenue adjustAdRevenue = new AdjustAdRevenue(AdjustConfig.AdjustAdRevenueSourceAppLovinMAX);
-        adjustAdRevenue.setRevenue(revenue, "USD");
-        adjustAdRevenue.setAdRevenueNetwork(maxAd.NetworkName);
-        adjustAdRevenue.setAdRevenueUnit($"{format}_{maxAd.AdUnitIdentifier}");
-        adjustAdRevenue.addPartnerParameter("ad_format", maxAd.AdFormat);
-        adjustAdRevenue.addPartnerParameter("ad_unit_id", maxAd.AdUnitIdentifier);
-        Adjust.trackAdRevenue(adjustAdRevenue);
+        AdjustAdRevenue adjustAdRevenue = new AdjustAdRevenue("applovin_max_sdk");
+        adjustAdRevenue.SetRevenue(revenue, "USD");
+        adjustAdRevenue.AdRevenueNetwork = maxAd.NetworkName;
+        adjustAdRevenue.AdRevenueUnit = $"{format}_{maxAd.AdUnitIdentifier}";
+        adjustAdRevenue.AddPartnerParameter("ad_format", maxAd.AdFormat);
+        adjustAdRevenue.AddPartnerParameter("ad_unit_id", maxAd.AdUnitIdentifier);
+        Adjust.TrackAdRevenue(adjustAdRevenue);
 
         // GameAnalytics.NewAdEvent(GAAdAction.Show, GetAdType(format), "Max", targetPlacement);
 

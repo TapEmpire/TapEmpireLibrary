@@ -4,7 +4,7 @@ using UnityEngine;
 using GoogleMobileAds.Api;
 using GoogleMobileAds.Common;
 using GoogleMobileAds.Ump.Api;
-using com.adjust.sdk;
+using AdjustSdk;
 using TapEmpire.Utility;
 using System.Threading;
 using Sirenix.OdinInspector;
@@ -495,10 +495,10 @@ public class AdsManager : MonoBehaviour
         var eurArea = ConsentManager.isEurArea ? "1" : "0";
         var userData = ConsentManager.isPersonalized ? "1" : "0";
         AdjustThirdPartySharing adjustThirdPartySharing = new AdjustThirdPartySharing(null);
-        adjustThirdPartySharing.addGranularOption("google_dma", "eea", eurArea);
-        adjustThirdPartySharing.addGranularOption("google_dma", "ad_personalization", userData);
-        adjustThirdPartySharing.addGranularOption("google_dma", "ad_user_data", userData);
-        Adjust.trackThirdPartySharing(adjustThirdPartySharing);
+        adjustThirdPartySharing.AddGranularOption("google_dma", "eea", eurArea);
+        adjustThirdPartySharing.AddGranularOption("google_dma", "ad_personalization", userData);
+        adjustThirdPartySharing.AddGranularOption("google_dma", "ad_user_data", userData);
+        Adjust.TrackThirdPartySharing(adjustThirdPartySharing);
     }
     #endregion
 
