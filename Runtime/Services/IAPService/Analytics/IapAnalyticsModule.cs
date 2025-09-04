@@ -148,17 +148,15 @@ namespace TapEmpire.Services
 
         private void SetupVerificationData(AdjustEvent adjustEvent, Product product)
         {
-            var unityReceipt = JsonUtility.FromJson<UnityReceipt>(product.receipt);
-
 #if UNITY_EDITOR
             return;
 #elif UNITY_ANDROID
+            var unityReceipt = JsonUtility.FromJson<UnityReceipt>(product.receipt);
             var googleReceiptJson = JsonUtility.FromJson<GooglePlayReceiptJson>(unityReceipt.Payload);
             var googleReceipt = JsonUtility.FromJson<GooglePlayReceiptFixed>(googleReceiptJson.json);
-            adjustEvent.setPurchaseToken(googleReceipt.purchaseToken);
+            adjustEvent.PurchaseToken = googleReceipt.purchaseToken;
 #elif UNITY_IOS
-            adjustEvent.setTransactionId(product.transactionID);
-            adjustEvent.setReceipt(unityReceipt.Payload);
+            adjustEvent.TransactionID = product.transactionID;
 #endif
         }
     }
