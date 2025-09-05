@@ -8,20 +8,19 @@ using Unity.Services.Core;
 using Unity.Services.Core.Environments;
 using UnityEngine;
 using UnityEngine.Purchasing;
-using UnityEngine.Purchasing.Extension;
 using UnityEngine.Purchasing.Security;
 
 namespace TapEmpire.Services
 {
-    public class UnityPurchasingModule : Initializable, IPurchasingModule, IDetailedStoreListener
+    public class UnityPurchasingModule : Initializable, IPurchasingModule
     {
-        private static bool IsGooglePlayStore =>
-            Application.platform == RuntimePlatform.Android &&
-            StandardPurchasingModule.Instance().appStore == AppStore.GooglePlay;
+        // private static bool IsGooglePlayStore =>
+        //     Application.platform == RuntimePlatform.Android &&
+        //     StandardPurchasingModule.Instance().appStore == AppStore.GooglePlay;
 
-        private static bool IsAppleStore =>
-            Application.platform == RuntimePlatform.IPhonePlayer ||
-            Application.platform == RuntimePlatform.OSXPlayer;
+        // private static bool IsAppleStore =>
+        //     Application.platform == RuntimePlatform.IPhonePlayer ||
+        //     Application.platform == RuntimePlatform.OSXPlayer;
 
         private readonly ReactiveProperty<bool> _isReady = new();
 
@@ -52,8 +51,7 @@ namespace TapEmpire.Services
         public Observable<Unit> OnDispose => _onDispose;
         private readonly CompositeDisposable _disposables = new();
 
-        private IStoreController _controller;
-        private IExtensionProvider _extensions;
+        private StoreController _storeController;
 
         private const string Environment = "production";
 
@@ -75,22 +73,10 @@ namespace TapEmpire.Services
                 return;
             try
             {
-                var module = StandardPurchasingModule.Instance();
-#if UNITY_EDITOR
-                module.useFakeStoreAlways = true;
-                module.useFakeStoreUIMode = FakeStoreUIMode.StandardUser;
-#endif
-                var builder = ConfigurationBuilder.Instance(module);
-
-                foreach (var iap in iapSettings)
-                {
-                    builder.AddProduct(iap.GetStoreID(), iap.ProductType);
-                }
-
                 IsInitialized.Subscribe(_ => UpdateStatus()).AddTo(_disposables);
                 OnPurchaseInProgress.Subscribe(_ => UpdateStatus()).AddTo(_disposables);
                 OnRestoreInProgress.Subscribe(_ => UpdateStatus()).AddTo(_disposables);
-                Initialize(builder).Forget();
+                Initialize(iapSettings).Forget();
             }
             catch (Exception e)
             {
@@ -98,19 +84,52 @@ namespace TapEmpire.Services
             }
         }
 
-        private async UniTask Initialize(ConfigurationBuilder builder)
+        private async UniTask Initialize(IReadOnlyCollection<IapOffer> iapSettings)
         {
             try
             {
                 var options = new InitializationOptions()
                     .SetEnvironmentName(Environment);
                 await UnityServices.InitializeAsync(options);
-                UnityPurchasing.Initialize(this, builder);
+                await InitializeIAP(iapSettings);
             }
             catch (Exception e)
             {
                 Debug.LogError($"Iap {e.Message}");
             }
+        }
+
+        private async UniTask InitializeIAP(IReadOnlyCollection<IapOffer> iapSettings)
+        {
+            _storeController = UnityIAPServices.StoreController();
+
+            _storeController.OnPurchasePending += OnPurchasePending;
+            _storeController.OnStoreDisconnected += OnStoreDisconnected;
+            _storeController.OnProductsFetchFailed += OnProductsFetchFailed;
+            _storeController.OnPurchasesFetchFailed += OnPurchasesFetchedFailed;
+
+            await _storeController.Connect();
+
+            _storeController.OnProductsFetched += OnProductsFetched;
+            _storeController.OnPurchasesFetched += OnPurchasesFetched;
+            _storeController.OnPurchaseFailed += OnPurchaseFailed;
+
+            var initialProductsToFetch = iapSettings
+                .Select(offer => new ProductDefinition(offer.GetStoreID(), offer.ProductType))
+                .ToList();
+
+            _storeController.FetchProducts(initialProductsToFetch);
+        }
+
+        private void OnProductsFetched(List<Product> products)
+        {
+            _storeController.FetchPurchases();
+        }
+
+        private void OnPurchasesFetched(Orders orders)
+        {
+            _isInitialized.Value = true;
+            // Process purchases, e.g. check for entitlements from completed orders  
         }
 
         public void BuyProduct(IapOffer product)
@@ -124,12 +143,12 @@ namespace TapEmpire.Services
             {
                 _purchaseInProgress.Value = productId;
 
-                var product = _controller.products.WithID(productId);
+                var product = _storeController.GetProductById(productId);
                 Debug.Log($"IAP Trying to find product with Id: '{productId}'");
                 if (product is { availableToPurchase: true })
                 {
                     Debug.Log($"IAP Purchasing product: '{product.definition.id}'");
-                    _controller.InitiatePurchase(product);
+                    _storeController.PurchaseProduct(product);
                 }
                 else
                 {
@@ -163,25 +182,13 @@ namespace TapEmpire.Services
                 return;
             }
 
-            if (IsGooglePlayStore)
-            {
-                _restoreInProgress.Value = true;
-                _extensions.GetExtension<IGooglePlayStoreExtensions>().RestoreTransactions(OnTransactionsRestored);
-            }
-            else if (IsAppleStore)
-            {
-                _restoreInProgress.Value = true;
-                _extensions.GetExtension<IAppleExtensions>().RestoreTransactions(OnTransactionsRestored);
-            }
-            else
-            {
-                Debug.Log("IAP RestorePurchases FAIL. Not supported on this platform. Current = " + Application.platform);
-            }
+            _restoreInProgress.Value = true;
+            _storeController.RestoreTransactions(OnTransactionsRestored);
         }
 
         public Product GetProductDetail(string productId)
         {
-            return _controller.products.WithID(productId);
+            return _storeController.GetProductById(productId);
         }
 
         private void OnTransactionsRestored(bool success, string msg)
@@ -195,68 +202,58 @@ namespace TapEmpire.Services
             }
         }
 
-        public void OnInitializeFailed(UnityEngine.Purchasing.InitializationFailureReason error)
+        private void OnStoreDisconnected(StoreConnectionFailureDescription description)
         {
             _isInitialized.Value = false;
-            _onInitializationFailed.OnNext((InitializationFailureReason)error);
-            Debug.LogError($"IAP OnInitializeFailed {error}");
+            _onInitializationFailed.OnNext(InitializationFailureReason.StoreDisconnect);
+            Debug.LogError($"IAP OnStoreDisconnected {description.Message}");
         }
 
-        public void OnInitializeFailed(UnityEngine.Purchasing.InitializationFailureReason error, string message)
+        private void OnPurchasesFetchedFailed(PurchasesFetchFailureDescription description)
         {
             _isInitialized.Value = false;
-            _onInitializationFailed.OnNext((InitializationFailureReason)error);
-            Debug.LogError($"IAP OnInitializeFailed {message}");
+            _onInitializationFailed.OnNext(InitializationFailureReason.PurchasesFetchFailed);
+            Debug.LogError($"IAP OnPurchasesFetchFailed {description.Message}");
         }
 
-        public PurchaseProcessingResult ProcessPurchase(PurchaseEventArgs args)
+        private void OnProductsFetchFailed(ProductFetchFailed failed)
+        {
+            _isInitialized.Value = false;
+            _onInitializationFailed.OnNext(InitializationFailureReason.ProductsFetchFailed);
+            Debug.LogError($"IAP OnPurchasesFetchFailed {failed.FailureReason}");
+        }
+
+        private void OnPurchasePending(PendingOrder order)
         {
             Debug.Log($"IAP ProcessPurchase. Is Restore Purchase: {_restoreInProgress.Value.ToString()}");
 
-            var id = args.purchasedProduct.definition.id;
             if (_isReady.Value)
             {
-                _restoredProducts.Add(id);
+                _restoredProducts.AddRange(order.Info.PurchasedProductInfo.Select(info => info.productId));
                 _progressService.Save(IapDataKeys.RestoredIapKey, _restoredProducts);
-                return PurchaseProcessingResult.Complete;
+                _storeController.ConfirmPurchase(order);
             }
 
-            if (!VerifyLocal(args))
+            if (!VerifyLocal(order))
             {
-                Debug.LogError($"IAP Invalid product (prodID): {args.purchasedProduct.definition.id}");
-                return PurchaseProcessingResult.Complete;
+                Debug.LogError($"IAP Invalid product (prodID): {order.Info.TransactionID}");
             }
 
-            VerifyAdjust(args);
-            return PurchaseProcessingResult.Pending;
+            VerifyAdjust(order);
         }
 
-        public void OnInitialized(IStoreController controller, IExtensionProvider extensions)
+        private void OnPurchaseFailed(FailedOrder order)
         {
-            _controller = controller;
-            _extensions = extensions;
-            _isInitialized.Value = true;
-        }
-
-        public void OnPurchaseFailed(Product product, UnityEngine.Purchasing.PurchaseFailureReason failureReason)
-        {
-            var args = new PurchaseFailArgs
+            foreach (var item in order.CartOrdered.Items())
             {
-                IapId = product.definition.id,
-                Reason = (PurchaseFailureReason)failureReason
-            };
-            _onPurchaseFailed.Execute(args);
-            _purchaseInProgress.Value = String.Empty;
-        }
+                var args = new PurchaseFailArgs
+                {
+                    IapId = item.Product.definition.id,
+                    Reason = (PurchaseFailureReason)order.FailureReason
+                };
+                _onPurchaseFailed.Execute(args);
+            }
 
-        public void OnPurchaseFailed(Product product, PurchaseFailureDescription failureDescription)
-        {
-            var args = new PurchaseFailArgs
-            {
-                IapId = product.definition.id,
-                Reason = (PurchaseFailureReason)failureDescription.reason
-            };
-            _onPurchaseFailed.Execute(args);
             _purchaseInProgress.Value = String.Empty;
         }
 
@@ -271,7 +268,7 @@ namespace TapEmpire.Services
             _onDispose.Dispose();
         }
 
-        private bool VerifyLocal(PurchaseEventArgs args)
+        private bool VerifyLocal(PendingOrder order)
         {
 #if UNITY_EDITOR
             return true;
@@ -279,7 +276,7 @@ namespace TapEmpire.Services
             CrossPlatformValidator validator = new CrossPlatformValidator(GooglePlayTangle.Data(), AppleTangle.Data(), Application.identifier);
             try
             {
-                var result = validator.Validate(args.purchasedProduct.receipt);
+                var result = validator.Validate(order.Info.Receipt);
                 return true;
             }
             catch (IAPSecurityException e)
@@ -290,19 +287,17 @@ namespace TapEmpire.Services
 #endif
         }
 
-        private void VerifyAdjust(PurchaseEventArgs args)
+        private void VerifyAdjust(PendingOrder order)
         {
-            Product product = args.purchasedProduct;
-
             Action<AdjustPurchaseVerificationResult> callback = (AdjustPurchaseVerificationResult result) =>
             {
                 Debug.Log($"Adjust verification result: {result}");
                 bool isSuccess = result.VerificationStatus == "success";
 
-                ThreadDispatcher.Enqueue(() => ProvidePurchase(product, isSuccess));
+                ThreadDispatcher.Enqueue(() => ProvidePurchase(order, isSuccess));
             };
 
-            var unityReceipt = JsonUtility.FromJson<UnityReceipt>(product.receipt);
+            var unityReceipt = JsonUtility.FromJson<UnityReceipt>(order.Info.Receipt);
 
 #if UNITY_EDITOR || IGNORE_VERIFICATION
             callback.Invoke(new AdjustPurchaseVerificationResult() { Code = 200, Message = "Ignore", VerificationStatus = "success" });
@@ -313,27 +308,30 @@ namespace TapEmpire.Services
             var adjustPlayStorePurchase = new AdjustPlayStorePurchase(googleReceipt.productId, googleReceipt.purchaseToken);
             Adjust.VerifyPlayStorePurchase(adjustPlayStorePurchase, callback);
 #elif UNITY_IOS
-            var adjustAppStorePurchase = new AdjustAppStorePurchase(product.transactionID, product.definition.id, unityReceipt.Payload);
+            var adjustAppStorePurchase = new AdjustAppStorePurchase(order.Info.TransactionID, product.definition.id);
             Adjust.VerifyAppStorePurchase(adjustAppStorePurchase, callback);
 #endif
         }
 
-        private void ProvidePurchase(Product product, bool isSuccess)
+        private void ProvidePurchase(PendingOrder order, bool isSuccess)
         {
-            if (isSuccess)
+            foreach (var item in order.CartOrdered.Items())
             {
-                if (_restoreInProgress.Value)
+                if (isSuccess)
                 {
-                    _onPurchaseRestored.Execute(product.definition.id);
-                }
-                else
-                {
-                    _onPurchaseSuccess.Execute(product);
+                    if (_restoreInProgress.Value)
+                    {
+                        _onPurchaseRestored.Execute(item.Product.definition.id);
+                    }
+                    else
+                    {
+                        _onPurchaseSuccess.Execute(item.Product);
+                    }
                 }
             }
 
             _purchaseInProgress.Value = string.Empty;
-            _controller.ConfirmPendingPurchase(product);
+            _storeController.ConfirmPurchase(order);
         }
     }
 
