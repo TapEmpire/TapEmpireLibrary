@@ -237,6 +237,8 @@ namespace TapEmpire.Services
             if (!VerifyLocal(order))
             {
                 Debug.LogError($"IAP Invalid product (prodID): {order.Info.TransactionID}");
+                ProvidePurchase(order, false);
+                return;
             }
 
             VerifyAdjust(order);
@@ -315,9 +317,9 @@ namespace TapEmpire.Services
 
         private void ProvidePurchase(PendingOrder order, bool isSuccess)
         {
-            foreach (var item in order.CartOrdered.Items())
+            if (isSuccess)
             {
-                if (isSuccess)
+                foreach (var item in order.CartOrdered.Items())
                 {
                     if (_restoreInProgress.Value)
                     {
@@ -328,10 +330,14 @@ namespace TapEmpire.Services
                         _onPurchaseSuccess.Execute(item.Product);
                     }
                 }
-            }
 
-            _purchaseInProgress.Value = string.Empty;
-            _storeController.ConfirmPurchase(order);
+                _storeController.ConfirmPurchase(order);
+                _purchaseInProgress.Value = string.Empty;
+            }
+            else
+            {
+                OnPurchaseFailed(new FailedOrder(order, UnityEngine.Purchasing.PurchaseFailureReason.ValidationFailure, "Project validation"));
+            }
         }
     }
 

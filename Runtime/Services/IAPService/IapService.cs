@@ -19,6 +19,7 @@ namespace TapEmpire.Services
         [SerializeField] private IapProductsSettings _iapProductsSettings;
         [SerializeField] private IapShowSettings _iapShowSettings;
         [SerializeField] private UIView _noAdsPopupView;
+        [SerializeField] private UIView _iapLoadingView;
         [SerializeReference] private IIapHandler[] _iapHandlers;
 
         private readonly Dictionary<Type, IIapHandler> _handlers = new();
@@ -86,6 +87,8 @@ namespace TapEmpire.Services
                 Debug.LogError($"can't find offer with key [{key}]!");
                 return;
             }
+
+            _uiService.OpenViewAsync(_iapLoadingView, new IapLoadingViewModel(), default).Forget();
             _purchasingModule.BuyProduct(offer.GetStoreID());
         }
 
@@ -186,12 +189,16 @@ namespace TapEmpire.Services
             _progressService.AddPurchase();
             _onPurchaseSuccessDetailed.Execute(product);
             _onPurchaseSuccess.Execute(_storeOffers[iapId].Key);
+
+            _uiService.TryCloseViewAsync<IapLoadingViewModel>(default).Forget();
         }
 
         protected void OnProductPurchaseFailed(PurchaseFailArgs args)
         {
             Debug.Log($"IAP OnProductPurchaseFailed {args.IapId} {args.Reason}");
             _onPurchaseFailed.Execute(args);
+
+            _uiService.TryCloseViewAsync<IapLoadingViewModel>(default).Forget();
         }
 
         protected void OnProductPurchaseRestored(string iapId)
