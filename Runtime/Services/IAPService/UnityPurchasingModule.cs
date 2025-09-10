@@ -129,6 +129,20 @@ namespace TapEmpire.Services
         private void OnPurchasesFetched(Orders orders)
         {
             _isInitialized.Value = true;
+
+            if (_restoreInProgress.Value)
+            {
+                foreach (var order in orders.ConfirmedOrders)
+                {
+                    foreach (var item in order.CartOrdered.Items())
+                    {
+                        _onPurchaseRestored.Execute(item.Product.definition.id);
+                    }
+                }
+
+                // Debug.LogError($"IAP Orders {orders.ConfirmedOrders.Count}");
+                _restoreInProgress.Value = false;
+            }
             // Process purchases, e.g. check for entitlements from completed orders  
         }
 
@@ -194,7 +208,9 @@ namespace TapEmpire.Services
         private void OnTransactionsRestored(bool success, string msg)
         {
             Debug.Log($"IAP Transactions restored. {success.ToString()}");
-            _restoreInProgress.Value = false;
+            // _restoreInProgress.Value = false;
+
+            _storeController.FetchPurchases();
 
             if (success)
             {

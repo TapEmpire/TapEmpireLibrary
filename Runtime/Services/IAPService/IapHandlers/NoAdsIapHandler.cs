@@ -10,6 +10,8 @@ namespace TapEmpire.Services
     {
         private IAdsService _adsService;
 
+        public override bool IsConsumable => false;
+
         public override void Initialize(DiContainer diContainer)
         {
             _adsService = diContainer.Resolve<IAdsService>();

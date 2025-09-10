@@ -185,7 +185,7 @@ namespace TapEmpire.Services
             Debug.Log($"IAP OnProductPurchaseSuccess {iapId}");
             if (!_storeOffers.ContainsKey(iapId))
                 return;
-            ProcessPurchase(_storeOffers[iapId]).Forget();
+            ProcessPurchase(_storeOffers[iapId], false).Forget();
             _progressService.AddPurchase();
             _onPurchaseSuccessDetailed.Execute(product);
             _onPurchaseSuccess.Execute(_storeOffers[iapId].Key);
@@ -207,17 +207,17 @@ namespace TapEmpire.Services
 
             if (!_storeOffers.ContainsKey(iapId))
                 return;
-            ProcessPurchase(_storeOffers[iapId]).Forget();
+            ProcessPurchase(_storeOffers[iapId], true).Forget();
             _progressService.AddPurchase();
             _onPurchaseRestored.Execute(iapId);
         }
 
-        private async UniTask ProcessPurchase(IapOffer settings)
+        private async UniTask ProcessPurchase(IapOffer settings, bool isRestore)
         {
             foreach (var iapProduct in settings.Products)
             {
                 var productType = iapProduct.GetType();
-                if (_handlers.TryGetValue(productType, out var handler) && handler.CanHandle(iapProduct))
+                if (_handlers.TryGetValue(productType, out var handler) && handler.CanHandle(iapProduct) && !(isRestore && handler.IsConsumable))
                 {
                     await handler.Handle(iapProduct);
                     _onIapHandle.Execute(handler);
