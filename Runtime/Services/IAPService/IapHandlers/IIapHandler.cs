@@ -11,7 +11,6 @@ namespace TapEmpire.Services
 
     public interface IIapHandler
     {
-        bool IsConsumable { get; }
         bool CanHandle(IIapProduct product);
         UniTask Handle(IIapProduct product);
         Type GetProductType();
@@ -21,7 +20,6 @@ namespace TapEmpire.Services
 
     public abstract class BaseIapHandler<T> : IIapHandler<T> where T : IIapProduct
     {
-        public abstract bool IsConsumable { get; }
         public bool CanHandle(IIapProduct product) => product is T;
 
         public UniTask Handle(IIapProduct product)

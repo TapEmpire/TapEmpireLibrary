@@ -7,6 +7,7 @@ using R3;
 using Unity.Services.Core;
 using Unity.Services.Core.Environments;
 using UnityEngine;
+using UnityEngine.Localization.SmartFormat.Utilities;
 using UnityEngine.Purchasing;
 using UnityEngine.Purchasing.Security;
 
@@ -56,6 +57,7 @@ namespace TapEmpire.Services
         private const string Environment = "production";
 
         private List<string> _restoredProducts = new();
+        private HashSet<string> _grantedOrders = new();
 
         private readonly IProgressService _progressService;
 
@@ -69,8 +71,11 @@ namespace TapEmpire.Services
             if (!_progressService.TryLoad(IapDataKeys.RestoredIapKey, out _restoredProducts))
                 _restoredProducts = new List<string>();
 
+            _grantedOrders = _progressService.GetPurchaseIds();
+
             if (_isInitialized.Value)
                 return;
+
             try
             {
                 IsInitialized.Subscribe(_ => UpdateStatus()).AddTo(_disposables);
@@ -132,18 +137,20 @@ namespace TapEmpire.Services
 
             if (_restoreInProgress.Value)
             {
-                foreach (var order in orders.ConfirmedOrders)
-                {
-                    foreach (var item in order.CartOrdered.Items())
-                    {
-                        _onPurchaseRestored.Execute(item.Product.definition.id);
-                    }
-                }
-
-                // Debug.LogError($"IAP Orders {orders.ConfirmedOrders.Count}");
+                RestoreOrders(orders);
                 _restoreInProgress.Value = false;
             }
-            // Process purchases, e.g. check for entitlements from completed orders  
+        }
+
+        private void RestoreOrders(Orders orders)
+        {
+            foreach (var order in orders.ConfirmedOrders)
+            {
+                if (!_grantedOrders.Contains(GetUniqueKey(order)))
+                {
+                    OnPurchasePending(new PendingOrder(order.CartOrdered, order.Info), true);
+                }
+            }
         }
 
         public void BuyProduct(IapOffer product)
@@ -187,14 +194,6 @@ namespace TapEmpire.Services
             }
 
             Debug.Log("IAP RestorePurchases Started ...");
-
-            if (_restoredProducts.Any())
-            {
-                _restoredProducts.ForEach(x => _onPurchaseRestored.Execute(x));
-                _restoredProducts.Clear();
-                _progressService.Save(IapDataKeys.RestoredIapKey, _restoredProducts);
-                return;
-            }
 
             _restoreInProgress.Value = true;
             _storeController.RestoreTransactions(OnTransactionsRestored);
@@ -241,23 +240,21 @@ namespace TapEmpire.Services
 
         private void OnPurchasePending(PendingOrder order)
         {
-            Debug.Log($"IAP ProcessPurchase. Is Restore Purchase: {_restoreInProgress.Value.ToString()}");
+            OnPurchasePending(order, false);
+        }
 
-            if (_isReady.Value)
-            {
-                _restoredProducts.AddRange(order.Info.PurchasedProductInfo.Select(info => info.productId));
-                _progressService.Save(IapDataKeys.RestoredIapKey, _restoredProducts);
-                _storeController.ConfirmPurchase(order);
-            }
+        private void OnPurchasePending(PendingOrder order, bool isRestore)
+        {
+            Debug.Log($"IAP ProcessPurchase. Is Restore Purchase: {isRestore}");
 
             if (!VerifyLocal(order))
             {
                 Debug.LogError($"IAP Invalid product (prodID): {order.Info.TransactionID}");
-                ProvidePurchase(order, false);
+                ProvidePurchase(order, false, isRestore);
                 return;
             }
 
-            VerifyAdjust(order);
+            VerifyAdjust(order, isRestore);
         }
 
         private void OnPurchaseFailed(FailedOrder order)
@@ -278,6 +275,15 @@ namespace TapEmpire.Services
         private void UpdateStatus()
         {
             _isReady.Value = string.IsNullOrEmpty(_purchaseInProgress.Value) && !_restoreInProgress.Value && _isInitialized.Value;
+        }
+
+        private string GetUniqueKey(Order order)
+        {
+            // Prefer platform tokens/transaction IDs when available
+            // Here we combine store + order id (stable across sessions for durable/subs)
+            var prefix = order.Info.Apple != null ? "Apple" :
+                         order.Info.Google != null ? "Google" : "Unknown";
+            return $"{prefix}-{order.Info.TransactionID}";
         }
 
         public void Dispose()
@@ -305,14 +311,14 @@ namespace TapEmpire.Services
 #endif
         }
 
-        private void VerifyAdjust(PendingOrder order)
+        private void VerifyAdjust(PendingOrder order, bool isRestore)
         {
             Action<AdjustPurchaseVerificationResult> callback = (AdjustPurchaseVerificationResult result) =>
             {
                 Debug.Log($"Adjust verification result: {result}");
                 bool isSuccess = result.VerificationStatus == "success";
 
-                ThreadDispatcher.Enqueue(() => ProvidePurchase(order, isSuccess));
+                ThreadDispatcher.Enqueue(() => ProvidePurchase(order, isSuccess, isRestore));
             };
 
             var unityReceipt = JsonUtility.FromJson<UnityReceipt>(order.Info.Receipt);
@@ -331,28 +337,29 @@ namespace TapEmpire.Services
 #endif
         }
 
-        private void ProvidePurchase(PendingOrder order, bool isSuccess)
+        private void ProvidePurchase(PendingOrder order, bool isSuccess, bool isRestore)
         {
-            if (isSuccess)
+            if (isSuccess && _grantedOrders.Add(GetUniqueKey(order)))
             {
                 foreach (var item in order.CartOrdered.Items())
                 {
-                    if (_restoreInProgress.Value)
+                    if (isRestore)
                     {
                         _onPurchaseRestored.Execute(item.Product.definition.id);
                     }
                     else
                     {
                         _onPurchaseSuccess.Execute(item.Product);
+                        _storeController.ConfirmPurchase(order);
                     }
                 }
 
-                _storeController.ConfirmPurchase(order);
                 _purchaseInProgress.Value = string.Empty;
             }
             else
             {
-                OnPurchaseFailed(new FailedOrder(order, UnityEngine.Purchasing.PurchaseFailureReason.ValidationFailure, "Project validation"));
+                var reason = isRestore ? "Product restore fail" : "Project validation";
+                OnPurchaseFailed(new FailedOrder(order, UnityEngine.Purchasing.PurchaseFailureReason.ValidationFailure, reason));
             }
         }
     }

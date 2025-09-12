@@ -10,8 +10,6 @@ namespace TapEmpire.Services
     {
         private IResourcesService<ResourceType> _resourcesService;
 
-        public override bool IsConsumable => true;
-
         public override void Initialize(DiContainer diContainer)
         {
             _resourcesService = diContainer.Resolve<IResourcesService<ResourceType>>();
