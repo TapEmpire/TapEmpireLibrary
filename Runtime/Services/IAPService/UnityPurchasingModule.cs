@@ -332,7 +332,7 @@ namespace TapEmpire.Services
             var adjustPlayStorePurchase = new AdjustPlayStorePurchase(googleReceipt.productId, googleReceipt.purchaseToken);
             Adjust.VerifyPlayStorePurchase(adjustPlayStorePurchase, callback);
 #elif UNITY_IOS
-            var adjustAppStorePurchase = new AdjustAppStorePurchase(order.Info.TransactionID, product.definition.id);
+            var adjustAppStorePurchase = new AdjustAppStorePurchase(order.Info.TransactionID, order.CartOrdered.Items()[0].Product.definition.id);
             Adjust.VerifyAppStorePurchase(adjustAppStorePurchase, callback);
 #endif
         }

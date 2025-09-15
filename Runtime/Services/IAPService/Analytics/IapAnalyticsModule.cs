@@ -148,7 +148,7 @@ namespace TapEmpire.Services
 
         private void SetupVerificationData(AdjustEvent adjustEvent, Product product)
         {
-#if UNITY_EDITOR
+#if UNITY_EDITOR || IGNORE_VERIFICATION
             return;
 #elif UNITY_ANDROID
             var unityReceipt = JsonUtility.FromJson<UnityReceipt>(product.receipt);
@@ -156,7 +156,7 @@ namespace TapEmpire.Services
             var googleReceipt = JsonUtility.FromJson<GooglePlayReceiptFixed>(googleReceiptJson.json);
             adjustEvent.PurchaseToken = googleReceipt.purchaseToken;
 #elif UNITY_IOS
-            adjustEvent.TransactionID = product.transactionID;
+            adjustEvent.TransactionId = product.transactionID;
 #endif
         }
     }
