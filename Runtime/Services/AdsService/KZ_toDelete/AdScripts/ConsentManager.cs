@@ -5,6 +5,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Cysharp.Threading.Tasks;
+using UnityEngine.TestTools.Constraints;
+
 
 #if UNITY_IOS
 using Unity.Advertisement.IosSupport;
@@ -12,6 +14,7 @@ using Unity.Advertisement.IosSupport;
 
 public class ConsentManager
 {
+    public static bool IsFetchingIos = false;
     public static bool IsFetching = false;
     public static bool ConsentStillRequired => ConsentInformation.ConsentStatus.Equals(ConsentStatus.Unknown);
     public static bool isPersonalized = true;
@@ -145,7 +148,9 @@ public class ConsentManager
     public async static UniTask GatherConsentIos()
     {
 #if UNITY_IOS && !UNITY_EDITOR
-        IsFetching = true;
+        if (IsFetchingIos) return;
+
+        IsFetchingIos = true;
         var status = ATTrackingStatusBinding.GetAuthorizationTrackingStatus();
 
         if (status == ATTrackingStatusBinding.AuthorizationTrackingStatus.NOT_DETERMINED)
@@ -181,7 +186,7 @@ public class ConsentManager
                 break;
         }
 
-        IsFetching = false;
+        IsFetchingIos = false;
     }
 #endif
 }

@@ -201,8 +201,11 @@ public class AdsManager : MonoBehaviour
     {
 #if UNITY_IOS && TEL_ATT
         ConsentManager.GatherConsentIos().Forget();
-        await UniTask.WaitWhile(() => ConsentManager.IsFetching);
-#else
+        await UniTask.WaitWhile(() => ConsentManager.IsFetchingIos);
+        // TapEmpire.Features.ATT.NativeFullScreen.Show("Special Offer", "Get 500 coins for $0.99");
+        // await UniTask.WaitWhile(() => ConsentManager.IsFetching);
+        // #else
+#endif
         ConsentManager.GatherConsent(TestAds, IsForFamily,
             (status, message) =>
             {
@@ -216,7 +219,7 @@ public class AdsManager : MonoBehaviour
         {
             await UniTask.WaitWhile(() => ConsentManager.IsFetching);
         }
-#endif
+// #endif
     }
 
     private void SubscribeToMaxBanners()
