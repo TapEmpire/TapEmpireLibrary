@@ -43,6 +43,7 @@ namespace TapEmpire.Services
         private MonoCallbacksService _monoCallbackService = null;
         private Adjust _adjust = null;
         private IAnalyticsService _innerService = null;
+        private string _remoteConfigName = "default";
 
         // [NonSerialized]
         // private AnalyticsGlobalModule _globalModule;
@@ -162,13 +163,14 @@ namespace TapEmpire.Services
             var levelsCompleted = progressService.GetLevelProgress();
             var cyclesCompleted = progressService.GetCyclesProgress();
             var adsWatchedCount = progressService.GetAdsWatchedProgress();
+            _remoteConfigName = progressService.GetRemoteConfigName();
 
             _innerService.SetUserProperties(new Dictionary<string, object>{
                 // { AnalyticsParameters.InstallYear, launchDate.Year },
                 // { AnalyticsParameters.InstallDate, launchDate.DayOfYear },
                 // { AnalyticsParameters.DaysAfterInstall, daysAfterInstall.Days },
                 // { AnalyticsParameters.AdjustAttribution, Adjust.GetAttribution()?.network},
-                { AnalyticsParameters.RemoteConfig, progressService.GetRemoteConfigName() },
+                { AnalyticsParameters.RemoteConfig, _remoteConfigName },
                 // { CoreGenericAnalyticsParameters.LevelsCompleted, levelsCompleted },
                 // { CoreGenericAnalyticsParameters.CyclesCompleted, cyclesCompleted },
                 // { AdsAnalyticsParameters.AdsWatched, adsWatchedCount }
@@ -227,6 +229,8 @@ namespace TapEmpire.Services
             {
                 adjustEvent.AddCallbackParameter(pair.Key, pair.Value.ToString());
             }
+
+            adjustEvent.AddCallbackParameter(AnalyticsParameters.RemoteConfig, _remoteConfigName);
 
             Adjust.TrackEvent(adjustEvent);
         }
