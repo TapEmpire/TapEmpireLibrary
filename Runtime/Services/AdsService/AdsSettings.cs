@@ -9,6 +9,7 @@ namespace TapEmpire.Services
     public class AdsSettings : ScriptableObject
     {
         [Header("On-Off")]
+        public bool EnableATT = true;
         public bool EnableAppOpen = true;
         public bool EnableBanners = true;
         public bool ShouldWaitAppOpen = false;
