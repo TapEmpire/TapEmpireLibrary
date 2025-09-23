@@ -4,7 +4,7 @@ using UnityEngine;
 using System.Linq;
 using Sirenix.OdinInspector;
 using System;
-using com.adjust.sdk;
+using AdjustSdk;
 using LunarConsolePlugin;
 using TapEmpire.Settings;
 using TEL.Utilities;
