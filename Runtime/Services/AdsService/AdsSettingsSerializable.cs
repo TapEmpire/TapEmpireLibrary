@@ -16,6 +16,7 @@ namespace TapEmpire.Services
 
         public class AdsRemoteModel
         {
+            public bool EnableUMP = true;
             public bool EnableATT = true;
             public bool EnableAppOpen = false;
             public bool EnableBanners = true;
@@ -29,6 +30,7 @@ namespace TapEmpire.Services
 
             public AdsRemoteModel(AdsSettings settings)
             {
+                EnableUMP = settings.EnableUMP;
                 EnableATT = settings.EnableATT;
                 EnableAppOpen = settings.EnableAppOpen;
                 EnableBanners = settings.EnableBanners;
@@ -45,6 +47,7 @@ namespace TapEmpire.Services
         public void DeserializeJson(JToken token)
         {
             var model = token.ToObject<AdsRemoteModel>();
+            _adsSettings.EnableUMP = model.EnableUMP;
             _adsSettings.EnableATT = model.EnableATT;
             _adsSettings.EnableAppOpen = model.EnableAppOpen;
             _adsSettings.EnableBanners = model.EnableBanners;

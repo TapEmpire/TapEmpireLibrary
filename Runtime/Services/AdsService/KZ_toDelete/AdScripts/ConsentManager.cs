@@ -176,7 +176,7 @@ public class ConsentManager
         {
             case ATTrackingStatusBinding.AuthorizationTrackingStatus.RESTRICTED:
             case ATTrackingStatusBinding.AuthorizationTrackingStatus.DENIED:
-                isPersonalized = false;
+                // isPersonalized = false;
                 break;
             case ATTrackingStatusBinding.AuthorizationTrackingStatus.AUTHORIZED:
             case ATTrackingStatusBinding.AuthorizationTrackingStatus.NOT_DETERMINED: // treat as yes temporarily
