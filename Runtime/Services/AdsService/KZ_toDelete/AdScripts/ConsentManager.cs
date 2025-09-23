@@ -181,7 +181,7 @@ public class ConsentManager
             case ATTrackingStatusBinding.AuthorizationTrackingStatus.AUTHORIZED:
             case ATTrackingStatusBinding.AuthorizationTrackingStatus.NOT_DETERMINED: // treat as yes temporarily
             default:
-                isPersonalized = true;
+                // isPersonalized = true;
                 break;
         }
 

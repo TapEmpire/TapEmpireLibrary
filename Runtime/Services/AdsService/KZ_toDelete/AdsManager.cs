@@ -199,13 +199,6 @@ public class AdsManager : MonoBehaviour
 
     private async UniTask Retry_Consent()
     {
-#if UNITY_IOS && TEL_ATT
-        ConsentManager.GatherConsentIos().Forget();
-        await UniTask.WaitWhile(() => ConsentManager.IsFetchingIos);
-        // TapEmpire.Features.ATT.NativeFullScreen.Show("Special Offer", "Get 500 coins for $0.99");
-        // await UniTask.WaitWhile(() => ConsentManager.IsFetching);
-        // #else
-#endif
         ConsentManager.GatherConsent(TestAds, IsForFamily,
             (status, message) =>
             {
@@ -219,7 +212,18 @@ public class AdsManager : MonoBehaviour
         {
             await UniTask.WaitWhile(() => ConsentManager.IsFetching);
         }
-// #endif
+
+#if UNITY_IOS && TEL_ATT
+        if (_adsSettings.EnableATT)
+        {
+            ConsentManager.GatherConsentIos().Forget();
+            await UniTask.WaitWhile(() => ConsentManager.IsFetchingIos);
+            // TapEmpire.Features.ATT.NativeFullScreen.Show("Special Offer", "Get 500 coins for $0.99");
+            // await UniTask.WaitWhile(() => ConsentManager.IsFetching);
+            // #else
+        }
+#endif
+        // #endif
     }
 
     private void SubscribeToMaxBanners()
