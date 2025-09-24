@@ -199,18 +199,21 @@ public class AdsManager : MonoBehaviour
 
     private async UniTask Retry_Consent()
     {
-        ConsentManager.GatherConsent(TestAds, IsForFamily,
-            (status, message) =>
-            {
-                ThreadDispatcher.Enqueue(() =>
-                {
-                    MonetizationLogger.Log($"Retry UMP Response | Status : {status}, Message : {message}");
-                });
-            });
-
-        if (ConsentManager.ConsentStillRequired)
+        if (_adsSettings.EnableUMP)
         {
-            await UniTask.WaitWhile(() => ConsentManager.IsFetching);
+            ConsentManager.GatherConsent(TestAds, IsForFamily,
+                (status, message) =>
+                {
+                    ThreadDispatcher.Enqueue(() =>
+                    {
+                        MonetizationLogger.Log($"Retry UMP Response | Status : {status}, Message : {message}");
+                    });
+                });
+
+            if (ConsentManager.ConsentStillRequired)
+            {
+                await UniTask.WaitWhile(() => ConsentManager.IsFetching);
+            }
         }
 
 #if UNITY_IOS && TEL_ATT
