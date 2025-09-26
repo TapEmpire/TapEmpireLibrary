@@ -51,6 +51,13 @@ public sealed partial class SerializableDictionary<TKey, TValue> : Dictionary<TK
     }
 
     #endregion
+
+    public SerializableDictionary() : base() { }
+
+    public SerializableDictionary(Dictionary<TKey, TValue> dictionary) : base(dictionary)
+    {
+        UpdateSerializedEntries();
+    }
     
     public void SetFromDictionary(Dictionary<TKey, TValue> dictionary)
     {
