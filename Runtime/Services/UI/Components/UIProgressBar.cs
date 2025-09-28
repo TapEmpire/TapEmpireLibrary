@@ -21,6 +21,8 @@ namespace TapEmpire.UI
             value = Mathf.Clamp01(value);
             float target = Mathf.Lerp(_emptyWidthPx, _fullWidthPx, value);
 
+            _tween?.Kill();
+
             var rectTransform = _fill.rectTransform;
             rectTransform.sizeDelta = new Vector2(target, rectTransform.sizeDelta.y);
         }
