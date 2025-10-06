@@ -162,7 +162,7 @@ public class AdsManager : MonoBehaviour
 
         PassAdjustConsentParameters();
 
-        Admob.Initialize(_adsRuntimeScenario.ShouldWaitAppOpen);
+        await Admob.Initialize(_adsRuntimeScenario.ShouldWaitAppOpen);
         await UniTask.WaitUntil(() => IsAdmobInitSuccess);
         await UniTask.WaitUntil(() => !ShouldWaitAppOpen.Value);
 
@@ -180,7 +180,7 @@ public class AdsManager : MonoBehaviour
         {
             if (_adsSettings.ShowApplovinOn2GB)
             {
-                Applovin.Initialize();
+                await Applovin.Initialize();
             }
             else
             {
@@ -189,7 +189,7 @@ public class AdsManager : MonoBehaviour
         }
         else
         {
-            Applovin.Initialize();
+            await Applovin.Initialize();
         }
 
         await UniTask.WaitUntil(() => IsApplovinInitSuccess);

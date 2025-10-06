@@ -1,6 +1,9 @@
 ﻿using UnityEngine;
 using GoogleMobileAds.Api;
 using System;
+using Metica.SDK;
+using Metica.ADS;
+using Cysharp.Threading.Tasks;
 
 //GAID Example = 93e4a8ed-f879-4e6d-9ba3-3d83531b8e8b
 public class AdNetworkAppLovin : AdNetworkBase
@@ -10,10 +13,12 @@ public class AdNetworkAppLovin : AdNetworkBase
     bool BannerCreated;
     bool BannerLoaded;
 
-    int interAttempt, rewardAttempt;
+    int interstitialRetryAttempt, rewardAttempt;
+
+    public bool IsMeticaAdsEnabled = false;
 
     #region SDK Initialize
-    public override void Initialize(bool shouldWaitAppOpen = false)
+    public override async UniTask Initialize(bool shouldWaitAppOpen = false)
     {
         if (AdsManager.Instance.TestAds)
         {
@@ -21,6 +26,8 @@ public class AdNetworkAppLovin : AdNetworkBase
             if (id != null)
                 MaxSdk.SetTestDeviceAdvertisingIdentifiers(new string[1] { id });
         }
+
+        await InitializeMetica();
 
         MaxSdkCallbacks.OnSdkInitializedEvent += MaxSdkCallbacks_OnSdkInitializedEvent;
 
@@ -31,6 +38,15 @@ public class AdNetworkAppLovin : AdNetworkBase
         MaxSdk.SetHasUserConsent(ConsentManager.isPersonalized); // for PersonlizedAds
         // MaxSdk.SetSdkKey(AdsManager.Instance.MaxSDKKey);
         MaxSdk.InitializeSdk();
+    }
+
+    public async UniTask InitializeMetica()
+    {
+        MeticaSdk.CurrentUserId = "your_unique_user_id";
+
+        var meticaConfiguration = new MeticaConfiguration();
+
+        IsMeticaAdsEnabled = await MeticaAds.InitializeAsync(meticaConfiguration);
     }
 
     void OnDisable()
@@ -164,9 +180,26 @@ public class AdNetworkAppLovin : AdNetworkBase
 
     void InitializeInterstitialAds()
     {
-        MaxSdkCallbacks.Interstitial.OnAdHiddenEvent += Interstitial_OnAdHiddenEvent;
-        MaxSdkCallbacks.Interstitial.OnAdLoadFailedEvent += Interstitial_OnAdLoadFailedEvent;
-        MaxSdkCallbacks.Interstitial.OnAdRevenuePaidEvent += Interstitial_OnAdRevenuePaidEvent;
+        // MaxSdkCallbacks.Interstitial.OnAdHiddenEvent += Interstitial_OnAdHiddenEvent;
+        // MaxSdkCallbacks.Interstitial.OnAdLoadFailedEvent += Interstitial_OnAdLoadFailedEvent;
+        // MaxSdkCallbacks.Interstitial.OnAdRevenuePaidEvent += Interstitial_OnAdRevenuePaidEvent;
+
+        if (IsMeticaAdsEnabled)
+        {
+            MeticaAdsCallbacks.Interstitial.OnAdLoadSuccess += (meticaAd) => Interstitial_OnLoadedEvent(meticaAd.adUnitId, meticaAd.ToAdInfo());
+            MeticaAdsCallbacks.Interstitial.OnAdLoadFailed += (error) => Interstitial_OnAdLoadFailedEvent("", null);
+            MeticaAdsCallbacks.Interstitial.OnAdShowFailed += (meticaAd, error) => Interstitial_OnFailedToDisplayEvent(meticaAd.adUnitId, error);
+            MeticaAdsCallbacks.Interstitial.OnAdHidden += (meticaAd) => Interstitial_OnAdHiddenEvent(meticaAd.adUnitId, meticaAd.ToAdInfo());
+            MeticaAdsCallbacks.Interstitial.OnAdRevenuePaid += (meticaAd) => Interstitial_OnAdRevenuePaidEvent(meticaAd.adUnitId, meticaAd.ToAdInfo());
+        }
+        else
+        {
+            MaxSdkCallbacks.Interstitial.OnAdLoadedEvent += Interstitial_OnLoadedEvent;
+            MaxSdkCallbacks.Interstitial.OnAdLoadFailedEvent += (adUnitId, adInfo) => Interstitial_OnAdLoadFailedEvent(adUnitId, adInfo.Message);
+            MaxSdkCallbacks.Interstitial.OnAdDisplayFailedEvent += (adUnitId, errorInfo, adInfo) => Interstitial_OnFailedToDisplayEvent(adUnitId, errorInfo.Message);
+            MaxSdkCallbacks.Interstitial.OnAdHiddenEvent += Interstitial_OnAdHiddenEvent;
+            MaxSdkCallbacks.Interstitial.OnAdRevenuePaidEvent += Interstitial_OnAdRevenuePaidEvent;
+        }
 
         RequestInterstitial();
     }
@@ -181,7 +214,7 @@ public class AdNetworkAppLovin : AdNetworkBase
             RequestInterstitial();
 
         if (isReady)
-            interAttempt = 0;
+            interstitialRetryAttempt = 0;
 
         return isReady;
     }
@@ -193,7 +226,48 @@ public class AdNetworkAppLovin : AdNetworkBase
 
     void RequestInterstitial()
     {
-        MaxSdk.LoadInterstitial(InterstitialID);
+        if (IsMeticaAdsEnabled)
+        {
+            MeticaAds.LoadInterstitial();
+        }
+        else
+        {
+            MeticaAds.NotifyAdLoadAttempt(InterstitialID);
+            MaxSdk.LoadInterstitial(InterstitialID);
+        }
+    }
+
+    private void Interstitial_OnLoadedEvent(string adUnitId, MaxSdkBase.AdInfo adInfo)
+    {
+        if (!IsMeticaAdsEnabled)
+        {
+            MeticaAds.NotifyAdLoadSuccess(adInfo.ToMeticaAd());
+        }
+
+        interstitialRetryAttempt = 0;
+    }
+
+    private void Interstitial_OnAdLoadFailedEvent(string adUnitId, string error)
+    {
+        if (!IsMeticaAdsEnabled)
+        {
+            MeticaAds.NotifyAdLoadFailed(adUnitId, error);
+        }
+
+        ThreadDispatcher.Enqueue(() =>
+        {
+            interstitialRetryAttempt++;
+            double retryDelay = Math.Pow(2, Math.Min(6, interstitialRetryAttempt));
+            Invoke("RequestInterstitial", (float)retryDelay);
+        });
+    }
+
+    private void Interstitial_OnFailedToDisplayEvent(string adUnitId, string error)
+    {
+        ThreadDispatcher.Enqueue(() =>
+        {
+            RequestInterstitial();
+        });
     }
 
     private void Interstitial_OnAdHiddenEvent(string arg1, MaxSdkBase.AdInfo arg2)
@@ -206,18 +280,13 @@ public class AdNetworkAppLovin : AdNetworkBase
         });
     }
 
-    private void Interstitial_OnAdLoadFailedEvent(string arg1, MaxSdkBase.ErrorInfo arg2)
-    {
-        ThreadDispatcher.Enqueue(() =>
-        {
-            interAttempt++;
-            double retryDelay = Math.Pow(2, Math.Min(6, interAttempt));
-            Invoke("RequestInterstitial", (float)retryDelay);
-        });
-    }
-
     private void Interstitial_OnAdRevenuePaidEvent(string arg1, MaxSdkBase.AdInfo adInfo)
     {
+        if (!IsMeticaAdsEnabled)
+        {
+            MeticaAds.NotifyAdShowSuccess(adInfo.ToMeticaAd());
+        }
+
         ThreadDispatcher.Enqueue(() =>
         {
             AnalyticsManager.ReportRevenue_Applovin(adInfo, AdFormat.Interstitial);

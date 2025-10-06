@@ -8,6 +8,7 @@ using Zenject;
 using TapEmpire.Utility;
 using R3;
 using AdjustSdk;
+using Metica.Unity;
 
 namespace TapEmpire.Services
 {
@@ -32,6 +33,9 @@ namespace TapEmpire.Services
 
         [SerializeField]
         private Adjust _adjustPrefab = null;
+
+        [SerializeField]
+        private MeticaUnitySdk _meticaPrefab = null;
 
         [SerializeField]
         private AdsSettings _adsSettings = null;
@@ -88,6 +92,11 @@ namespace TapEmpire.Services
                 _adsRuntimeScenario.InterstitialAfterLevels = _adsSettings.InterstitialAfterLevels;
                 _adsRuntimeScenario.ShowBanner = _adsSettings.EnableBanners && !AdsDisabledDebug;
                 _adsRuntimeScenario.FromLevel = _adsSettings.FromLevel;
+            }
+
+            if (_adsSettings.EnableMetica)
+            {
+                GameObject.Instantiate(_meticaPrefab);
             }
 
             GameObject.Instantiate(_adsManagerPrefab);
@@ -197,7 +206,7 @@ namespace TapEmpire.Services
                 OnAdReceivedReward();
                 return true;
             }
-            
+
             // OnAdClickedEvent?.Invoke(_currentAdType);
             OnInterstitialAdShowRequested?.Invoke(global::AdsManager.Instance.HasInterstitial);
 
@@ -339,7 +348,7 @@ namespace TapEmpire.Services
         {
             if (_adsRuntimeScenario.IsEnabled && levelIndex + 1 >= _adsRuntimeScenario.FromLevel)
             {
-                return _adsRuntimeScenario.InterstitialAfterLevels.Count == 0 || 
+                return _adsRuntimeScenario.InterstitialAfterLevels.Count == 0 ||
                     _adsRuntimeScenario.InterstitialAfterLevels.Any(interstitialLevel => interstitialLevel == levelIndex + 1);
             }
 
