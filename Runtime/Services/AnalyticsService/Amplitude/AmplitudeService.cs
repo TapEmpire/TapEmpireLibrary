@@ -49,7 +49,7 @@ namespace TapEmpire.Services
             _amplitude.setUserProperty(propertyName, value);
         }
 
-        public void SetUserProperty(string propertyName, string value)
+        public void SetUserProperty(string propertyName, string value, bool everywhere = false)
         {
             _amplitude.setUserProperty(propertyName, value);
         }

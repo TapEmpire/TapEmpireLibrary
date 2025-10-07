@@ -21,7 +21,7 @@ namespace TapEmpire.Services
     {
         void LogEvent(string eventName, Dictionary<string, object> eventParams);
         void SetUserProperty(string propertyName, int value);
-        void SetUserProperty(string propertyName, string value);
+        void SetUserProperty(string propertyName, string value, bool everywhere = false);
         void SetUserProperties(IDictionary<string, object> properties);
         void FlushEvents();
 

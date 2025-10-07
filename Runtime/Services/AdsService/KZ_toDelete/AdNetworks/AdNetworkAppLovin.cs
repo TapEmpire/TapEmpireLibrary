@@ -13,7 +13,7 @@ public class AdNetworkAppLovin : AdNetworkBase
     bool BannerCreated;
     bool BannerLoaded;
 
-    int interstitialRetryAttempt, rewardAttempt;
+    int interstitialRetryAttempt, rewardedRetryAttempt;
 
     public bool IsMeticaAdsEnabled = false;
 
@@ -27,7 +27,10 @@ public class AdNetworkAppLovin : AdNetworkBase
                 MaxSdk.SetTestDeviceAdvertisingIdentifiers(new string[1] { id });
         }
 
-        await InitializeMetica();
+        if (AdsManager.Instance.AdsSettings.EnableMetica)
+        {
+            await InitializeMetica();
+        }
 
         MaxSdkCallbacks.OnSdkInitializedEvent += MaxSdkCallbacks_OnSdkInitializedEvent;
 
@@ -42,11 +45,22 @@ public class AdNetworkAppLovin : AdNetworkBase
 
     public async UniTask InitializeMetica()
     {
-        MeticaSdk.CurrentUserId = "your_unique_user_id";
+        MeticaSdk.CurrentUserId = GetUserId();
 
         var meticaConfiguration = new MeticaConfiguration();
 
         IsMeticaAdsEnabled = await MeticaAds.InitializeAsync(meticaConfiguration);
+    }
+
+    private string GetUserId()
+    {
+#if UNITY_ANDROID
+        return SystemInfo.deviceUniqueIdentifier;
+#elif UNITY_IOS
+        return UIDevice.identifierForVendor;
+#else
+        return "UnKnownDevice";
+#endif
     }
 
     void OnDisable()
@@ -180,10 +194,6 @@ public class AdNetworkAppLovin : AdNetworkBase
 
     void InitializeInterstitialAds()
     {
-        // MaxSdkCallbacks.Interstitial.OnAdHiddenEvent += Interstitial_OnAdHiddenEvent;
-        // MaxSdkCallbacks.Interstitial.OnAdLoadFailedEvent += Interstitial_OnAdLoadFailedEvent;
-        // MaxSdkCallbacks.Interstitial.OnAdRevenuePaidEvent += Interstitial_OnAdRevenuePaidEvent;
-
         if (IsMeticaAdsEnabled)
         {
             MeticaAdsCallbacks.Interstitial.OnAdLoadSuccess += (meticaAd) => Interstitial_OnLoadedEvent(meticaAd.adUnitId, meticaAd.ToAdInfo());
@@ -209,7 +219,7 @@ public class AdNetworkAppLovin : AdNetworkBase
         if (!isInitialized)
             return false;
 
-        bool isReady = MaxSdk.IsInterstitialReady(InterstitialID);
+        bool isReady = IsMeticaAdsEnabled ? MeticaAds.IsInterstitialReady() : MaxSdk.IsInterstitialReady(InterstitialID);
         if (!isReady && doRequest)
             RequestInterstitial();
 
@@ -219,9 +229,16 @@ public class AdNetworkAppLovin : AdNetworkBase
         return isReady;
     }
 
-    public void ShowInterstitial() // You must check HasInterstitialAd() method before calling this function...
+    public void ShowInterstitial()
     {
-        MaxSdk.ShowInterstitial(InterstitialID);
+        if (IsMeticaAdsEnabled)
+        {
+            MeticaAds.ShowInterstitial();
+        }
+        else
+        {
+            MaxSdk.ShowInterstitial(InterstitialID);
+        }
     }
 
     void RequestInterstitial()
@@ -299,17 +316,38 @@ public class AdNetworkAppLovin : AdNetworkBase
 
     void InitializeRewardedAds()
     {
-        MaxSdkCallbacks.Rewarded.OnAdHiddenEvent += Rewarded_OnAdHiddenEvent;
-        MaxSdkCallbacks.Rewarded.OnAdLoadFailedEvent += Rewarded_OnAdLoadFailedEvent;
-        MaxSdkCallbacks.Rewarded.OnAdRevenuePaidEvent += Rewarded_OnAdRevenuePaidEvent;
-        MaxSdkCallbacks.Rewarded.OnAdReceivedRewardEvent += Rewarded_OnAdReceivedRewardEvent;
+        if (IsMeticaAdsEnabled)
+        {
+            MeticaAdsCallbacks.Rewarded.OnAdLoadSuccess += (meticaAd) => Rewarded_OnAdLoadedEvent(meticaAd.adUnitId, meticaAd.ToAdInfo());
+            MeticaAdsCallbacks.Rewarded.OnAdLoadFailed += (error) => Rewarded_OnAdLoadFailedEvent("", error);
+            MeticaAdsCallbacks.Rewarded.OnAdShowFailed += (meticaAd, error) => Rewarded_OnAdFailedToDisplayEvent(meticaAd.adUnitId, error);
+            MeticaAdsCallbacks.Rewarded.OnAdHidden += (meticaAd) => Rewarded_OnAdHiddenEvent(meticaAd.adUnitId, meticaAd.ToAdInfo());
+            MeticaAdsCallbacks.Rewarded.OnAdRewarded += (meticaAd) => Rewarded_OnAdReceivedRewardEvent(meticaAd.adUnitId, new MaxSdkBase.Reward(), meticaAd.ToAdInfo());
+            MeticaAdsCallbacks.Rewarded.OnAdRevenuePaid += (meticaAd) => Rewarded_OnAdRevenuePaidEvent(meticaAd.adUnitId, meticaAd.ToAdInfo());
+        }
+        else
+        {
+            MaxSdkCallbacks.Rewarded.OnAdHiddenEvent += Rewarded_OnAdHiddenEvent;
+            MaxSdkCallbacks.Rewarded.OnAdLoadFailedEvent += (adUnitId, errorInfo) => Rewarded_OnAdLoadFailedEvent(adUnitId, errorInfo.Message);
+            MaxSdkCallbacks.Rewarded.OnAdRevenuePaidEvent += Rewarded_OnAdRevenuePaidEvent;
+            MaxSdkCallbacks.Rewarded.OnAdReceivedRewardEvent += Rewarded_OnAdReceivedRewardEvent;
+            MaxSdkCallbacks.Rewarded.OnAdLoadedEvent += Rewarded_OnAdLoadedEvent;
+            MaxSdkCallbacks.Rewarded.OnAdDisplayFailedEvent += (adUnitId, errorInfo, adInfo) => Rewarded_OnAdFailedToDisplayEvent(adUnitId, errorInfo.Message);
+        }
 
         RequestRewardedAd();
     }
 
-    public void ShowRewardedAd() //You must check HasRewardedAd() method before calling this function...
+    public void ShowRewardedAd()
     {
-        MaxSdk.ShowRewardedAd(RewardedID);
+        if (IsMeticaAdsEnabled)
+        {
+            MeticaAds.ShowRewarded();
+        }
+        else
+        {
+            MaxSdk.ShowRewardedAd(RewardedID);
+        }
     }
 
     public override bool HasRewarded(bool doRequest)
@@ -317,19 +355,60 @@ public class AdNetworkAppLovin : AdNetworkBase
         if (!isInitialized)
             return false;
 
-        bool isReady = MaxSdk.IsRewardedAdReady(RewardedID);
+        bool isReady = IsMeticaAdsEnabled ? MeticaAds.IsRewardedReady() : MaxSdk.IsRewardedAdReady(RewardedID);
         if (!isReady && doRequest)
             RequestRewardedAd();
 
         if (isReady)
-            rewardAttempt = 0;
+            rewardedRetryAttempt = 0;
 
         return isReady;
     }
 
     void RequestRewardedAd()
     {
-        MaxSdk.LoadRewardedAd(RewardedID);
+        if (IsMeticaAdsEnabled)
+        {
+            MeticaAds.LoadRewarded();
+        }
+        else
+        {
+            MeticaAds.NotifyAdLoadAttempt(RewardedID);
+            MaxSdk.LoadRewardedAd(RewardedID);
+        }
+    }
+
+    private void Rewarded_OnAdLoadedEvent(string adUnitId, MaxSdkBase.AdInfo adInfo)
+    {
+        if (!IsMeticaAdsEnabled)
+        {
+            MeticaAds.NotifyAdLoadSuccess(adInfo.ToMeticaAd());
+        }
+
+        rewardedRetryAttempt = 0;
+    }
+
+    private void Rewarded_OnAdLoadFailedEvent(string adUnitId, string error)
+    {
+        if (!IsMeticaAdsEnabled)
+        {
+            MeticaAds.NotifyAdLoadFailed(adUnitId, error);
+        }
+
+        ThreadDispatcher.Enqueue(() =>
+        {
+            rewardedRetryAttempt++;
+            double retryDelay = Math.Pow(2, Math.Min(6, rewardedRetryAttempt));
+            Invoke("RequestRewardedAd", (float)retryDelay);
+        });
+    }
+
+    private void Rewarded_OnAdFailedToDisplayEvent(string adUnitId, string error)
+    {
+        ThreadDispatcher.Enqueue(() =>
+        {
+            RequestRewardedAd();
+        });
     }
 
     private void Rewarded_OnAdHiddenEvent(string arg1, MaxSdkBase.AdInfo arg2)
@@ -338,16 +417,6 @@ public class AdNetworkAppLovin : AdNetworkBase
         {
             AnalyticsManager.ReportPlacementEvent(AdNetwork.Applovin, AdFormat.Rewarded);
             RequestRewardedAd();
-        });
-    }
-
-    private void Rewarded_OnAdLoadFailedEvent(string arg1, MaxSdkBase.ErrorInfo arg2)
-    {
-        ThreadDispatcher.Enqueue(() =>
-        {
-            rewardAttempt++;
-            double retryDelay = Math.Pow(2, Math.Min(6, rewardAttempt));
-            Invoke("RequestRewardedAd", (float)retryDelay);
         });
     }
 
@@ -361,6 +430,11 @@ public class AdNetworkAppLovin : AdNetworkBase
 
     private void Rewarded_OnAdRevenuePaidEvent(string arg1, MaxSdkBase.AdInfo adInfo)
     {
+        if (!IsMeticaAdsEnabled)
+        {
+            MeticaAds.NotifyAdShowSuccess(adInfo.ToMeticaAd());
+        }
+
         ThreadDispatcher.Enqueue(() =>
         {
             AnalyticsManager.ReportRevenue_Applovin(adInfo, AdFormat.Rewarded);

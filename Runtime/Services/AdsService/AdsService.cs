@@ -16,6 +16,7 @@ namespace TapEmpire.Services
     public class AdsService : Initializable, IAdsService
     {
         public ReadOnlyReactiveProperty<bool> AdsEnabled => _adsEnabled;
+        public Observable<Unit> OnAdsInitialized => global::AdsManager.Instance.OnInitialized;
 
         public System.Action<string> OnAdReceivedRewardEvent { get; set; } = null;
         public System.Action<string> OnAdReceivedOnceRewardEvent { get; set; } = null;
@@ -64,6 +65,7 @@ namespace TapEmpire.Services
         private ReactiveProperty<bool> _shouldWaitAppOpen = null;
         public ReadOnlyReactiveProperty<bool> ShouldWaitAppOpen { get; private set; } = new ReactiveProperty<bool>(true);
         public AdsSettings Settings => _adsSettings;
+        public bool IsMeticaEnabled => global::AdsManager.Instance.IsMeticaEnabled;
 
         private AdsRuntimeScenario _adsRuntimeScenario;
 

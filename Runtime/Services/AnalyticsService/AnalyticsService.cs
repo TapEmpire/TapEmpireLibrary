@@ -45,6 +45,8 @@ namespace TapEmpire.Services
         private IAnalyticsService _innerService = null;
         private string _remoteConfigName = "default";
 
+        private Dictionary<string, string> _globalParameters = new();
+
         // [NonSerialized]
         // private AnalyticsGlobalModule _globalModule;
 
@@ -116,11 +118,16 @@ namespace TapEmpire.Services
             }
         }
 
-        public void SetUserProperty(string propertyName, string value)
+        public void SetUserProperty(string propertyName, string value, bool everywhere = false)
         {
             if (_isInitialized)
             {
                 _innerService.SetUserProperty(propertyName, value);
+
+                if (everywhere)
+                {
+                    _globalParameters.Add(propertyName, value);
+                }
             }
         }
 
@@ -177,6 +184,8 @@ namespace TapEmpire.Services
                 //{ AnalyticsParameters.AbGroup1, _diContainer.Resolve<IABTestingService>().Group },
             });
 
+            _globalParameters.Add(AnalyticsParameters.RemoteConfig, _remoteConfigName);
+
             Adjust.GetAttribution(attribution => OnConfigChanged(attribution));
 
             if (isFirstLaunch)
@@ -230,7 +239,9 @@ namespace TapEmpire.Services
                 adjustEvent.AddCallbackParameter(pair.Key, pair.Value.ToString());
             }
 
-            adjustEvent.AddCallbackParameter(AnalyticsParameters.RemoteConfig, _remoteConfigName);
+            _globalParameters.ForEach(pair => adjustEvent.AddCallbackParameter(pair.Key, pair.Value.ToString()));
+
+            // adjustEvent.AddCallbackParameter(AnalyticsParameters.RemoteConfig, _remoteConfigName);
 
             Adjust.TrackEvent(adjustEvent);
         }

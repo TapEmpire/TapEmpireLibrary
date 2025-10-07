@@ -77,7 +77,7 @@ namespace TapEmpire.Services
             // GameAnalytics.SetGlobalCustomEventFields( new Dictionary<string, object>() { { propertyName, value} });
         }
 
-        public void SetUserProperty(string propertyName, string value)
+        public void SetUserProperty(string propertyName, string value, bool everywhere = false)
         {
             // GameAnalytics.SetGlobalCustomEventFields( new Dictionary<string, object>() { { propertyName, value} });
         }
