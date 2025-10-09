@@ -67,7 +67,7 @@ namespace TapEmpire.Services
             AdjustEvent adjustEvent = new AdjustEvent(_iapService.AdjustPurchaseToken);
             adjustEvent.SetRevenue((double)price, isoCode);
             adjustEvent.ProductId = iapId;
-            SetupVerificationData(adjustEvent, product);
+            // SetupVerificationData(adjustEvent, product);
             Adjust.TrackEvent(adjustEvent);
 
             FirebaseAnalytics.LogEvent(IapAnalyticsEvents.IapPurchased, new Parameter[]
