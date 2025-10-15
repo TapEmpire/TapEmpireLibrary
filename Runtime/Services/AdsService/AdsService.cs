@@ -8,6 +8,7 @@ using Zenject;
 using TapEmpire.Utility;
 using R3;
 using AdjustSdk;
+using Metica.Unity;
 
 namespace TapEmpire.Services
 {
@@ -15,6 +16,7 @@ namespace TapEmpire.Services
     public class AdsService : Initializable, IAdsService
     {
         public ReadOnlyReactiveProperty<bool> AdsEnabled => _adsEnabled;
+        public Observable<Unit> OnAdsInitialized => global::AdsManager.Instance.OnInitialized;
 
         public System.Action<string> OnAdReceivedRewardEvent { get; set; } = null;
         public System.Action<string> OnAdReceivedOnceRewardEvent { get; set; } = null;
@@ -32,6 +34,9 @@ namespace TapEmpire.Services
 
         [SerializeField]
         private Adjust _adjustPrefab = null;
+
+        [SerializeField]
+        private MeticaUnitySdk _meticaPrefab = null;
 
         [SerializeField]
         private AdsSettings _adsSettings = null;
@@ -60,6 +65,7 @@ namespace TapEmpire.Services
         private ReactiveProperty<bool> _shouldWaitAppOpen = null;
         public ReadOnlyReactiveProperty<bool> ShouldWaitAppOpen { get; private set; } = new ReactiveProperty<bool>(true);
         public AdsSettings Settings => _adsSettings;
+        public bool IsMeticaEnabled => global::AdsManager.Instance.IsMeticaEnabled;
 
         private AdsRuntimeScenario _adsRuntimeScenario;
 
@@ -88,6 +94,11 @@ namespace TapEmpire.Services
                 _adsRuntimeScenario.InterstitialAfterLevels = _adsSettings.InterstitialAfterLevels;
                 _adsRuntimeScenario.ShowBanner = _adsSettings.EnableBanners && !AdsDisabledDebug;
                 _adsRuntimeScenario.FromLevel = _adsSettings.FromLevel;
+            }
+
+            if (_adsSettings.EnableMetica)
+            {
+                GameObject.Instantiate(_meticaPrefab);
             }
 
             GameObject.Instantiate(_adsManagerPrefab);
@@ -197,7 +208,7 @@ namespace TapEmpire.Services
                 OnAdReceivedReward();
                 return true;
             }
-            
+
             // OnAdClickedEvent?.Invoke(_currentAdType);
             OnInterstitialAdShowRequested?.Invoke(global::AdsManager.Instance.HasInterstitial);
 
@@ -339,7 +350,7 @@ namespace TapEmpire.Services
         {
             if (_adsRuntimeScenario.IsEnabled && levelIndex + 1 >= _adsRuntimeScenario.FromLevel)
             {
-                return _adsRuntimeScenario.InterstitialAfterLevels.Count == 0 || 
+                return _adsRuntimeScenario.InterstitialAfterLevels.Count == 0 ||
                     _adsRuntimeScenario.InterstitialAfterLevels.Any(interstitialLevel => interstitialLevel == levelIndex + 1);
             }
 

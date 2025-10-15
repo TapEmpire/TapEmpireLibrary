@@ -17,6 +17,8 @@ using System.Collections.Generic;
 [HideMonoScript]
 public class AdsManager : MonoBehaviour
 {
+    public Subject<Unit> OnInitialized = new();
+
     [ShowInInspector, DisplayAsString, GUIColor(1.0f, 1.0f, 1.0f), BoxGroup("Info", false)]
     public const string Version = "2.5.2";
 
@@ -101,6 +103,9 @@ public class AdsManager : MonoBehaviour
     Action OnRewardComplete;
     private System.Action OnAppOpenShown = null;
 
+    public AdsSettings AdsSettings => _adsSettings;
+    public bool IsMeticaEnabled => Applovin.IsMeticaAdsEnabled;
+
     public MaxSdkBase.BannerPosition MaxBannerPos
     {
         get
@@ -162,7 +167,7 @@ public class AdsManager : MonoBehaviour
 
         PassAdjustConsentParameters();
 
-        Admob.Initialize(_adsRuntimeScenario.ShouldWaitAppOpen);
+        await Admob.Initialize(_adsRuntimeScenario.ShouldWaitAppOpen);
         await UniTask.WaitUntil(() => IsAdmobInitSuccess);
         await UniTask.WaitUntil(() => !ShouldWaitAppOpen.Value);
 
@@ -180,7 +185,7 @@ public class AdsManager : MonoBehaviour
         {
             if (_adsSettings.ShowApplovinOn2GB)
             {
-                Applovin.Initialize();
+                await Applovin.Initialize();
             }
             else
             {
@@ -189,12 +194,14 @@ public class AdsManager : MonoBehaviour
         }
         else
         {
-            Applovin.Initialize();
+            await Applovin.Initialize();
         }
 
         await UniTask.WaitUntil(() => IsApplovinInitSuccess);
 
         SubscribeToMaxBanners();
+
+        OnInitialized.OnNext(Unit.Default);
     }
 
     private async UniTask Retry_Consent()

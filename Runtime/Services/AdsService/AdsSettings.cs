@@ -11,6 +11,7 @@ namespace TapEmpire.Services
         [Header("On-Off")]
         public bool EnableUMP = true;
         public bool EnableATT = true;
+        public bool EnableMetica = true;
         public bool EnableAppOpen = true;
         public bool EnableBanners = true;
         public bool ShouldWaitAppOpen = false;

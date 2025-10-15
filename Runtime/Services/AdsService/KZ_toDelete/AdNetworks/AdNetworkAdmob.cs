@@ -2,6 +2,7 @@
 using GoogleMobileAds.Api;
 using System;
 using R3;
+using Cysharp.Threading.Tasks;
 
 public class AdNetworkAdmob : AdNetworkBase
 {
@@ -29,7 +30,7 @@ public class AdNetworkAdmob : AdNetworkBase
     #endregion
 
     #region SDK Initialize
-    public override void Initialize(bool shouldWaitAppOpen = false)
+    public override async UniTask Initialize(bool shouldWaitAppOpen = false)
     {
         if (ShouldWaitAppOpen.Value == true)
         {
@@ -40,6 +41,8 @@ public class AdNetworkAdmob : AdNetworkBase
         MobileAds.RaiseAdEventsOnUnityMainThread = false;
         MobileAds.Initialize(HandleInitCompleteAction);
         AppStateEventNotifier.AppStateChanged += AdsManager.Instance.OnAppStateChanged;
+
+        await UniTask.CompletedTask;
     }
 
     public void OnRelease()
