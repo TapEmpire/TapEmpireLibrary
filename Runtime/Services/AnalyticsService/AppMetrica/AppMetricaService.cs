@@ -54,7 +54,7 @@ namespace TapEmpire.Services
             _globalParameters[propertyName] = value;
         }
 
-        public void SetUserProperty(string propertyName, string value)
+        public void SetUserProperty(string propertyName, string value, bool everywhere = false)
         {
             _globalParameters[propertyName] = value;
         }
