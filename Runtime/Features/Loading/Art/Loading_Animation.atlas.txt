@@ -1,0 +1,13 @@
+Loading_Animation.png
+size:256,256
+filter:Linear,Linear
+pma:true
+El1
+bounds:2,61,138,182
+offsets:1,1,140,184
+El2
+bounds:142,187,88,56
+offsets:1,1,90,58
+El3
+bounds:2,2,88,57
+offsets:1,1,90,59
