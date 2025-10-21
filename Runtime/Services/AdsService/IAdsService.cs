@@ -5,6 +5,7 @@ namespace TapEmpire.Services
     public interface IAdsService : IService
     {
         ReadOnlyReactiveProperty<bool> AdsEnabled { get; }
+        Observable<Unit> OnAdsInitialized { get; }
 
         System.Action<string> OnAdReceivedRewardEvent { get; set; }
         System.Action<string> OnAdReceivedOnceRewardEvent { get; set; }
@@ -32,6 +33,7 @@ namespace TapEmpire.Services
         bool AdsDisabled { get; }
         bool AdsDisabledDebug { get; set; }
         float MaxWaitingTime { get; }
+        bool IsMeticaEnabled { get; }
         ReadOnlyReactiveProperty<bool> ShouldWaitAppOpen { get; }
 
         AdsSettings Settings { get; }

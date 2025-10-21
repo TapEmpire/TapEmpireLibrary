@@ -8,7 +8,7 @@ namespace TapEmpire.Services
     {
         UniTask Handle(T product);
     }
-    
+
     public interface IIapHandler
     {
         bool CanHandle(IIapProduct product);
@@ -21,12 +21,12 @@ namespace TapEmpire.Services
     public abstract class BaseIapHandler<T> : IIapHandler<T> where T : IIapProduct
     {
         public bool CanHandle(IIapProduct product) => product is T;
-    
+
         public UniTask Handle(IIapProduct product)
         {
             if (product is T concreteProduct)
                 return Handle(concreteProduct);
-        
+
             throw new ArgumentException("Invalid product type");
         }
 

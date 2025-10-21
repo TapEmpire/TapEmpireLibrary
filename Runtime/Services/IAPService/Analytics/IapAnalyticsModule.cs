@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using com.adjust.sdk;
+using AdjustSdk;
 using Firebase.Analytics;
 using Io.AppMetrica;
 using Newtonsoft.Json.Linq;
@@ -65,10 +65,10 @@ namespace TapEmpire.Services
             AppMetrica.ReportRevenue(revenue);
 
             AdjustEvent adjustEvent = new AdjustEvent(_iapService.AdjustPurchaseToken);
-            adjustEvent.setRevenue((double)price, isoCode);
-            adjustEvent.setProductId(iapId);
-            SetupVerificationData(adjustEvent, product);
-            Adjust.trackEvent(adjustEvent);
+            adjustEvent.SetRevenue((double)price, isoCode);
+            adjustEvent.ProductId = iapId;
+            // SetupVerificationData(adjustEvent, product);
+            Adjust.TrackEvent(adjustEvent);
 
             FirebaseAnalytics.LogEvent(IapAnalyticsEvents.IapPurchased, new Parameter[]
             {
@@ -148,17 +148,15 @@ namespace TapEmpire.Services
 
         private void SetupVerificationData(AdjustEvent adjustEvent, Product product)
         {
-            var unityReceipt = JsonUtility.FromJson<UnityReceipt>(product.receipt);
-
-#if UNITY_EDITOR
+#if UNITY_EDITOR || IGNORE_VERIFICATION
             return;
 #elif UNITY_ANDROID
+            var unityReceipt = JsonUtility.FromJson<UnityReceipt>(product.receipt);
             var googleReceiptJson = JsonUtility.FromJson<GooglePlayReceiptJson>(unityReceipt.Payload);
             var googleReceipt = JsonUtility.FromJson<GooglePlayReceiptFixed>(googleReceiptJson.json);
-            adjustEvent.setPurchaseToken(googleReceipt.purchaseToken);
+            adjustEvent.PurchaseToken = googleReceipt.purchaseToken;
 #elif UNITY_IOS
-            adjustEvent.setTransactionId(product.transactionID);
-            adjustEvent.setReceipt(unityReceipt.Payload);
+            adjustEvent.TransactionId = product.transactionID;
 #endif
         }
     }

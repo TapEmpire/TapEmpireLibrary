@@ -1,9 +1,16 @@
 namespace TapEmpire.Services
 {
-    public enum InitializationFailureReason
+    public enum InitializationFailureReasonV4
     {
         PurchasingUnavailable,
         NoProductsAvailable,
         AppNotKnown
+    }
+
+    public enum InitializationFailureReason
+    {
+        StoreDisconnect,
+        PurchasesFetchFailed,
+        ProductsFetchFailed,
     }
 }

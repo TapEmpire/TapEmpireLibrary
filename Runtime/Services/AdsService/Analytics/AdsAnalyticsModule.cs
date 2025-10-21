@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Firebase.Analytics;
 using Newtonsoft.Json.Linq;
+using R3;
 using TapEmpire.Utility;
 using Zenject;
 
@@ -19,6 +20,7 @@ namespace TapEmpire.Services
         private float _currentRevenue = 0.0f;
         private double _batchedRevenue = 0.0f;
         private bool _isBatchedOnce = false;
+        private CompositeDisposable _disposables = new();
 
         public AdsAnalyticsModule(DiContainer diContainer)
         {
@@ -49,6 +51,10 @@ namespace TapEmpire.Services
             adsService.OnAdReceivedRewardEvent += OnAdReceivedRewardEvent;
             adsService.OnInterstitialAdShowRequested += OnInterstitialAdShowRequested;
             AnalyticsManager.OnAdPayed += OnAdPayed;
+
+            adsService.OnAdsInitialized.Subscribe(_ =>
+                _analyticsService.SetUserProperty(AdsAnalyticsEvents.IsMeticaEnabled, adsService.IsMeticaEnabled.ToString(), true))
+                .AddTo(_disposables);
         }
 
         public void OnRelease()
@@ -60,6 +66,8 @@ namespace TapEmpire.Services
             adsService.OnAdReceivedRewardEvent -= OnAdReceivedRewardEvent;
             adsService.OnInterstitialAdShowRequested -= OnInterstitialAdShowRequested;
             AnalyticsManager.OnAdPayed -= OnAdPayed;
+
+            _disposables.Dispose();
         }
 
         private void OnAdClickedEvent(string adPlacement)
