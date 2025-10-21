@@ -16,6 +16,7 @@ public class AdNetworkAppLovin : AdNetworkBase
     int interstitialRetryAttempt, rewardedRetryAttempt;
 
     public bool IsMeticaAdsEnabled = false;
+    private bool _isMeticaSdkEnabled = false;
 
     #region SDK Initialize
     public override async UniTask Initialize(bool shouldWaitAppOpen = false)
@@ -27,7 +28,9 @@ public class AdNetworkAppLovin : AdNetworkBase
                 MaxSdk.SetTestDeviceAdvertisingIdentifiers(new string[1] { id });
         }
 
-        if (AdsManager.Instance.AdsSettings.EnableMetica)
+        _isMeticaSdkEnabled = AdsManager.Instance.AdsSettings.EnableMetica;
+
+        if (_isMeticaSdkEnabled)
         {
             await InitializeMetica();
         }
@@ -249,14 +252,17 @@ public class AdNetworkAppLovin : AdNetworkBase
         }
         else
         {
-            MeticaAds.NotifyAdLoadAttempt(InterstitialID);
+            if (_isMeticaSdkEnabled)
+            {
+                MeticaAds.NotifyAdLoadAttempt(InterstitialID);
+            }
             MaxSdk.LoadInterstitial(InterstitialID);
         }
     }
 
     private void Interstitial_OnLoadedEvent(string adUnitId, MaxSdkBase.AdInfo adInfo)
     {
-        if (!IsMeticaAdsEnabled)
+        if (!IsMeticaAdsEnabled && _isMeticaSdkEnabled)
         {
             MeticaAds.NotifyAdLoadSuccess(adInfo.ToMeticaAd());
         }
@@ -266,7 +272,7 @@ public class AdNetworkAppLovin : AdNetworkBase
 
     private void Interstitial_OnAdLoadFailedEvent(string adUnitId, string error)
     {
-        if (!IsMeticaAdsEnabled)
+        if (!IsMeticaAdsEnabled && _isMeticaSdkEnabled)
         {
             MeticaAds.NotifyAdLoadFailed(adUnitId, error);
         }
@@ -299,7 +305,7 @@ public class AdNetworkAppLovin : AdNetworkBase
 
     private void Interstitial_OnAdRevenuePaidEvent(string arg1, MaxSdkBase.AdInfo adInfo)
     {
-        if (!IsMeticaAdsEnabled)
+        if (!IsMeticaAdsEnabled && _isMeticaSdkEnabled)
         {
             MeticaAds.NotifyAdShowSuccess(adInfo.ToMeticaAd());
         }
@@ -373,14 +379,17 @@ public class AdNetworkAppLovin : AdNetworkBase
         }
         else
         {
-            MeticaAds.NotifyAdLoadAttempt(RewardedID);
+            if (_isMeticaSdkEnabled)
+            {
+                MeticaAds.NotifyAdLoadAttempt(RewardedID);
+            }
             MaxSdk.LoadRewardedAd(RewardedID);
         }
     }
 
     private void Rewarded_OnAdLoadedEvent(string adUnitId, MaxSdkBase.AdInfo adInfo)
     {
-        if (!IsMeticaAdsEnabled)
+        if (!IsMeticaAdsEnabled && _isMeticaSdkEnabled)
         {
             MeticaAds.NotifyAdLoadSuccess(adInfo.ToMeticaAd());
         }
@@ -390,7 +399,7 @@ public class AdNetworkAppLovin : AdNetworkBase
 
     private void Rewarded_OnAdLoadFailedEvent(string adUnitId, string error)
     {
-        if (!IsMeticaAdsEnabled)
+        if (!IsMeticaAdsEnabled && _isMeticaSdkEnabled)
         {
             MeticaAds.NotifyAdLoadFailed(adUnitId, error);
         }
@@ -430,7 +439,7 @@ public class AdNetworkAppLovin : AdNetworkBase
 
     private void Rewarded_OnAdRevenuePaidEvent(string arg1, MaxSdkBase.AdInfo adInfo)
     {
-        if (!IsMeticaAdsEnabled)
+        if (!IsMeticaAdsEnabled && _isMeticaSdkEnabled)
         {
             MeticaAds.NotifyAdShowSuccess(adInfo.ToMeticaAd());
         }
