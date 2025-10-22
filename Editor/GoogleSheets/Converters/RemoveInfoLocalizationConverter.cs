@@ -20,7 +20,7 @@ namespace WordGame.Editor
         public List<TranslationEntryContainer> Deconvert(string tableName, List<TranslationEntryContainer> data, StringBuilder stringBuilder)
         {
             data.ForEach(container =>
-                container.Entries.ForEach(entry => entry.LocalizedString = Regex.Replace(entry.LocalizedString, @"\s*\([^()]*\)\s*", "")));
+                container.Entries.ForEach(entry => entry.LocalizedString = Regex.Replace(entry.LocalizedString, @"\s*\([^()]*\)\s*", " ").Trim()));
             return data;
         }
     }
