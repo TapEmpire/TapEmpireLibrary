@@ -96,6 +96,10 @@ namespace TapEmpire.Services
                 _adsRuntimeScenario.FromLevel = _adsSettings.FromLevel;
             }
 
+#if UNITY_IOS
+            _adsSettings.EnableMetica = false;
+#endif
+
             if (_adsSettings.EnableMetica)
             {
                 GameObject.Instantiate(_meticaPrefab);
