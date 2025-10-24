@@ -23,6 +23,6 @@ namespace TapEmpire.Services
         public Product GetProductDetail(string productId);
 
         public void RestorePurchases();
-        public void Init(IReadOnlyCollection<IapOffer> iapCollection);
+        public void Init(IReadOnlyCollection<IapOffer> iapCollection, bool hasVerification);
     }
 }

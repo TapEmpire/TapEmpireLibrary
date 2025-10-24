@@ -107,6 +107,8 @@ namespace TapEmpire.Services
 
             GameObject.Instantiate(_adsManagerPrefab);
             // GameObject.Instantiate(_appMetricaPrefab);
+
+            _adjustPrefab.environment = PlatformInfo.IsTestFlightOrSandboxReceipt() ? AdjustEnvironment.Sandbox : _adjustPrefab.environment;
             GameObject.Instantiate(_adjustPrefab);
 
             _analyticsModule = new AdsAnalyticsModule(_diContainer);
