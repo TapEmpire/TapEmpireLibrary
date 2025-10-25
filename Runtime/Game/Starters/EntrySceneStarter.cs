@@ -9,14 +9,17 @@ using TapEmpire.UI;
 using TapEmpire.Utility;
 using Zenject;
 using TapEmpire.Settings;
+using Sirenix.OdinInspector;
 
 namespace TapEmpire.Game
 {
     public class EntrySceneStarter : MonoBehaviour
     {
         [Header("Load scene")]
-        [SerializeField]
+        [SerializeField][ShowIf("@_sceneSelector == null")]
         private SceneName _sceneName;
+
+        [SerializeReference] ISceneSelector _sceneSelector;
 
         [SerializeField]
         private bool _autoLoadSceneOnStart = true;
@@ -45,6 +48,11 @@ namespace TapEmpire.Game
             _diContainer = diContainer;
             _servicesContainer = servicesContainer;
             _sceneManagementService = sceneManagementService;
+
+            if (_sceneSelector != null)
+            {
+                diContainer.Inject(_sceneSelector);
+            }
         }
 
         private void Awake()
@@ -93,7 +101,8 @@ namespace TapEmpire.Game
             await UniTask.WaitUntil(() => _isInitialized, cancellationToken: _cancellationTokenSource.Token);
             if (_autoLoadSceneOnStart)
             {
-                _sceneManagementService.LoadSceneAsync(_sceneName, _cancellationTokenSource.Token, _shouldManualClose).Forget();
+                var sceneName = _sceneSelector != null ? _sceneSelector.GetNextScene() : _sceneName;
+                _sceneManagementService.LoadSceneAsync(sceneName, _cancellationTokenSource.Token, _shouldManualClose).Forget();
             }
         }
     }
