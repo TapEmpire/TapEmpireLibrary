@@ -112,7 +112,11 @@ namespace TapEmpire.Services
             string currencyCode, string unitId)
         {
             OnAdRevenue(price);
-            OnBatchedRevenue(price);
+
+            if (mediation != "AdMob Mediation")
+            {
+                OnBatchedRevenue(price);
+            }
 
             var levelsCompleted = _progressService.GetLevelProgress();
             _analyticsService.LogEvent(AdsAnalyticsEvents.AdsPayed, new Dictionary<string, object>{
