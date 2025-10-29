@@ -15,11 +15,13 @@ namespace TapEmpire.Level
         public string CustomName;
         public int IndexName;
 
-        public void OnValidate()
+#if UNITY_EDITOR
+        public virtual void OnValidate()
         {
             IndexName = int.TryParse(name.Split('_')[0], out int levelNumber) ? levelNumber : -1;
             CustomName = name.RemoveFirstBlock('_');
         }
+#endif
 
         // Deprecated
         public int GetLevelName()
