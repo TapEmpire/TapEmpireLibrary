@@ -183,7 +183,7 @@ namespace TapEmpire.Services
         {
             var iapCollection = _iapProductsSettings.Products;
             _storeOffers = iapCollection.ToDictionary(x => x.GetStoreID(), x => x);
-            _purchasingModule.Init(iapCollection);
+            _purchasingModule.Init(iapCollection, _iapProductsSettings.HasVerification);
             Array.ForEach(_iapHandlers, handler => InitializeAndRegisterHandler(handler));
 
             _iapAnalyticsModule.Initialize();
@@ -206,7 +206,7 @@ namespace TapEmpire.Services
 
         protected void OnProductPurchaseFailed(PurchaseFailArgs args)
         {
-            Debug.Log($"IAP OnProductPurchaseFailed {args.IapId} {args.Reason}");
+            Debug.LogError($"IAP OnProductPurchaseFailed {args.IapId} {args.Reason}");
             _onPurchaseFailed.Execute(args);
         }
 

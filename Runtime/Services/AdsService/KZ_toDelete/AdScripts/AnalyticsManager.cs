@@ -29,7 +29,7 @@ public static class AnalyticsManager
 
         string targetPlacement = isValidPlacementName(data.Format) ? PlacementName : data.Format.ToString();
 
-        double revenue = (admobAd.Value / 1000000f);
+        double revenue = (admobAd.Value / 1000000.0);
         if (TapEmpire.Services.FirebaseService.IsInitializedDeprecated)
         {
             var impressionParameters = new[] {

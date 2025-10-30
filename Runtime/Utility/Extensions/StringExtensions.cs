@@ -48,6 +48,12 @@ namespace TapEmpire.Utility
             return string.Join("", strings);
         }
 
+        public static string ToCamelCaseWithSpaces(this string str)
+        {
+            var strings = str.Split(' ').Select(subword => subword.Capitalize());
+            return string.Join(" ", strings);
+        }
+
         public static string SplitByCapitalLetters(this string str)
         {
             return Regex.Replace(str, "(?<!^)([A-Z0-9])", " $1");

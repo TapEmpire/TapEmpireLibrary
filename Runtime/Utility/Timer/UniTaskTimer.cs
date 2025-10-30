@@ -13,6 +13,7 @@ namespace TapEmpire.Utility
 
         private ReactiveProperty<float> _timeLeft = new();
         private CancellationTokenSource _cancellationTokenSource = new();
+        private CancellableTask _cancellableTask = null;
 
         private async UniTask Run(float duration, float tickInterval, float startValue = 0.0f)
         {
@@ -38,9 +39,17 @@ namespace TapEmpire.Utility
             }
         }
 
+        // Awaits only the delay, not the timer itself.
+        private async UniTask RunWithDelay(float duration, float tickInterval, float delay)
+        {
+            _cancellableTask = UniTaskUtility.Delay(delay, () => Run(duration, tickInterval).Forget());
+            await _cancellableTask.AsUniTask();
+        }
+
         public void Cancel()
         {
             _cancellationTokenSource?.Cancel();
+            _cancellableTask?.Cancel();
         }
 
         public void Dispose()
@@ -48,6 +57,7 @@ namespace TapEmpire.Utility
             _cancellationTokenSource?.Cancel();
             _cancellationTokenSource?.Dispose();
             _timeLeft.Dispose();
+            _cancellableTask?.Dispose();
             OnTimerDone.Dispose();
         }
 
@@ -55,6 +65,13 @@ namespace TapEmpire.Utility
         {
             var timer = new UniTaskTimer();
             timer.Run(duration, tickInterval, startValue).Forget();
+            return timer;
+        }
+
+        public static UniTaskTimer CreateWithDelay(float duration, float tickInterval, float delay)
+        {
+            var timer = new UniTaskTimer();
+            timer.RunWithDelay(duration, tickInterval, delay).Forget();
             return timer;
         }
     }
