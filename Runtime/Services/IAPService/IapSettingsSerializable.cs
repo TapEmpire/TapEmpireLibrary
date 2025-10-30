@@ -15,11 +15,13 @@ namespace TapEmpire.Services
 
         public class IapRemoteModel
         {
+            public bool HasVerification = true;
             public List<IapOffer> Offers = new();
             public IapRemoteModel() { }
 
             public IapRemoteModel(IapProductsSettings settings)
             {
+                HasVerification = settings.HasVerification;
                 Offers = settings.Products;
             }
         }
@@ -65,6 +67,8 @@ namespace TapEmpire.Services
 
         private void InsertModel(IapRemoteModel model)
         {
+            _iapProductsSettings.HasVerification = model.HasVerification;
+
             var existingOffers = _iapProductsSettings.Products.ToDictionary(offer => offer.Key);
             foreach (var offer in model.Offers)
             {

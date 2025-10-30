@@ -72,8 +72,8 @@ namespace TapEmpire.Services
 
             FirebaseAnalytics.LogEvent(IapAnalyticsEvents.IapPurchased, new Parameter[]
             {
-                new("value", price.ToString()),
-                new("currency", isoCode),
+                new Parameter(FirebaseAnalytics.ParameterValue, (double)price),
+                new Parameter(FirebaseAnalytics.ParameterCurrency, isoCode),
             });
 
             _analyticsService.LogEvent(IapAnalyticsStrings.AdsPlacements, new Dictionary<string, object>()

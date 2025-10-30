@@ -96,6 +96,10 @@ namespace TapEmpire.Services
                 _adsRuntimeScenario.FromLevel = _adsSettings.FromLevel;
             }
 
+#if UNITY_IOS
+            _adsSettings.EnableMetica = false;
+#endif
+
             if (_adsSettings.EnableMetica)
             {
                 GameObject.Instantiate(_meticaPrefab);
@@ -103,6 +107,8 @@ namespace TapEmpire.Services
 
             GameObject.Instantiate(_adsManagerPrefab);
             // GameObject.Instantiate(_appMetricaPrefab);
+
+            _adjustPrefab.environment = PlatformInfo.IsTestFlightOrSandboxReceipt() ? AdjustEnvironment.Sandbox : _adjustPrefab.environment;
             GameObject.Instantiate(_adjustPrefab);
 
             _analyticsModule = new AdsAnalyticsModule(_diContainer);

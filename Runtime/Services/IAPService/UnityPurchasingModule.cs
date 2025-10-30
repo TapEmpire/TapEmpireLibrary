@@ -60,13 +60,14 @@ namespace TapEmpire.Services
         private HashSet<string> _grantedOrders = new();
 
         private readonly IProgressService _progressService;
+        private bool _hasVerification = true;
 
         public UnityPurchasingModule(IProgressService progressService)
         {
             _progressService = progressService;
         }
 
-        public void Init(IReadOnlyCollection<IapOffer> iapSettings)
+        public void Init(IReadOnlyCollection<IapOffer> iapSettings, bool hasVerification)
         {
             if (!_progressService.TryLoad(IapDataKeys.RestoredIapKey, out _restoredProducts))
                 _restoredProducts = new List<string>();
@@ -75,6 +76,8 @@ namespace TapEmpire.Services
 
             if (_isInitialized.Value)
                 return;
+
+            _hasVerification = hasVerification;
 
             try
             {
@@ -315,11 +318,19 @@ namespace TapEmpire.Services
         {
             Action<AdjustPurchaseVerificationResult> callback = (AdjustPurchaseVerificationResult result) =>
             {
-                Debug.Log($"Adjust verification result: {result}");
+                Debug.Log($"IAP Adjust verification result: {result.VerificationStatus}");
                 bool isSuccess = result.VerificationStatus == "success";
 
                 ThreadDispatcher.Enqueue(() => ProvidePurchase(order, isSuccess, isRestore));
             };
+
+#if !IGNORE_VERIFICATION
+            if (!_hasVerification)
+            {
+                callback.Invoke(new AdjustPurchaseVerificationResult() { Code = 200, Message = "Ignore", VerificationStatus = "success" });
+                return;
+            }
+#endif
 
             var unityReceipt = JsonUtility.FromJson<UnityReceipt>(order.Info.Receipt);
 

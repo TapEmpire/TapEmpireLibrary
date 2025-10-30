@@ -60,7 +60,7 @@ public class AdNetworkAppLovin : AdNetworkBase
 #if UNITY_ANDROID
         return SystemInfo.deviceUniqueIdentifier;
 #elif UNITY_IOS
-        return UIDevice.identifierForVendor;
+        return UnityEngine.iOS.Device.vendorIdentifier;
 #else
         return "UnKnownDevice";
 #endif
