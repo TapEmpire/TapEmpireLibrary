@@ -76,6 +76,13 @@ namespace TapEmpire.Services
                 new Parameter(FirebaseAnalytics.ParameterCurrency, isoCode),
             });
 
+            Facebook.Unity.FB.LogPurchase(price, isoCode, new Dictionary<string, object>
+            {
+                { "fb_content_type", "product" },
+                { "fb_content_id", iapId },
+                { "fb_order_id", product.transactionID}
+            });
+
             _analyticsService.LogEvent(IapAnalyticsStrings.AdsPlacements, new Dictionary<string, object>()
             {
                 { iapId, "Purchased"}

@@ -9,6 +9,7 @@ using TapEmpire.Utility;
 using R3;
 using AdjustSdk;
 using Metica.Unity;
+using TapEmpire.Modules;
 
 namespace TapEmpire.Services
 {
@@ -68,6 +69,7 @@ namespace TapEmpire.Services
         public bool IsMeticaEnabled => global::AdsManager.Instance.IsMeticaEnabled;
 
         private AdsRuntimeScenario _adsRuntimeScenario;
+        private FacebookModule _facebookModule = null;
 
         protected override async UniTask OnInitializeAsync(CancellationToken cancellationToken)
         {
@@ -149,6 +151,8 @@ namespace TapEmpire.Services
 
             _cancellationTokenSource?.Cancel();
             _cancellationTokenSource = null;
+
+            _facebookModule = null;
 
             global::AdsManager.Instance?.OnRelease();
         }
@@ -311,6 +315,9 @@ namespace TapEmpire.Services
             var firebaseService = _diContainer.Resolve<IFirebaseService>();
 
             firebaseService.UpdateConsentStatus(isPersonalized);
+
+            _facebookModule = new FacebookModule();
+            _facebookModule.Initialize(isPersonalized);
 
             // GameAnalyticsSDK.GameAnalytics.SetCustomDimension01(ConsentInformation.ConsentStatus.ToString());
         }

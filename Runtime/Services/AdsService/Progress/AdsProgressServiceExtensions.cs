@@ -28,35 +28,38 @@ namespace TapEmpire.Services
             return total / MillionFloat;
         }
 
-        private static int GetIntAdRevenueBatched(this IProgressService self)
+        private static int GetIntAdRevenueBatched(this IProgressService self, string prefix, string postfix = "")
         {
-            return self.IntValuesDictionary.TryGetValue(AdRevenueBatchedKey, out var value, canUseDefault: false) ? value : 0;
+            return self.IntValuesDictionary.TryGetValue(GetAdRevenueBatchedKey(postfix), out var value, canUseDefault: false) ? value : 0;
         }
 
-        public static double GetAdRevenueBatched(this IProgressService self)
+        public static double GetAdRevenueBatched(this IProgressService self, string postfix = "")
         {
-            return self.GetIntAdRevenueBatched() / MillionDouble;
+            return self.GetIntAdRevenueBatched(postfix) / MillionDouble;
         }
 
-        public static void SetAdRevenueBatched(this IProgressService self, double revenue)
+        public static void SetAdRevenueBatched(this IProgressService self, double revenue, string postfix = "")
         {
             var value = (int)Math.Floor(revenue * MillionDouble);
-            self.IntValuesDictionary.SetValue(AdRevenueBatchedKey, value);
+            self.IntValuesDictionary.SetValue(GetAdRevenueBatchedKey(postfix), value);
         }
 
-        public static void ClearAdRevenueBatched(this IProgressService self)
+        public static void ClearAdRevenueBatched(this IProgressService self, string postfix = "")
         {
-            self.IntValuesDictionary.SetValue(AdRevenueBatchedKey, 0);
+            self.IntValuesDictionary.SetValue(GetAdRevenueBatchedKey(postfix), 0);
         }
 
-        public static bool GetOnceBatched(this IProgressService self)
+        public static bool GetOnceBatched(this IProgressService self, string postfix = "")
         {
-            return self.BoolValuesDictionary.TryGetValue(AdOnceKey, out var value) ? value : default;
+            return self.BoolValuesDictionary.TryGetValue(GetAdOnceKey(postfix), out var value) ? value : default;
         }
 
-        public static void SetOnceBatched(this IProgressService self)
+        public static void SetOnceBatched(this IProgressService self, string postfix = "")
         {
-            self.BoolValuesDictionary.SetValue(AdOnceKey, true);
+            self.BoolValuesDictionary.SetValue(GetAdOnceKey(postfix), true);
         }
+
+        private static string GetAdRevenueBatchedKey(string postfix) => $"{AdRevenueBatchedKey}{postfix}";
+        private static string GetAdOnceKey(string postfix) => $"{AdOnceKey}{postfix}";
     }
 }

@@ -7,6 +7,9 @@ namespace TapEmpire.Services
     {
         public BatchType BatchType;
         public double Threshold;
+
+        public BatchType BatchTypeMeta;
+        public double ThresholdMeta;
     }
 
     public enum BatchType

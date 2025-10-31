@@ -18,6 +18,8 @@ namespace TapEmpire.Services
         {
             public BatchType BatchType;
             public double Threshold;
+            public BatchType BatchTypeMeta;
+            public double ThresholdMeta;
             
             public AdsAnalyticsRemoteModel() { }
 
@@ -25,6 +27,8 @@ namespace TapEmpire.Services
             {
                 BatchType = settings.BatchType;
                 Threshold = settings.Threshold;
+                BatchTypeMeta = settings.BatchTypeMeta;
+                ThresholdMeta = settings.ThresholdMeta;
             }
         }
 
@@ -35,6 +39,8 @@ namespace TapEmpire.Services
             var model = token.ToObject<AdsAnalyticsRemoteModel>();
             _settings.BatchType = model.BatchType;
             _settings.Threshold = model.Threshold;
+            _settings.BatchTypeMeta = model.BatchTypeMeta;
+            _settings.ThresholdMeta = model.ThresholdMeta;
         }
 
         public string SerializeJson()
