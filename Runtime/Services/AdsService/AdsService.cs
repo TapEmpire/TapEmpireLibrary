@@ -316,8 +316,11 @@ namespace TapEmpire.Services
 
             firebaseService.UpdateConsentStatus(isPersonalized);
 
-            _facebookModule = new FacebookModule();
-            _facebookModule.Initialize(isPersonalized);
+            if (_adsSettings.EnableMeta)
+            {
+                _facebookModule = new FacebookModule();
+                _facebookModule.Initialize(isPersonalized);
+            }
 
             // GameAnalyticsSDK.GameAnalytics.SetCustomDimension01(ConsentInformation.ConsentStatus.ToString());
         }

@@ -20,6 +20,7 @@ namespace TapEmpire.Services
             public double Threshold;
             public BatchType BatchTypeMeta;
             public double ThresholdMeta;
+            public bool EnableMetaPurchases = false;
             
             public AdsAnalyticsRemoteModel() { }
 
@@ -29,6 +30,7 @@ namespace TapEmpire.Services
                 Threshold = settings.Threshold;
                 BatchTypeMeta = settings.BatchTypeMeta;
                 ThresholdMeta = settings.ThresholdMeta;
+                EnableMetaPurchases = settings.EnableMetaPurchases;
             }
         }
 
@@ -41,6 +43,7 @@ namespace TapEmpire.Services
             _settings.Threshold = model.Threshold;
             _settings.BatchTypeMeta = model.BatchTypeMeta;
             _settings.ThresholdMeta = model.ThresholdMeta;
+            _settings.EnableMetaPurchases = model.EnableMetaPurchases;
         }
 
         public string SerializeJson()

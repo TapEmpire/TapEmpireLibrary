@@ -135,9 +135,13 @@ namespace TapEmpire.Services
         {
             if (mediation != "AdMob Mediation")
             {
-                OnAdRevenue(price);
                 OnBatchedRevenue(price, _batchedData[(int)BatchAnalyticsType.Firebase]);
-                OnBatchedRevenue(price, _batchedData[(int)BatchAnalyticsType.Facebook]);
+
+                if (_settings.EnableMeta)
+                {
+                    OnBatchedRevenue(price, _batchedData[(int)BatchAnalyticsType.Facebook]);
+                    OnAdRevenue(price);
+                }
             }
 
             var levelsCompleted = _progressService.GetLevelProgress();
