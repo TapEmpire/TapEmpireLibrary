@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 
 namespace TapEmpire.Utility
 {
@@ -35,6 +36,14 @@ namespace TapEmpire.Utility
                     yield return array[i, j];
                 }
             }
+        }
+
+        public static IDictionary<U, T> AsDictionary<U, T>(this T[, ] array, System.Func<T, U> selector)
+        {
+            return array
+                .AsStream()
+                .Where(element => element != null)
+                .ToDictionary(selector);
         }
     }
 }
