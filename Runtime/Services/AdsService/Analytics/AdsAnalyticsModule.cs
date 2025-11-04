@@ -252,7 +252,7 @@ namespace TapEmpire.Services
             }
             else
             {
-                _progressService.SetAdRevenueBatched(_batchedRevenue);
+                _progressService.SetAdRevenueBatched(_batchedRevenue, batchedData.Postfix);
                 return false;
             }
         }
