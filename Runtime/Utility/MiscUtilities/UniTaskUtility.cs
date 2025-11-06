@@ -29,7 +29,7 @@ namespace TapEmpire.Utility
         
         public static async UniTask ExecuteAfterSeconds(float seconds, Action callback, CancellationToken cancellationToken)
         {
-            if (seconds > 0)
+            if (seconds > float.Epsilon)
             {
                 await UniTask.WaitForSeconds(seconds, cancellationToken:cancellationToken);
                 callback.Invoke();

@@ -17,6 +17,7 @@ namespace TapEmpire.Services.Analytics
         {
             _analyticsService = diContainer.Resolve<IAnalyticsService>();
             _resourcesService = diContainer.Resolve<IResourcesService<ResourceType>>();
+            _progressService = diContainer.Resolve<IProgressService>();
 
             _resourcesService.OnResourceAdded.Subscribe(OnResourceAdded).AddTo(_disposables);
             _resourcesService.OnResourceUsed.Subscribe(OnResourceUsed).AddTo(_disposables);

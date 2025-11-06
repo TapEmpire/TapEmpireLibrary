@@ -2,11 +2,14 @@ using System.Collections.Generic;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using R3;
-using RTLTMPro;
 using UnityEngine;
 using UnityEngine.Localization;
 using UnityEngine.Localization.Settings;
 using Zenject;
+
+#if TEL_RTL
+using RTLTMPro;
+#endif
 
 namespace TapEmpire.Services.Localization
 {
@@ -18,7 +21,7 @@ namespace TapEmpire.Services.Localization
         private IProgressService _progressService;
         private List<LocaleModel> _localeModels = new();
         private ReactiveProperty<LocaleModel> _locale = new();
-        
+
         [Inject]
         private void Construct(IProgressService progressService)
         {
@@ -44,7 +47,7 @@ namespace TapEmpire.Services.Localization
                     _locale.Value = model;
                 }
             }
-            
+
             return base.OnInitializeAsync(cancellationToken);
         }
 
@@ -80,8 +83,10 @@ namespace TapEmpire.Services.Localization
 
         private void UpdateFarsiState(LocaleModel model)
         {
+#if TEL_RTL
             TextUtils.IsFarsi = model.ShortName == "Persian";
             Debug.Log($"TTT {TextUtils.IsFarsi}");
+#endif
+        }
         }
     }
-}

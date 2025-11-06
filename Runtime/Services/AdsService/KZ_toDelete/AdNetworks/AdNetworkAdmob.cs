@@ -48,12 +48,14 @@ public class AdNetworkAdmob : AdNetworkBase
     public void OnRelease()
     {
         AppStateEventNotifier.AppStateChanged -= AdsManager.Instance.OnAppStateChanged;
+        _subscription?.Dispose();
     }
 
 
     void SetConfigurations()
     {
-        RequestConfiguration config = new RequestConfiguration() {
+        RequestConfiguration config = new RequestConfiguration()
+        {
             TagForUnderAgeOfConsent = AdsManager.Instance.IsForFamily ? TagForUnderAgeOfConsent.True : TagForUnderAgeOfConsent.False,
         };
 
@@ -71,12 +73,19 @@ public class AdNetworkAdmob : AdNetworkBase
 
     private void RequestAds()
     {
+        // Probably issues with threads, but the callback is launched before the _subscription is assigned.
+        bool shouldCleanupSubscription = false;
         _subscription = ShouldWaitAppOpen.Subscribe(value =>
         {
-            RequestVideoAds();
-            _subscription.Dispose();
-            _subscription = null;
-            //Весь код вставлять выше _subscription.Dispose(); все, что ниже не работает
+            if (!value && !shouldCleanupSubscription)
+            {
+                RequestVideoAds();
+                shouldCleanupSubscription = true;
+
+                _subscription?.Dispose();
+                _subscription = null;
+                //Весь код вставлять выше _subscription.Dispose(); все, что ниже не работает
+            }
         });
 
         if (!AdsManager.Instance.AreAdsRemoved && !AdsManager.Instance.IsForFamily)

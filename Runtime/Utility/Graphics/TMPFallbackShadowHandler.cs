@@ -1,3 +1,5 @@
+#if LETAI_TRUESHADOW
+
 using UnityEngine;
 using LeTai.TrueShadow;
 using UnityEngine.Localization.Components;
@@ -79,3 +81,5 @@ namespace TapEmpire.UI
         }
     }
 }
+
+#endif

@@ -212,7 +212,7 @@ namespace TapEmpire.Services
             Debug.Log($"IAP Transactions restored. {success.ToString()}");
             // _restoreInProgress.Value = false;
 
-            _storeController.FetchPurchases();
+            _storeController.FetchPurchases(); // TODO: can be deleted now. It's fixed in the package.
 
             if (success)
             {
