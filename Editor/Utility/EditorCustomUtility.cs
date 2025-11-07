@@ -20,6 +20,20 @@ namespace TapEmpire.Utility
             return AssetDatabase.LoadAssetAtPath<T>(path);
         }
 
+        public static ScriptableObject LoadFirstAsset(string name)
+        {
+            var guids = AssetDatabase.FindAssets($"{name} t:ScriptableObject");
+
+            if (guids.Length == 0) return null;
+            if (guids.Length > 1)
+            {
+                Debug.LogWarning($"Multiple {name} assets found, using the first.");
+            }
+
+            var path = AssetDatabase.GUIDToAssetPath(guids[0]);
+            return AssetDatabase.LoadAssetAtPath<ScriptableObject>(path);
+        }
+
         public static List<T> LoadAllAssetsOfType<T>() where T : Object
         {
             var list = new List<T>();

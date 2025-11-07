@@ -153,6 +153,15 @@ namespace TapEmpire.Build
             ReflectionUtility.SetPrivateField(analyticsService as object, "<AdjustEventToken>k__BackingField", platformData.Adjust.EventToken);
 
             EditorUtility.SetDirty(servicesInstaller);
+
+            AppLovinSettings.Instance.AdMobAndroidAppId = buildSettings.Android.GoogleAds.AppKey;
+            AppLovinSettings.Instance.AdMobIosAppId = buildSettings.Ios.GoogleAds.AppKey;
+            EditorUtility.SetDirty(AppLovinSettings.Instance);
+
+            var googleAdsSettings = EditorCustomUtility.LoadFirstAsset("GoogleMobileAdsSettings");
+            ReflectionUtility.SetPrivateField<string>(googleAdsSettings, "adMobAndroidAppId", buildSettings.Android.GoogleAds.AppKey);
+            ReflectionUtility.SetPrivateField<string>(googleAdsSettings, "adMobIOSAppId", buildSettings.Ios.GoogleAds.AppKey);
+            EditorUtility.SetDirty(googleAdsSettings);
         }
 
         private void ApplyActions()
