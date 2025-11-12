@@ -68,6 +68,16 @@ namespace TapEmpire.Services
             return Amount.Value;
         }
 
+        public void RecheckAbsentTime()
+        {
+            if (_isRestorable)
+            {
+                _replenishTimer?.Dispose();
+                _replenishTimer = null;
+                CheckAbsentTime();
+            }
+        }
+
         private void CheckAbsentTime()
         {
             if (Amount.Value >= _settings.MaxAmount) return;

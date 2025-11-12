@@ -1,14 +1,15 @@
+using R3;
 using UnityEngine;
 
 namespace TapEmpire.Services
 {
     public class MonoCallbacksService : MonoBehaviour
     {
-        public System.Action<bool> OnApplicationFocusChange = null;
+        public Subject<bool> OnApplicationFocusChanged = new();
 
         private void OnApplicationFocus(bool hasFocus)
         {
-            OnApplicationFocusChange?.Invoke(hasFocus);
+            OnApplicationFocusChanged.OnNext(hasFocus);
         }
     }
 }

@@ -8,6 +8,7 @@ using TapEmpire.Utility;
 using Zenject;
 using Object = UnityEngine.Object;
 using Sirenix.OdinInspector;
+using R3;
 
 namespace TapEmpire.Services
 {
@@ -16,9 +17,6 @@ namespace TapEmpire.Services
     {
         [field: SerializeField] public string AdjustEventToken { get; private set;}
         private static readonly Dictionary<string, object> EmptyDictionary = new();
-
-        [SerializeField]
-        private MonoCallbacksService _monoCallbackServicePrefab = null;
 
         [SerializeField]
         private AnalyticsType _analyticsType = AnalyticsType.Amplitude;
@@ -37,24 +35,26 @@ namespace TapEmpire.Services
 
         private DiContainer _diContainer = null;
         private IProgressService _progressService = null;
+        private ISystemService _systemService = null;
 
         private bool _isInitialized = false;
         private List<Action> _delayedEvents = new();
-        private MonoCallbacksService _monoCallbackService = null;
         private Adjust _adjust = null;
         private IAnalyticsService _innerService = null;
         private string _remoteConfigName = "default";
 
         private Dictionary<string, string> _globalParameters = new();
+        private IDisposable _focusDisposable = null;
 
         // [NonSerialized]
         // private AnalyticsGlobalModule _globalModule;
 
         [Inject]
-        private void Construct(DiContainer diContainer, IProgressService progressService)
+        private void Construct(DiContainer diContainer, IProgressService progressService, ISystemService systemService)
         {
             _diContainer = diContainer;
             _progressService = progressService;
+            _systemService = systemService;
         }
 
         protected override UniTask OnInitializeAsync(CancellationToken cancellationToken)
@@ -63,12 +63,6 @@ namespace TapEmpire.Services
 
             _innerService.InitializeAsync(cancellationToken);
             _diContainer.Resolve<IABTestingService>().OnGroupAssigned += onGroupAssigned;
-
-            if (_monoCallbackService == null)
-            {
-                _monoCallbackService = Object.Instantiate(_monoCallbackServicePrefab);
-                Object.DontDestroyOnLoad(_monoCallbackService.gameObject);
-            }
 
             _adjust = Object.FindObjectOfType<Adjust>();
 
@@ -81,9 +75,10 @@ namespace TapEmpire.Services
         protected override void OnRelease()
         {
             _isInitialized = false;
+
+            _focusDisposable?.Dispose();
             
             if (_diContainer != null) _diContainer.Resolve<IABTestingService>().OnGroupAssigned -= onGroupAssigned;
-            if (_monoCallbackService != null) _monoCallbackService.OnApplicationFocusChange -= OnApplicationFocus;
 
             // AdsModule.OnRelease();
 
@@ -198,7 +193,8 @@ namespace TapEmpire.Services
 
             // _adjust.OnConfigChanged += OnConfigChanged;
 
-            _monoCallbackService.OnApplicationFocusChange += OnApplicationFocus;
+            _focusDisposable?.Dispose();
+            _focusDisposable = _systemService.OnApplicationFocusChanged.Subscribe(OnApplicationFocus);
             OnApplicationFocus(true); // Hack
 
             _isInitialized = true;
