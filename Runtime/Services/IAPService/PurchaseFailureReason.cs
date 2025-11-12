@@ -4,15 +4,15 @@ using UnityEngine;
 
 namespace TapEmpire.Services
 {
-    public enum PurchaseFailureReason
-    {
-        PurchasingUnavailable,
-        ExistingPurchasePending,
-        ProductUnavailable,
-        SignatureInvalid,
-        UserCancelled,
-        PaymentDeclined,
-        DuplicateTransaction,
-        Unknown
-    }
+    // public enum PurchaseFailureReason
+    // {
+    //     PurchasingUnavailable,
+    //     ExistingPurchasePending,
+    //     ProductUnavailable,
+    //     SignatureInvalid,
+    //     UserCancelled,
+    //     PaymentDeclined,
+    //     DuplicateTransaction,
+    //     Unknown
+    // }
 }

@@ -15,30 +15,34 @@ namespace TapEmpire.Services
 
         public class IapRemoteModel
         {
+            public bool HasVerification = true;
             public List<IapOffer> Offers = new();
             public IapRemoteModel() { }
-            
+
             public IapRemoteModel(IapProductsSettings settings)
             {
+                HasVerification = settings.HasVerification;
                 Offers = settings.Products;
             }
         }
-        
+
         public string TokenName => "IapSettings";
-        
+
         public void DeserializeJson(JToken token)
         {
-            var model = token.ToObject<IapRemoteModel>();
+            var settings = GetJsonSettings();
+            var model = token.ToObject<IapRemoteModel>(JsonSerializer.Create(settings));
             InsertModel(model);
         }
-        
+
         public string SerializeJson()
         {
             var model = new IapRemoteModel(_iapProductsSettings);
-            var result = JsonConvert.SerializeObject(model);
+            var settings = GetJsonSettings();
+            var result = JsonConvert.SerializeObject(model, settings);
             return result;
         }
-        
+
         [Button("Serialize to file")]
         private void SerializeToFile()
         {
@@ -52,25 +56,37 @@ namespace TapEmpire.Services
             var json = SerializeJson();
             Debug.Log(json);
         }
-        
+
         [Button("Test Deserialize")]
         private void DeserializeIapRemoteModel(string jsonString)
         {
-            var model = JsonConvert.DeserializeObject<IapRemoteModel>(jsonString);
+            var settings = GetJsonSettings();
+            var model = JsonConvert.DeserializeObject<IapRemoteModel>(jsonString, settings);
             InsertModel(model);
         }
-        
+
         private void InsertModel(IapRemoteModel model)
         {
+            _iapProductsSettings.HasVerification = model.HasVerification;
+
             var existingOffers = _iapProductsSettings.Products.ToDictionary(offer => offer.Key);
             foreach (var offer in model.Offers)
             {
                 if (existingOffers.TryGetValue(offer.Key, out var existingOffer))
                 {
-                    offer.CopyIncludedProducts(existingOffer);
+                    existingOffer.CopyIncludedProducts(offer);
                 }
             }
-            _iapProductsSettings.Products = model.Offers;
+            // _iapProductsSettings.Products = model.Offers;
+        }
+
+        private JsonSerializerSettings GetJsonSettings()
+        {
+            return new JsonSerializerSettings
+            {
+                TypeNameHandling = TypeNameHandling.Auto,
+                // SerializationBinder = new AllowedTypesBinder(),
+            };
         }
     }
 }

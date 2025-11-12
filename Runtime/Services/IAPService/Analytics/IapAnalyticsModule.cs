@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using com.adjust.sdk;
+using AdjustSdk;
 using Firebase.Analytics;
 using Io.AppMetrica;
 using Newtonsoft.Json.Linq;
@@ -18,12 +18,16 @@ namespace TapEmpire.Services
         private readonly IIapService _iapService;
         private readonly IUIService _uiService;
 
+        private AdsAnalyticsSettings _adsAnalyticsSettings;
+
         public IapAnalyticsModule(DiContainer diContainer)
         {
             _diContainer = diContainer;
             _analyticsService = _diContainer.Resolve<IAnalyticsService>();
             _iapService = _diContainer.Resolve<IIapService>();
             _uiService = _diContainer.Resolve<IUIService>();
+
+            _adsAnalyticsSettings = _diContainer.Resolve<IAdsService>().Settings.AdsAnalyticsSettings;
         }
 
         public void Initialize()
@@ -49,7 +53,7 @@ namespace TapEmpire.Services
                 Debug.LogError($"cant find pack with id: {iapId}, stop sending analytics");
                 return;
             }
-            
+
             var progressService = _diContainer.Resolve<IProgressService>();
             var levelsCompleted = progressService.GetLevelProgress();
             _analyticsService.LogEvent(IapAnalyticsEvents.IapPurchased, new Dictionary<string, object>()
@@ -60,28 +64,49 @@ namespace TapEmpire.Services
 
             var price = product.metadata.localizedPrice;
             var isoCode = product.metadata.isoCurrencyCode;
-            
+
             var revenue = new Revenue((long)price, isoCode);
             AppMetrica.ReportRevenue(revenue);
-            
+
             AdjustEvent adjustEvent = new AdjustEvent(_iapService.AdjustPurchaseToken);
-            adjustEvent.setRevenue((double)price, isoCode);
-            adjustEvent.setProductId(iapId);
-            adjustEvent.setPurchaseToken(product.transactionID);
-            Adjust.trackEvent(adjustEvent);
+            adjustEvent.SetRevenue((double)price, isoCode);
+            adjustEvent.ProductId = iapId;
+            // SetupVerificationData(adjustEvent, product);
+            Adjust.TrackEvent(adjustEvent);
 
             FirebaseAnalytics.LogEvent(IapAnalyticsEvents.IapPurchased, new Parameter[]
             {
-                new("value", price.ToString()),
-                new("currency", isoCode),
+                new Parameter(FirebaseAnalytics.ParameterValue, (double)price),
+                new Parameter(FirebaseAnalytics.ParameterCurrency, isoCode),
             });
+
+            if (_adsAnalyticsSettings.EnableMetaPurchases)
+            {
+                Facebook.Unity.FB.LogPurchase(price, isoCode, new Dictionary<string, object>
+                {
+                    { "fb_content_type", "product" },
+                    { "fb_content_id", iapId },
+                    { "fb_order_id", product.transactionID }
+                });
+            }
 
             _analyticsService.LogEvent(IapAnalyticsStrings.AdsPlacements, new Dictionary<string, object>()
             {
                 { iapId, "Purchased"}
             });
+
+            _analyticsService.LogAdjustEvent(new Dictionary<string, object>
+            {
+                { "adjust_event_name", "iap_purchased" },
+                { "level", levelsCompleted },
+                { "iap_status", "Success" },
+                { "iap_product_id", iapId },
+                { "iap_order_id", product.transactionID },
+                { "iap_price", price },
+                { "iap_currency", isoCode }
+            });
         }
-        
+
         private void OnPurchaseFailed(PurchaseFailArgs args)
         {
             var progressService = _diContainer.Resolve<IProgressService>();
@@ -90,6 +115,19 @@ namespace TapEmpire.Services
             {
                 { "purchase_id", args.IapId },
                 { "level", levelsCompleted }
+            });
+
+            var product = _iapService.GetProductInfoByStoreId(args.IapId);
+
+            _analyticsService.LogAdjustEvent(new Dictionary<string, object>
+            {
+                { "adjust_event_name", "iap_purchased" },
+                { "level", levelsCompleted },
+                { "iap_status", args.Reason.ToString() },
+                { "iap_product_id", args.IapId },
+                // { "iap_order_id", product.transactionID },
+                { "iap_price", product.metadata.localizedPrice },
+                { "iap_currency", product.metadata.localizedPriceString }
             });
         }
 
@@ -120,6 +158,20 @@ namespace TapEmpire.Services
             {
                 { NoAdsPopupViewModel.IapKey, new JObject(new JProperty("Shown", model.Placement)) }
             });
+        }
+
+        private void SetupVerificationData(AdjustEvent adjustEvent, Product product)
+        {
+#if UNITY_EDITOR || IGNORE_VERIFICATION
+            return;
+#elif UNITY_ANDROID
+            var unityReceipt = JsonUtility.FromJson<UnityReceipt>(product.receipt);
+            var googleReceiptJson = JsonUtility.FromJson<GooglePlayReceiptJson>(unityReceipt.Payload);
+            var googleReceipt = JsonUtility.FromJson<GooglePlayReceiptFixed>(googleReceiptJson.json);
+            adjustEvent.PurchaseToken = googleReceipt.purchaseToken;
+#elif UNITY_IOS
+            adjustEvent.TransactionId = product.transactionID;
+#endif
         }
     }
 }

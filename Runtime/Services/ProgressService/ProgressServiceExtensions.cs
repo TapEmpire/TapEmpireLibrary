@@ -36,7 +36,11 @@ namespace TapEmpire.Services
 
         public static int UpdateIntProp(this IProgressService self, ProgressIntProp prop)
         {
-            var key = $"{prop}";
+            return UpdateInt(self, $"{prop}");
+        }
+
+        public static int UpdateInt(this IProgressService self, string key)
+        {
             var currentValue = self.IntValuesDictionary.TryGetValue(key, out var value) ? value : default;
             var nextValue = currentValue + 1;
             self.IntValuesDictionary.SetValue(key, nextValue);
@@ -146,27 +150,6 @@ namespace TapEmpire.Services
         public static int UpdateAdsWatchedProgress(this IProgressService self)
         {
             return self.UpdateIntProp(ProgressIntProp.TotalAdsWatched);
-        }
-
-        private const string AdRevenueKey = "AdRevenue";
-        private const float MillionFloat = 1000000.0f;
-
-        private static int GetIntAdRevenue(this IProgressService self)
-        {
-            return self.IntValuesDictionary.TryGetValue(AdRevenueKey, out var value, canUseDefault: false) ? value : 0;
-        }
-
-        public static float GetAdRevenue(this IProgressService self)
-        {
-            return self.GetIntAdRevenue() / MillionFloat;
-        }
-
-        public static float UpdateAdRevenue(this IProgressService self, double revenue)
-        {
-            var total = self.GetIntAdRevenue();
-            total += (int)Math.Floor(revenue * MillionFloat);
-            self.IntValuesDictionary.SetValue(AdRevenueKey, total);
-            return total / MillionFloat;
         }
 
         #endregion

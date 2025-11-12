@@ -2,11 +2,34 @@ using System.Collections.Generic;
 using System.Linq;
 using Firebase.Analytics;
 using Newtonsoft.Json.Linq;
+using R3;
 using TapEmpire.Utility;
 using Zenject;
 
 namespace TapEmpire.Services
 {
+    public enum BatchAnalyticsType
+    {
+        Firebase,
+        Facebook,
+    }
+
+    public class BatchedData
+    {
+        public double Revenue;
+        public bool IsBatchedOnce;
+        public BatchType BatchType;
+        public double Threshold;
+        public string Postfix;
+        public System.Action<double> Callback;
+
+        public void Initialize(IProgressService progressService)
+        {
+            Revenue = progressService.GetAdRevenueBatched(Postfix);
+            IsBatchedOnce = BatchType == BatchType.Once && progressService.GetOnceBatched(Postfix);
+        }
+    }
+
     public class AdsAnalyticsModule
     {
         private readonly DiContainer _diContainer = null;
@@ -17,6 +40,10 @@ namespace TapEmpire.Services
         private System.DateTime _revenueWindowEnd;
         private bool _isRevenueEnough = false;
         private float _currentRevenue = 0.0f;
+        private double _batchedRevenue = 0.0f;
+        private bool _isBatchedOnce = false;
+        private BatchedData[] _batchedData = null;
+        private CompositeDisposable _disposables = new();
 
         public AdsAnalyticsModule(DiContainer diContainer)
         {
@@ -39,11 +66,17 @@ namespace TapEmpire.Services
             _currentRevenue = _progressService.GetAdRevenue();
             CheckIsRevenueEnough();
 
+            _batchedData = InitializedBatchedData();
+
             adsService.OnAdClickedEvent += OnAdClickedEvent;
             adsService.OnAdDisplayedRewardEvent += OnAdShowing;
             adsService.OnAdReceivedRewardEvent += OnAdReceivedRewardEvent;
             adsService.OnInterstitialAdShowRequested += OnInterstitialAdShowRequested;
             AnalyticsManager.OnAdPayed += OnAdPayed;
+
+            adsService.OnAdsInitialized.Subscribe(_ =>
+                _analyticsService.SetUserProperty(AdsAnalyticsEvents.IsMeticaEnabled, adsService.IsMeticaEnabled.ToString(), true))
+                .AddTo(_disposables);
         }
 
         public void OnRelease()
@@ -55,6 +88,8 @@ namespace TapEmpire.Services
             adsService.OnAdReceivedRewardEvent -= OnAdReceivedRewardEvent;
             adsService.OnInterstitialAdShowRequested -= OnInterstitialAdShowRequested;
             AnalyticsManager.OnAdPayed -= OnAdPayed;
+
+            _disposables.Dispose();
         }
 
         private void OnAdClickedEvent(string adPlacement)
@@ -95,9 +130,19 @@ namespace TapEmpire.Services
             });
         }
 
-        private void OnAdPayed(string adType, string network, string mediation, AdFormat format, double price)
+        private void OnAdPayed(string adType, string network, string mediation, AdFormat format, double price,
+            string currencyCode, string unitId)
         {
-            OnAdRevenue(price);
+            if (mediation != "AdMob Mediation")
+            {
+                OnBatchedRevenue(price, _batchedData[(int)BatchAnalyticsType.Firebase]);
+
+                if (_settings.EnableMeta)
+                {
+                    OnBatchedRevenue(price, _batchedData[(int)BatchAnalyticsType.Facebook]);
+                    OnAdRevenue(price);
+                }
+            }
 
             var levelsCompleted = _progressService.GetLevelProgress();
             _analyticsService.LogEvent(AdsAnalyticsEvents.AdsPayed, new Dictionary<string, object>{
@@ -123,14 +168,28 @@ namespace TapEmpire.Services
             else
             {
                 parameters.Add(format.ToString(), null);
+                adType = string.Empty;
             }
 
             _analyticsService.LogEvent(AdsAnalyticsStrings.AdsPlacements, parameters);
+
+            _analyticsService.LogAdjustEvent(new Dictionary<string, object>
+            {
+                { "adjust_event_name", "ad_impression" },
+                { "level", levelsCompleted },
+                { "ad_platform", mediation },
+                { "ad_source", network },
+                { "ad_unit_name", unitId },
+                { "ad_format", format.ToString() },
+                { "ad_placement", adType },
+                { "ad_revenue", price },
+                { "currency", currencyCode }
+            });
         }
 
         private void OnAdRevenue(double price)
         {
-            if (_isRevenueEnough || System.DateTime.UtcNow > _revenueWindowEnd)
+            if (_isRevenueEnough)
             {
                 return;
             }
@@ -144,11 +203,7 @@ namespace TapEmpire.Services
 
                 if (layer.Value > _currentRevenue)
                 {
-                    if (TapEmpire.Services.FirebaseService.IsInitializedDeprecated)
-                    {
-                        // UnityEngine.Debug.LogError(layer.Name);
-                        FirebaseAnalytics.LogEvent(layer.Name);
-                    }
+                    Facebook.Unity.FB.LogAppEvent(layer.Name);
                 }
             }
 
@@ -162,6 +217,84 @@ namespace TapEmpire.Services
             {
                 _isRevenueEnough = true;
             }
+        }
+
+        private void OnBatchedRevenue(double price, BatchedData batchedData)
+        {
+            switch (batchedData.BatchType)
+            {
+                case BatchType.Taichi:
+                    UpdateBatchedRevenue(price, batchedData);
+                    break;
+                case BatchType.Once:
+                    if (UpdateBatchedRevenue(price, batchedData))
+                    {
+                        _progressService.SetOnceBatched(batchedData.Postfix);
+                        batchedData.IsBatchedOnce = true;
+                    }
+                    break;
+                case BatchType.None:
+                default:
+                    return;
+            }
+        }
+
+        private bool UpdateBatchedRevenue(double price, BatchedData batchedData)
+        {
+            batchedData.Revenue += price;
+
+            if (batchedData.Revenue >= batchedData.Threshold || batchedData.IsBatchedOnce)
+            {
+                batchedData.Callback(batchedData.Revenue);
+                _progressService.ClearAdRevenueBatched(batchedData.Postfix);
+                batchedData.Revenue = 0.0;
+                return true;
+            }
+            else
+            {
+                _progressService.SetAdRevenueBatched(_batchedRevenue, batchedData.Postfix);
+                return false;
+            }
+        }
+
+        private void LogBatchedFirebase(double revenue)
+        {
+            var impressionParameters = new[] {
+                new Parameter(FirebaseAnalytics.ParameterValue, revenue),
+                new Parameter(FirebaseAnalytics.ParameterCurrency, "USD"),
+            };
+            FirebaseAnalytics.LogEvent("ad_revenue_batched", impressionParameters);
+        }
+
+        private void LogBatchedFacebook(double revenue)
+        {
+            Facebook.Unity.FB.LogAppEvent("ad_revenue_batched", valueToSum: (float)revenue,
+                parameters: new Dictionary<string, object>
+                {
+                    { "fb_currency", "USD" }
+                });
+        }
+
+        private BatchedData[] InitializedBatchedData()
+        {
+            var batchedData = new BatchedData[2] {
+                new BatchedData() {
+                    BatchType = _settings.AdsAnalyticsSettings.BatchType,
+                    Threshold = _settings.AdsAnalyticsSettings.Threshold,
+                    Postfix = "",
+                    Callback = this.LogBatchedFirebase,
+                },
+                new BatchedData() {
+                    BatchType = _settings.AdsAnalyticsSettings.BatchTypeMeta,
+                    Threshold = _settings.AdsAnalyticsSettings.ThresholdMeta,
+                    Postfix = "Meta",
+                    Callback = this.LogBatchedFacebook,
+                }
+            };
+
+            batchedData.ForEach(batchedData => batchedData.Initialize(_progressService));
+
+            return batchedData;
         }
     }
 }

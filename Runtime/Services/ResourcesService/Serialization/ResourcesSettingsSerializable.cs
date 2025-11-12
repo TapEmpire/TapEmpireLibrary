@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Sirenix.OdinInspector;
@@ -13,9 +15,7 @@ namespace TapEmpire.Services
 
         public class ResourcesSettingsRemoteModel
         {
-            // public int InitialHints = 3;
-            // public int MinAdBreakCategories = 5;
-            // public int HintsForDisableAd = 10;
+            public List<ResourceSettings<ResourceType>> Resources;
 
             public ResourcesSettingsRemoteModel()
             {
@@ -23,9 +23,7 @@ namespace TapEmpire.Services
 
             public ResourcesSettingsRemoteModel(ResourcesSettings<ResourceType> resourcesSettings)
             {
-                // InitialHints = gameplaySettings.InitialHints;
-                // MinAdBreakCategories = gameplaySettings.MinAdBreakCategories;
-                // HintsForDisableAd = gameplaySettings.HintsForDisableAd;
+                Resources = resourcesSettings.Resources.ToList();
             }
         }
 
@@ -35,9 +33,7 @@ namespace TapEmpire.Services
         {
             var model = token.ToObject<ResourcesSettingsRemoteModel>();
 
-            // _gameplaySettings.InitialHints = model.InitialHints;
-            // _gameplaySettings.MinAdBreakCategories = model.MinAdBreakCategories;
-            // _gameplaySettings.HintsForDisableAd = model.HintsForDisableAd;
+            _resourcesSettings.Resources = model.Resources.ToList();
         }
 
         public string SerializeJson()

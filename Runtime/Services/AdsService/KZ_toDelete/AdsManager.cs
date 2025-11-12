@@ -4,7 +4,7 @@ using UnityEngine;
 using GoogleMobileAds.Api;
 using GoogleMobileAds.Common;
 using GoogleMobileAds.Ump.Api;
-using com.adjust.sdk;
+using AdjustSdk;
 using TapEmpire.Utility;
 using System.Threading;
 using Sirenix.OdinInspector;
@@ -17,6 +17,8 @@ using System.Collections.Generic;
 [HideMonoScript]
 public class AdsManager : MonoBehaviour
 {
+    public Subject<Unit> OnInitialized = new();
+
     [ShowInInspector, DisplayAsString, GUIColor(1.0f, 1.0f, 1.0f), BoxGroup("Info", false)]
     public const string Version = "2.5.2";
 
@@ -101,6 +103,9 @@ public class AdsManager : MonoBehaviour
     Action OnRewardComplete;
     private System.Action OnAppOpenShown = null;
 
+    public AdsSettings AdsSettings => _adsSettings;
+    public bool IsMeticaEnabled => Applovin.IsMeticaAdsEnabled;
+
     public MaxSdkBase.BannerPosition MaxBannerPos
     {
         get
@@ -162,7 +167,7 @@ public class AdsManager : MonoBehaviour
 
         PassAdjustConsentParameters();
 
-        Admob.Initialize(_adsRuntimeScenario.ShouldWaitAppOpen);
+        await Admob.Initialize(_adsRuntimeScenario.ShouldWaitAppOpen);
         await UniTask.WaitUntil(() => IsAdmobInitSuccess);
         await UniTask.WaitUntil(() => !ShouldWaitAppOpen.Value);
 
@@ -170,7 +175,7 @@ public class AdsManager : MonoBehaviour
 
         await UniTask.Yield(PlayerLoopTiming.LastPostLateUpdate);
 
-        if (_adsRuntimeScenario.ShowBanner && EnableBanner) 
+        if (_adsRuntimeScenario.ShowBanner && EnableBanner)
             Instance.ShowBanner();
     }
 
@@ -180,7 +185,7 @@ public class AdsManager : MonoBehaviour
         {
             if (_adsSettings.ShowApplovinOn2GB)
             {
-                Applovin.Initialize();
+                await Applovin.Initialize();
             }
             else
             {
@@ -189,29 +194,46 @@ public class AdsManager : MonoBehaviour
         }
         else
         {
-            Applovin.Initialize();
+            await Applovin.Initialize();
         }
 
         await UniTask.WaitUntil(() => IsApplovinInitSuccess);
 
         SubscribeToMaxBanners();
+
+        OnInitialized.OnNext(Unit.Default);
     }
 
     private async UniTask Retry_Consent()
     {
-        ConsentManager.GatherConsent(TestAds, IsForFamily,
-            (status, message) =>
-            {
-                ThreadDispatcher.Enqueue(() =>
-                {
-                    MonetizationLogger.Log($"Retry UMP Response | Status : {status}, Message : {message}");
-                });
-            });
-
-        if (ConsentManager.ConsentStillRequired)
+        if (_adsSettings.EnableUMP)
         {
-            await UniTask.WaitWhile(() => ConsentManager.IsFetching);
+            ConsentManager.GatherConsent(TestAds, IsForFamily,
+                (status, message) =>
+                {
+                    ThreadDispatcher.Enqueue(() =>
+                    {
+                        MonetizationLogger.Log($"Retry UMP Response | Status : {status}, Message : {message}");
+                    });
+                });
+
+            if (ConsentManager.ConsentStillRequired)
+            {
+                await UniTask.WaitWhile(() => ConsentManager.IsFetching);
+            }
         }
+
+#if UNITY_IOS && TEL_ATT
+        if (_adsSettings.EnableATT)
+        {
+            ConsentManager.GatherConsentIos().Forget();
+            await UniTask.WaitWhile(() => ConsentManager.IsFetchingIos);
+            // TapEmpire.Features.ATT.NativeFullScreen.Show("Special Offer", "Get 500 coins for $0.99");
+            // await UniTask.WaitWhile(() => ConsentManager.IsFetching);
+            // #else
+        }
+#endif
+        // #endif
     }
 
     private void SubscribeToMaxBanners()
@@ -490,10 +512,10 @@ public class AdsManager : MonoBehaviour
         var eurArea = ConsentManager.isEurArea ? "1" : "0";
         var userData = ConsentManager.isPersonalized ? "1" : "0";
         AdjustThirdPartySharing adjustThirdPartySharing = new AdjustThirdPartySharing(null);
-        adjustThirdPartySharing.addGranularOption("google_dma", "eea", eurArea);
-        adjustThirdPartySharing.addGranularOption("google_dma", "ad_personalization", userData);
-        adjustThirdPartySharing.addGranularOption("google_dma", "ad_user_data", userData);
-        Adjust.trackThirdPartySharing(adjustThirdPartySharing);
+        adjustThirdPartySharing.AddGranularOption("google_dma", "eea", eurArea);
+        adjustThirdPartySharing.AddGranularOption("google_dma", "ad_personalization", userData);
+        adjustThirdPartySharing.AddGranularOption("google_dma", "ad_user_data", userData);
+        Adjust.TrackThirdPartySharing(adjustThirdPartySharing);
     }
     #endregion
 

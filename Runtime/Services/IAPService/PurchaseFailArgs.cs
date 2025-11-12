@@ -1,3 +1,5 @@
+using UnityEngine.Purchasing;
+
 namespace TapEmpire.Services
 {
     public struct PurchaseFailArgs

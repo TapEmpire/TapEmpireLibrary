@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
-using com.adjust.sdk;
+using AdjustSdk;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using TapEmpire.Utility;
@@ -14,6 +14,7 @@ namespace TapEmpire.Services
     [Serializable]
     public class AnalyticsService : Initializable, IAnalyticsService
     {
+        [field: SerializeField] public string AdjustEventToken { get; private set;}
         private static readonly Dictionary<string, object> EmptyDictionary = new();
 
         [SerializeField]
@@ -42,6 +43,9 @@ namespace TapEmpire.Services
         private MonoCallbacksService _monoCallbackService = null;
         private Adjust _adjust = null;
         private IAnalyticsService _innerService = null;
+        private string _remoteConfigName = "default";
+
+        private Dictionary<string, string> _globalParameters = new();
 
         // [NonSerialized]
         // private AnalyticsGlobalModule _globalModule;
@@ -83,8 +87,8 @@ namespace TapEmpire.Services
 
             // AdsModule.OnRelease();
 
-            if (_adjust != null)
-                _adjust.OnConfigChanged -= OnConfigChanged;
+            // if (_adjust != null)
+            //     _adjust.OnConfigChanged -= OnConfigChanged;
 
             _innerService?.Release();
 
@@ -114,11 +118,16 @@ namespace TapEmpire.Services
             }
         }
 
-        public void SetUserProperty(string propertyName, string value)
+        public void SetUserProperty(string propertyName, string value, bool everywhere = false)
         {
             if (_isInitialized)
             {
                 _innerService.SetUserProperty(propertyName, value);
+
+                if (everywhere)
+                {
+                    _globalParameters.Add(propertyName, value);
+                }
             }
         }
 
@@ -161,18 +170,23 @@ namespace TapEmpire.Services
             var levelsCompleted = progressService.GetLevelProgress();
             var cyclesCompleted = progressService.GetCyclesProgress();
             var adsWatchedCount = progressService.GetAdsWatchedProgress();
+            _remoteConfigName = progressService.GetRemoteConfigName();
 
             _innerService.SetUserProperties(new Dictionary<string, object>{
                 // { AnalyticsParameters.InstallYear, launchDate.Year },
                 // { AnalyticsParameters.InstallDate, launchDate.DayOfYear },
                 // { AnalyticsParameters.DaysAfterInstall, daysAfterInstall.Days },
-                { AnalyticsParameters.AdjustAttribution, Adjust.getAttribution()?.network},
-                { AnalyticsParameters.RemoteConfig, progressService.GetRemoteConfigName() },
+                // { AnalyticsParameters.AdjustAttribution, Adjust.GetAttribution()?.network},
+                { AnalyticsParameters.RemoteConfig, _remoteConfigName },
                 // { CoreGenericAnalyticsParameters.LevelsCompleted, levelsCompleted },
                 // { CoreGenericAnalyticsParameters.CyclesCompleted, cyclesCompleted },
                 // { AdsAnalyticsParameters.AdsWatched, adsWatchedCount }
                 //{ AnalyticsParameters.AbGroup1, _diContainer.Resolve<IABTestingService>().Group },
             });
+
+            _globalParameters.Add(AnalyticsParameters.RemoteConfig, _remoteConfigName);
+
+            Adjust.GetAttribution(attribution => OnConfigChanged(attribution));
 
             if (isFirstLaunch)
             {
@@ -182,7 +196,7 @@ namespace TapEmpire.Services
 
             // AdsService.Initialize();
 
-            _adjust.OnConfigChanged += OnConfigChanged;
+            // _adjust.OnConfigChanged += OnConfigChanged;
 
             _monoCallbackService.OnApplicationFocusChange += OnApplicationFocus;
             OnApplicationFocus(true); // Hack
@@ -194,7 +208,7 @@ namespace TapEmpire.Services
 
         private void OnConfigChanged(AdjustAttribution attribution)
         {
-            _innerService.SetUserProperty(AnalyticsParameters.AdjustAttribution, attribution.network);
+            _innerService.SetUserProperty(AnalyticsParameters.AdjustAttribution, attribution.Campaign);
         }
 
         public void logEventDelayed(string eventName, Dictionary<string, object> parameters = null)
@@ -214,6 +228,22 @@ namespace TapEmpire.Services
         public void FlushEvents()
         {
             _innerService.FlushEvents();
+        }
+
+        public void LogAdjustEvent(IDictionary<string, object> properties)
+        {
+            AdjustEvent adjustEvent = new AdjustEvent(AdjustEventToken);
+
+            foreach (var pair in properties)
+            {
+                adjustEvent.AddCallbackParameter(pair.Key, pair.Value.ToString());
+            }
+
+            _globalParameters.ForEach(pair => adjustEvent.AddCallbackParameter(pair.Key, pair.Value.ToString()));
+
+            // adjustEvent.AddCallbackParameter(AnalyticsParameters.RemoteConfig, _remoteConfigName);
+
+            Adjust.TrackEvent(adjustEvent);
         }
 
         /*public static void LogEventStatic(string eventName, Dictionary<string, object> details = null)

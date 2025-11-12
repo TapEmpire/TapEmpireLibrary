@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Threading;
-using com.adjust.sdk;
 using Cysharp.Threading.Tasks;
 using DG.Tweening;
 using UnityEngine;
@@ -8,6 +7,9 @@ using System.Linq;
 using Zenject;
 using TapEmpire.Utility;
 using R3;
+using AdjustSdk;
+using Metica.Unity;
+using TapEmpire.Modules;
 
 namespace TapEmpire.Services
 {
@@ -15,6 +17,7 @@ namespace TapEmpire.Services
     public class AdsService : Initializable, IAdsService
     {
         public ReadOnlyReactiveProperty<bool> AdsEnabled => _adsEnabled;
+        public Observable<Unit> OnAdsInitialized => global::AdsManager.Instance.OnInitialized;
 
         public System.Action<string> OnAdReceivedRewardEvent { get; set; } = null;
         public System.Action<string> OnAdReceivedOnceRewardEvent { get; set; } = null;
@@ -32,6 +35,9 @@ namespace TapEmpire.Services
 
         [SerializeField]
         private Adjust _adjustPrefab = null;
+
+        [SerializeField]
+        private MeticaUnitySdk _meticaPrefab = null;
 
         [SerializeField]
         private AdsSettings _adsSettings = null;
@@ -60,8 +66,10 @@ namespace TapEmpire.Services
         private ReactiveProperty<bool> _shouldWaitAppOpen = null;
         public ReadOnlyReactiveProperty<bool> ShouldWaitAppOpen { get; private set; } = new ReactiveProperty<bool>(true);
         public AdsSettings Settings => _adsSettings;
+        public bool IsMeticaEnabled => global::AdsManager.Instance.IsMeticaEnabled;
 
         private AdsRuntimeScenario _adsRuntimeScenario;
+        private FacebookModule _facebookModule = null;
 
         protected override async UniTask OnInitializeAsync(CancellationToken cancellationToken)
         {
@@ -90,8 +98,19 @@ namespace TapEmpire.Services
                 _adsRuntimeScenario.FromLevel = _adsSettings.FromLevel;
             }
 
+#if UNITY_IOS
+            _adsSettings.EnableMetica = false;
+#endif
+
+            if (_adsSettings.EnableMetica)
+            {
+                GameObject.Instantiate(_meticaPrefab);
+            }
+
             GameObject.Instantiate(_adsManagerPrefab);
             // GameObject.Instantiate(_appMetricaPrefab);
+
+            _adjustPrefab.environment = PlatformInfo.IsTestFlightOrSandboxReceipt() ? AdjustEnvironment.Sandbox : _adjustPrefab.environment;
             GameObject.Instantiate(_adjustPrefab);
 
             _analyticsModule = new AdsAnalyticsModule(_diContainer);
@@ -132,6 +151,8 @@ namespace TapEmpire.Services
 
             _cancellationTokenSource?.Cancel();
             _cancellationTokenSource = null;
+
+            _facebookModule = null;
 
             global::AdsManager.Instance?.OnRelease();
         }
@@ -197,7 +218,7 @@ namespace TapEmpire.Services
                 OnAdReceivedReward();
                 return true;
             }
-            
+
             // OnAdClickedEvent?.Invoke(_currentAdType);
             OnInterstitialAdShowRequested?.Invoke(global::AdsManager.Instance.HasInterstitial);
 
@@ -295,6 +316,12 @@ namespace TapEmpire.Services
 
             firebaseService.UpdateConsentStatus(isPersonalized);
 
+            if (_adsSettings.EnableMeta)
+            {
+                _facebookModule = new FacebookModule();
+                _facebookModule.Initialize(isPersonalized);
+            }
+
             // GameAnalyticsSDK.GameAnalytics.SetCustomDimension01(ConsentInformation.ConsentStatus.ToString());
         }
 
@@ -339,7 +366,7 @@ namespace TapEmpire.Services
         {
             if (_adsRuntimeScenario.IsEnabled && levelIndex + 1 >= _adsRuntimeScenario.FromLevel)
             {
-                return _adsRuntimeScenario.InterstitialAfterLevels.Count == 0 || 
+                return _adsRuntimeScenario.InterstitialAfterLevels.Count == 0 ||
                     _adsRuntimeScenario.InterstitialAfterLevels.Any(interstitialLevel => interstitialLevel == levelIndex + 1);
             }
 

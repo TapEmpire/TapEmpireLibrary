@@ -4,10 +4,17 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Cysharp.Threading.Tasks;
+
+
+#if UNITY_IOS
+using Unity.Advertisement.IosSupport;
+#endif
 
 public class ConsentManager
 {
-    public static bool IsFetching;
+    public static bool IsFetchingIos = false;
+    public static bool IsFetching = false;
     public static bool ConsentStillRequired => ConsentInformation.ConsentStatus.Equals(ConsentStatus.Unknown);
     public static bool isPersonalized = true;
     public static bool isEurArea = false;
@@ -136,4 +143,49 @@ public class ConsentManager
         }
         return true;
     }
+
+    public async static UniTask GatherConsentIos()
+    {
+#if UNITY_IOS && !UNITY_EDITOR
+        if (IsFetchingIos) return;
+
+        IsFetchingIos = true;
+        var status = ATTrackingStatusBinding.GetAuthorizationTrackingStatus();
+
+        if (status == ATTrackingStatusBinding.AuthorizationTrackingStatus.NOT_DETERMINED)
+        {
+            ATTrackingStatusBinding.RequestAuthorizationTracking(); // 🔸 no callback available
+
+            await UniTask.WaitWhile(() =>
+                ATTrackingStatusBinding.GetAuthorizationTrackingStatus() == ATTrackingStatusBinding.AuthorizationTrackingStatus.NOT_DETERMINED);
+            status = ATTrackingStatusBinding.GetAuthorizationTrackingStatus();
+        }
+
+        HandleATTStatus(status);
+#else
+        await UniTask.CompletedTask;
+#endif
+    }
+
+#if UNITY_IOS
+    public static void HandleATTStatus(ATTrackingStatusBinding.AuthorizationTrackingStatus status)
+    {
+        Debug.LogError($"ATT Status = {status}");
+
+        switch (status)
+        {
+            case ATTrackingStatusBinding.AuthorizationTrackingStatus.RESTRICTED:
+            case ATTrackingStatusBinding.AuthorizationTrackingStatus.DENIED:
+                // isPersonalized = false;
+                break;
+            case ATTrackingStatusBinding.AuthorizationTrackingStatus.AUTHORIZED:
+            case ATTrackingStatusBinding.AuthorizationTrackingStatus.NOT_DETERMINED: // treat as yes temporarily
+            default:
+                // isPersonalized = true;
+                break;
+        }
+
+        IsFetchingIos = false;
+    }
+#endif
 }

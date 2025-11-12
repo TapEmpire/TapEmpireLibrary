@@ -13,7 +13,8 @@ namespace TapEmpire.Services
 
         public AppMetricaService(string analyticsKey, bool shouldEnableLogs)
         {
-            AppMetrica.Activate(new AppMetricaConfig(analyticsKey) {
+            AppMetrica.Activate(new AppMetricaConfig(analyticsKey)
+            {
                 Logs = shouldEnableLogs,
                 // CrashReporting = false,
             });
@@ -53,7 +54,7 @@ namespace TapEmpire.Services
             _globalParameters[propertyName] = value;
         }
 
-        public void SetUserProperty(string propertyName, string value)
+        public void SetUserProperty(string propertyName, string value, bool everywhere = false)
         {
             _globalParameters[propertyName] = value;
         }
@@ -75,6 +76,10 @@ namespace TapEmpire.Services
         {
             // Amplitude amplitude = Amplitude.getInstance();
             // amplitude.logEvent(eventName, details);
+        }
+
+        public void LogAdjustEvent(IDictionary<string, object> properties)
+        {
         }
     }
 }

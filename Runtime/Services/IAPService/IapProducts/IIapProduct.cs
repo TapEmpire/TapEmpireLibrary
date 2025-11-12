@@ -1,7 +1,9 @@
+using Newtonsoft.Json;
+
 namespace TapEmpire.Services
 {
     public interface IIapProduct
     {
-        string ProductId { get; }
+        [JsonIgnore] string ProductId { get; }
     }
 }

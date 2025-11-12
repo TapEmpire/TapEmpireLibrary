@@ -3,8 +3,9 @@ using System.Collections;
 using GoogleMobileAds.Api;
 using System.Text;
 using Firebase.Analytics;
-using com.adjust.sdk;
 using Io.AppMetrica;
+using AdjustSdk;
+using Facebook.Unity;
 
 public class AdData
 {
@@ -15,7 +16,8 @@ public class AdData
 
 public static class AnalyticsManager
 {
-    public static System.Action<string, string, string, AdFormat, double> OnAdPayed = null;
+    // Placement, Network, Mediation, Format, Price, Currency, UnitId
+    public static System.Action<string, string, string, AdFormat, double, string, string> OnAdPayed = null;
     public static AdData LastAdData = new AdData();
 
     static StringBuilder stringBuilder = new StringBuilder();
@@ -28,7 +30,7 @@ public static class AnalyticsManager
 
         string targetPlacement = isValidPlacementName(data.Format) ? PlacementName : data.Format.ToString();
 
-        double revenue = (admobAd.Value / 1000000f);
+        double revenue = (admobAd.Value / 1000000.0);
         if (TapEmpire.Services.FirebaseService.IsInitializedDeprecated)
         {
             var impressionParameters = new[] {
@@ -47,14 +49,14 @@ public static class AnalyticsManager
         }
 
         //Rev Event for Adjust
-        AdjustAdRevenue adjustAdRevenue = new AdjustAdRevenue(AdjustConfig.AdjustAdRevenueSourceAdMob);
-        adjustAdRevenue.setRevenue(revenue, "USD");
-        Adjust.trackAdRevenue(adjustAdRevenue);
+        AdjustAdRevenue adjustAdRevenue = new AdjustAdRevenue("admob_sdk");
+        adjustAdRevenue.SetRevenue(revenue, admobAd.CurrencyCode);
+        Adjust.TrackAdRevenue(adjustAdRevenue);
 
         // GameAnalytics.NewAdEvent(GAAdAction.Show, GetAdType(data.Format), "Admob", targetPlacement);
 
         //Rev Event for Appmetrica
-        AdRevenue rev = new AdRevenue(revenue, "USD");
+        AdRevenue rev = new AdRevenue(revenue, admobAd.CurrencyCode);
         rev.AdType = GetAppMetricaAdType(data.Format);
         rev.AdNetwork = "Admob_Native";
         rev.AdUnitId = data.AdUnit;
@@ -62,10 +64,13 @@ public static class AnalyticsManager
             rev.AdPlacementName = PlacementName.ToLower();
         AppMetrica.ReportAdRevenue(rev);
 
+        LogFacebookRevenue("Admob", "Simple Admob", data.Format.ToString(), targetPlacement, revenue,
+            admobAd.CurrencyCode, admobAd.Precision.ToString());
+
         LastAdData.Network = "AdMob";
         LastAdData.Mediation = "AdMob Mediation";
         LastAdData.Format = data.Format;
-        OnAdPayed?.Invoke(targetPlacement, LastAdData.Network, LastAdData.Mediation, data.Format, revenue);
+        OnAdPayed?.Invoke(targetPlacement, LastAdData.Network, LastAdData.Mediation, data.Format, revenue, admobAd.CurrencyCode, data.AdUnit);
 
         //Rev Event for Appsflyer
         //Dictionary<string, string> dic = new Dictionary<string, string>();
@@ -102,15 +107,17 @@ public static class AnalyticsManager
         }
 
         //Rev Event for Adjust
-        AdjustAdRevenue adjustAdRevenue = new AdjustAdRevenue(AdjustConfig.AdjustAdRevenueSourceAppLovinMAX);
-        adjustAdRevenue.setRevenue(revenue, "USD");
-        adjustAdRevenue.setAdRevenueNetwork(maxAd.NetworkName);
-        adjustAdRevenue.setAdRevenueUnit($"{format}_{maxAd.AdUnitIdentifier}");
-        adjustAdRevenue.addPartnerParameter("ad_format", maxAd.AdFormat);
-        adjustAdRevenue.addPartnerParameter("ad_unit_id", maxAd.AdUnitIdentifier);
-        Adjust.trackAdRevenue(adjustAdRevenue);
+        AdjustAdRevenue adjustAdRevenue = new AdjustAdRevenue("applovin_max_sdk");
+        adjustAdRevenue.SetRevenue(revenue, "USD");
+        adjustAdRevenue.AdRevenueNetwork = maxAd.NetworkName;
+        adjustAdRevenue.AdRevenueUnit = $"{format}_{maxAd.AdUnitIdentifier}";
+        adjustAdRevenue.AddPartnerParameter("ad_format", maxAd.AdFormat);
+        adjustAdRevenue.AddPartnerParameter("ad_unit_id", maxAd.AdUnitIdentifier);
+        Adjust.TrackAdRevenue(adjustAdRevenue);
 
         // GameAnalytics.NewAdEvent(GAAdAction.Show, GetAdType(format), "Max", targetPlacement);
+
+        LogFacebookRevenue("AppLovin", maxAd.NetworkName, format.ToString(), targetPlacement, revenue, "USD", maxAd.RevenuePrecision);
 
         //Rev Event for Appmetrica
         AdRevenue rev = new AdRevenue(revenue, "USD");
@@ -124,7 +131,7 @@ public static class AnalyticsManager
         LastAdData.Network = maxAd.NetworkName;
         LastAdData.Mediation = "Applovin";
         LastAdData.Format = format;
-        OnAdPayed?.Invoke(targetPlacement, LastAdData.Network, LastAdData.Mediation, format, revenue);
+        OnAdPayed?.Invoke(targetPlacement, LastAdData.Network, LastAdData.Mediation, format, revenue, "USD", maxAd.AdUnitIdentifier);
 
         //Rev Event for Appsflyer
         //Dictionary<string, string> dic = new Dictionary<string, string>();
@@ -134,6 +141,23 @@ public static class AnalyticsManager
 
         //if (format == AdFormat.Interstitial || format == AdFormat.Rewarded)
         //    SendAppsFlyerEvents();
+    }
+
+    private static void LogFacebookRevenue(string platform, string source, string format, string placement,
+        double value, string currency, string precision = null)
+    {
+        var parameters = new System.Collections.Generic.Dictionary<string, object>
+        {
+            { "ad_platform", "AdMob" },
+            { "ad_source", "Simple Admob" },
+            { "ad_format", format },
+            { "ad_placement_id", placement ?? string.Empty },
+            { "fb_currency", currency }
+        };
+
+        if (!string.IsNullOrEmpty(precision)) parameters["precision"] = precision;
+
+        FB.LogAppEvent("ad_impression", valueToSum: (float)value, parameters: parameters);
     }
 
     /*static YandexAppMetricaAdRevenue.AdTypeEnum GetAdType(AdFormat format)

@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using R3;
+using RTLTMPro;
 using UnityEngine;
 using UnityEngine.Localization;
 using UnityEngine.Localization.Settings;
@@ -38,6 +39,7 @@ namespace TapEmpire.Services.Localization
                 if (name == savedLocale)
                 {
                     SelectedLocale = model;
+                    UpdateFarsiState(model);
                     LocalizationSettings.SelectedLocale = model.Locale;
                     _locale.Value = model;
                 }
@@ -59,6 +61,7 @@ namespace TapEmpire.Services.Localization
         public void SetSelectedLocale(LocaleModel locale)
         {
             SelectedLocale = locale;
+            UpdateFarsiState(locale);
             LocalizationSettings.SelectedLocale = SelectedLocale.Locale;
             _locale.Value = locale;
             _progressService.SetLocale(locale.ShortName);
@@ -69,10 +72,16 @@ namespace TapEmpire.Services.Localization
             var localizedString = new LocalizedString(tableName, entryName);
             return localizedString.GetLocalizedString();
         }
-        
+
         public static string GetLevelTableName(string levelName)
         {
             return $"Level_{levelName}";
+        }
+
+        private void UpdateFarsiState(LocaleModel model)
+        {
+            TextUtils.IsFarsi = model.ShortName == "Persian";
+            Debug.Log($"TTT {TextUtils.IsFarsi}");
         }
     }
 }

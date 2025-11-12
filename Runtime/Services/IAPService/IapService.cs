@@ -19,6 +19,7 @@ namespace TapEmpire.Services
         [SerializeField] private IapProductsSettings _iapProductsSettings;
         [SerializeField] private IapShowSettings _iapShowSettings;
         [SerializeField] private UIView _noAdsPopupView;
+        [SerializeField] private UIView _iapLoadingView;
         [SerializeReference] private IIapHandler[] _iapHandlers;
 
         private readonly Dictionary<Type, IIapHandler> _handlers = new();
@@ -55,9 +56,11 @@ namespace TapEmpire.Services
             _progressService = progressService;
             _uiService = uiService;
             _purchasingModule = new UnityPurchasingModule(progressService);
-            _disposable.Add(_purchasingModule.OnPurchaseSuccess.Subscribe(OnProductPurchaseSuccess));
-            _disposable.Add(_purchasingModule.OnProductPurchaseFailed.Subscribe(OnProductPurchaseFailed));
-            _disposable.Add(_purchasingModule.OnPurchaseRestored.Subscribe(OnProductPurchaseRestored));
+            _purchasingModule.OnPurchaseSuccess.Subscribe(OnProductPurchaseSuccess).AddTo(_disposable);
+            _purchasingModule.OnProductPurchaseFailed.Subscribe(OnProductPurchaseFailed).AddTo(_disposable);
+            _purchasingModule.OnPurchaseRestored.Subscribe(OnProductPurchaseRestored).AddTo(_disposable);
+
+            _purchasingModule.OnPurchaseInProgress.Subscribe(OnPurchaseInProgress).AddTo(_disposable);
             _iapAnalyticsModule = new IapAnalyticsModule(diContainer);
             _diContainer = diContainer;
         }
@@ -86,6 +89,7 @@ namespace TapEmpire.Services
                 Debug.LogError($"can't find offer with key [{key}]!");
                 return;
             }
+
             _purchasingModule.BuyProduct(offer.GetStoreID());
         }
 
@@ -96,6 +100,23 @@ namespace TapEmpire.Services
                 return _purchasingModule.GetProductDetail(offer.GetStoreID());
             Debug.LogError($"can't find offer with key [{key}]!");
             return null;
+        }
+
+        private void OnPurchaseInProgress(string purchaseId)
+        {
+            if (string.IsNullOrEmpty(purchaseId))
+            {
+                _uiService.TryCloseViewAsync<IapLoadingViewModel>(default).Forget();
+            }
+            else
+            {
+                _uiService.OpenViewAsync(_iapLoadingView, new IapLoadingViewModel(), default).Forget();
+            }
+        }
+
+        public Product GetProductInfoByStoreId(string key)
+        {
+            return _purchasingModule.GetProductDetail(key);
         }
 
         public IapOffer GetOfferInfoByStoreId(string key)
@@ -162,7 +183,7 @@ namespace TapEmpire.Services
         {
             var iapCollection = _iapProductsSettings.Products;
             _storeOffers = iapCollection.ToDictionary(x => x.GetStoreID(), x => x);
-            _purchasingModule.Init(iapCollection);
+            _purchasingModule.Init(iapCollection, _iapProductsSettings.HasVerification);
             Array.ForEach(_iapHandlers, handler => InitializeAndRegisterHandler(handler));
 
             _iapAnalyticsModule.Initialize();
@@ -178,23 +199,25 @@ namespace TapEmpire.Services
             if (!_storeOffers.ContainsKey(iapId))
                 return;
             ProcessPurchase(_storeOffers[iapId]).Forget();
+            _progressService.AddPurchase();
             _onPurchaseSuccessDetailed.Execute(product);
             _onPurchaseSuccess.Execute(_storeOffers[iapId].Key);
         }
 
         protected void OnProductPurchaseFailed(PurchaseFailArgs args)
         {
-            Debug.Log($"IAP OnProductPurchaseFailed {args.IapId} {args.Reason}");
+            Debug.LogError($"IAP OnProductPurchaseFailed {args.IapId} {args.Reason}");
             _onPurchaseFailed.Execute(args);
         }
 
         protected void OnProductPurchaseRestored(string iapId)
         {
-            Debug.Log($"IAP OnPurchaseRestored{iapId}");
+            Debug.Log($"IAP OnPurchaseRestored {iapId}");
 
             if (!_storeOffers.ContainsKey(iapId))
                 return;
             ProcessPurchase(_storeOffers[iapId]).Forget();
+            _progressService.AddPurchase();
             _onPurchaseRestored.Execute(iapId);
         }
 

@@ -4,7 +4,7 @@ using UnityEngine;
 using System.Linq;
 using Sirenix.OdinInspector;
 using System;
-using com.adjust.sdk;
+using AdjustSdk;
 using LunarConsolePlugin;
 using TapEmpire.Settings;
 using TEL.Utilities;
@@ -13,7 +13,7 @@ using TapEmpire.Services;
 namespace TapEmpire.Build
 {
     using Utility;
-    
+
     public class GameBuilderWindow : OdinEditorWindow
     {
         [SerializeField]
@@ -123,7 +123,7 @@ namespace TapEmpire.Build
         {
             var buildSettings = AssetDatabase.LoadAssetAtPath<GameBuildSettings>(_projectPathSettings.GameBuildSettingsPath);
             var platformData = PlatformType == PlatformType.Android ? buildSettings.Android : buildSettings.Ios;
- 
+
             var adjust = AssetDatabase.LoadAssetAtPath<Adjust>($"{_projectPathSettings.DefaultServicesPath}/Adjust Variant.prefab");
             adjust.appToken = platformData.Adjust.AppToken;
             EditorUtility.SetDirty(adjust);
@@ -145,8 +145,13 @@ namespace TapEmpire.Build
             EditorUtility.SetDirty(adsManager);
 
             var servicesInstaller = AssetDatabase.LoadAssetAtPath<ServicesInstaller>($"{_projectPathSettings.DefaultScriptablesPath}/ServicesInstaller.asset");
+
             var iapService = servicesInstaller.GetService<IIapService>();
             ReflectionUtility.SetPrivateField(iapService as object, "<AdjustPurchaseToken>k__BackingField", platformData.Adjust.PurchaseToken);
+
+            var analyticsService = servicesInstaller.GetService<IAnalyticsService>();
+            ReflectionUtility.SetPrivateField(analyticsService as object, "<AdjustEventToken>k__BackingField", platformData.Adjust.EventToken);
+
             EditorUtility.SetDirty(servicesInstaller);
         }
 
@@ -154,7 +159,7 @@ namespace TapEmpire.Build
         {
             var buildSettings = AssetDatabase.LoadAssetAtPath<GameBuildSettings>(_projectPathSettings.GameBuildSettingsPath);
             var isDebug = SelectedBuildConfig == Configuration.Debug;
-            buildSettings.BuildActions.ForEach(action => action.Apply(isDebug));   
+            buildSettings.BuildActions.ForEach(action => action.Apply(isDebug));
         }
 
         [Button, BoxGroup("Keystore"), ShowIf(nameof(UseCustomKeystore))]
