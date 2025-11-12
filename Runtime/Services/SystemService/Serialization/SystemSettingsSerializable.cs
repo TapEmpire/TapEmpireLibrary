@@ -1,0 +1,52 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using Sirenix.OdinInspector;
+using UnityEngine;
+
+namespace TapEmpire.Services
+{
+    [Serializable]
+    public class SystemSettingsSerializable : IRemoteSerializable
+    {
+        [SerializeField] private SystemSettings _settings;
+
+        public class SystemSettingsRemoteModel
+        {
+            public float SessionInterval = 600.0f;
+
+            public SystemSettingsRemoteModel() { }
+
+            public SystemSettingsRemoteModel(SystemSettings settings)
+            {
+                SessionInterval = settings.SessionInterval;
+            }
+        }
+
+        public string TokenName => "SystemSettings";
+
+        public void DeserializeJson(JToken token)
+        {
+            var model = token.ToObject<SystemSettingsRemoteModel>();
+
+            _settings.SessionInterval = model.SessionInterval;
+        }
+
+        public string SerializeJson()
+        {
+            var model = new SystemSettingsRemoteModel(_settings);
+            var result = JsonConvert.SerializeObject(model);
+
+            return result;
+        }
+
+        [Button("Serialize to console")]
+        private void SerializeToConsole()
+        {
+            var json = SerializeJson();
+            Debug.Log(json);
+        }
+    }
+}
