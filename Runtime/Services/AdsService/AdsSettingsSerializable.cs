@@ -19,6 +19,7 @@ namespace TapEmpire.Services
             public bool EnableUMP = true;
             public bool EnableATT = true;
             public bool EnableMetica = true;
+            public bool EnableMeta = true;
             public bool EnableAppOpen = false;
             public bool EnableBanners = true;
             public bool ShouldWaitAppOpen = false;
@@ -34,6 +35,7 @@ namespace TapEmpire.Services
                 EnableUMP = settings.EnableUMP;
                 EnableATT = settings.EnableATT;
                 EnableMetica = settings.EnableMetica;
+                EnableMeta = settings.EnableMeta;
                 EnableAppOpen = settings.EnableAppOpen;
                 EnableBanners = settings.EnableBanners;
                 ShouldWaitAppOpen = settings.ShouldWaitAppOpen;
@@ -52,6 +54,7 @@ namespace TapEmpire.Services
             _adsSettings.EnableUMP = model.EnableUMP;
             _adsSettings.EnableATT = model.EnableATT;
             _adsSettings.EnableMetica = model.EnableMetica;
+            _adsSettings.EnableMeta = model.EnableMeta;
             _adsSettings.EnableAppOpen = model.EnableAppOpen;
             _adsSettings.EnableBanners = model.EnableBanners;
             _adsSettings.ShouldWaitAppOpen = model.ShouldWaitAppOpen;

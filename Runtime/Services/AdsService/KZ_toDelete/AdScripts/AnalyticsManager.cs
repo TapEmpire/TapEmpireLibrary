@@ -5,6 +5,7 @@ using System.Text;
 using Firebase.Analytics;
 using Io.AppMetrica;
 using AdjustSdk;
+using Facebook.Unity;
 
 public class AdData
 {
@@ -49,19 +50,22 @@ public static class AnalyticsManager
 
         //Rev Event for Adjust
         AdjustAdRevenue adjustAdRevenue = new AdjustAdRevenue("admob_sdk");
-        adjustAdRevenue.SetRevenue(revenue, "USD");
+        adjustAdRevenue.SetRevenue(revenue, admobAd.CurrencyCode);
         Adjust.TrackAdRevenue(adjustAdRevenue);
 
         // GameAnalytics.NewAdEvent(GAAdAction.Show, GetAdType(data.Format), "Admob", targetPlacement);
 
         //Rev Event for Appmetrica
-        AdRevenue rev = new AdRevenue(revenue, "USD");
+        AdRevenue rev = new AdRevenue(revenue, admobAd.CurrencyCode);
         rev.AdType = GetAppMetricaAdType(data.Format);
         rev.AdNetwork = "Admob_Native";
         rev.AdUnitId = data.AdUnit;
         if (isValidPlacementName(data.Format))
             rev.AdPlacementName = PlacementName.ToLower();
         AppMetrica.ReportAdRevenue(rev);
+
+        LogFacebookRevenue("Admob", "Simple Admob", data.Format.ToString(), targetPlacement, revenue,
+            admobAd.CurrencyCode, admobAd.Precision.ToString());
 
         LastAdData.Network = "AdMob";
         LastAdData.Mediation = "AdMob Mediation";
@@ -113,6 +117,8 @@ public static class AnalyticsManager
 
         // GameAnalytics.NewAdEvent(GAAdAction.Show, GetAdType(format), "Max", targetPlacement);
 
+        LogFacebookRevenue("AppLovin", maxAd.NetworkName, format.ToString(), targetPlacement, revenue, "USD", maxAd.RevenuePrecision);
+
         //Rev Event for Appmetrica
         AdRevenue rev = new AdRevenue(revenue, "USD");
         rev.AdType = GetAppMetricaAdType(format);
@@ -135,6 +141,23 @@ public static class AnalyticsManager
 
         //if (format == AdFormat.Interstitial || format == AdFormat.Rewarded)
         //    SendAppsFlyerEvents();
+    }
+
+    private static void LogFacebookRevenue(string platform, string source, string format, string placement,
+        double value, string currency, string precision = null)
+    {
+        var parameters = new System.Collections.Generic.Dictionary<string, object>
+        {
+            { "ad_platform", "AdMob" },
+            { "ad_source", "Simple Admob" },
+            { "ad_format", format },
+            { "ad_placement_id", placement ?? string.Empty },
+            { "fb_currency", currency }
+        };
+
+        if (!string.IsNullOrEmpty(precision)) parameters["precision"] = precision;
+
+        FB.LogAppEvent("ad_impression", valueToSum: (float)value, parameters: parameters);
     }
 
     /*static YandexAppMetricaAdRevenue.AdTypeEnum GetAdType(AdFormat format)

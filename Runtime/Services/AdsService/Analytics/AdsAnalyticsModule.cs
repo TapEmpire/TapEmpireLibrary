@@ -8,6 +8,28 @@ using Zenject;
 
 namespace TapEmpire.Services
 {
+    public enum BatchAnalyticsType
+    {
+        Firebase,
+        Facebook,
+    }
+
+    public class BatchedData
+    {
+        public double Revenue;
+        public bool IsBatchedOnce;
+        public BatchType BatchType;
+        public double Threshold;
+        public string Postfix;
+        public System.Action<double> Callback;
+
+        public void Initialize(IProgressService progressService)
+        {
+            Revenue = progressService.GetAdRevenueBatched(Postfix);
+            IsBatchedOnce = BatchType == BatchType.Once && progressService.GetOnceBatched(Postfix);
+        }
+    }
+
     public class AdsAnalyticsModule
     {
         private readonly DiContainer _diContainer = null;
@@ -20,6 +42,7 @@ namespace TapEmpire.Services
         private float _currentRevenue = 0.0f;
         private double _batchedRevenue = 0.0f;
         private bool _isBatchedOnce = false;
+        private BatchedData[] _batchedData = null;
         private CompositeDisposable _disposables = new();
 
         public AdsAnalyticsModule(DiContainer diContainer)
@@ -43,8 +66,7 @@ namespace TapEmpire.Services
             _currentRevenue = _progressService.GetAdRevenue();
             CheckIsRevenueEnough();
 
-            _batchedRevenue = _progressService.GetAdRevenueBatched();
-            _isBatchedOnce = _settings.AdsAnalyticsSettings.BatchType == BatchType.Once && _progressService.GetOnceBatched();
+            _batchedData = InitializedBatchedData();
 
             adsService.OnAdClickedEvent += OnAdClickedEvent;
             adsService.OnAdDisplayedRewardEvent += OnAdShowing;
@@ -111,11 +133,15 @@ namespace TapEmpire.Services
         private void OnAdPayed(string adType, string network, string mediation, AdFormat format, double price,
             string currencyCode, string unitId)
         {
-            OnAdRevenue(price);
-
             if (mediation != "AdMob Mediation")
             {
-                OnBatchedRevenue(price);
+                OnBatchedRevenue(price, _batchedData[(int)BatchAnalyticsType.Firebase]);
+
+                if (_settings.EnableMeta)
+                {
+                    OnBatchedRevenue(price, _batchedData[(int)BatchAnalyticsType.Facebook]);
+                    OnAdRevenue(price);
+                }
             }
 
             var levelsCompleted = _progressService.GetLevelProgress();
@@ -163,7 +189,7 @@ namespace TapEmpire.Services
 
         private void OnAdRevenue(double price)
         {
-            if (_isRevenueEnough || System.DateTime.UtcNow > _revenueWindowEnd)
+            if (_isRevenueEnough)
             {
                 return;
             }
@@ -177,11 +203,7 @@ namespace TapEmpire.Services
 
                 if (layer.Value > _currentRevenue)
                 {
-                    if (TapEmpire.Services.FirebaseService.IsInitializedDeprecated)
-                    {
-                        // UnityEngine.Debug.LogError(layer.Name);
-                        FirebaseAnalytics.LogEvent(layer.Name);
-                    }
+                    Facebook.Unity.FB.LogAppEvent(layer.Name);
                 }
             }
 
@@ -197,20 +219,18 @@ namespace TapEmpire.Services
             }
         }
 
-        private void OnBatchedRevenue(double price)
+        private void OnBatchedRevenue(double price, BatchedData batchedData)
         {
-            var settings = _settings.AdsAnalyticsSettings;
-
-            switch (settings.BatchType)
+            switch (batchedData.BatchType)
             {
                 case BatchType.Taichi:
-                    UpdateBatchedRevenue(price);
+                    UpdateBatchedRevenue(price, batchedData);
                     break;
                 case BatchType.Once:
-                    if (UpdateBatchedRevenue(price))
+                    if (UpdateBatchedRevenue(price, batchedData))
                     {
-                        _progressService.SetOnceBatched();
-                        _isBatchedOnce = true;
+                        _progressService.SetOnceBatched(batchedData.Postfix);
+                        batchedData.IsBatchedOnce = true;
                     }
                     break;
                 case BatchType.None:
@@ -219,27 +239,62 @@ namespace TapEmpire.Services
             }
         }
 
-        private bool UpdateBatchedRevenue(double price)
+        private bool UpdateBatchedRevenue(double price, BatchedData batchedData)
         {
-            _batchedRevenue += price;
+            batchedData.Revenue += price;
 
-            if (_batchedRevenue >= _settings.AdsAnalyticsSettings.Threshold || _isBatchedOnce)
+            if (batchedData.Revenue >= batchedData.Threshold || batchedData.IsBatchedOnce)
             {
-                var impressionParameters = new[] {
-                    new Parameter(FirebaseAnalytics.ParameterValue, _batchedRevenue),
-                    new Parameter(FirebaseAnalytics.ParameterCurrency, "USD"),
-                };
-                FirebaseAnalytics.LogEvent("ad_revenue_batched", impressionParameters);
-
-                _progressService.ClearAdRevenueBatched();
-                _batchedRevenue = 0.0;
+                batchedData.Callback(batchedData.Revenue);
+                _progressService.ClearAdRevenueBatched(batchedData.Postfix);
+                batchedData.Revenue = 0.0;
                 return true;
             }
             else
             {
-                _progressService.SetAdRevenueBatched(_batchedRevenue);
+                _progressService.SetAdRevenueBatched(_batchedRevenue, batchedData.Postfix);
                 return false;
             }
+        }
+
+        private void LogBatchedFirebase(double revenue)
+        {
+            var impressionParameters = new[] {
+                new Parameter(FirebaseAnalytics.ParameterValue, revenue),
+                new Parameter(FirebaseAnalytics.ParameterCurrency, "USD"),
+            };
+            FirebaseAnalytics.LogEvent("ad_revenue_batched", impressionParameters);
+        }
+
+        private void LogBatchedFacebook(double revenue)
+        {
+            Facebook.Unity.FB.LogAppEvent("ad_revenue_batched", valueToSum: (float)revenue,
+                parameters: new Dictionary<string, object>
+                {
+                    { "fb_currency", "USD" }
+                });
+        }
+
+        private BatchedData[] InitializedBatchedData()
+        {
+            var batchedData = new BatchedData[2] {
+                new BatchedData() {
+                    BatchType = _settings.AdsAnalyticsSettings.BatchType,
+                    Threshold = _settings.AdsAnalyticsSettings.Threshold,
+                    Postfix = "",
+                    Callback = this.LogBatchedFirebase,
+                },
+                new BatchedData() {
+                    BatchType = _settings.AdsAnalyticsSettings.BatchTypeMeta,
+                    Threshold = _settings.AdsAnalyticsSettings.ThresholdMeta,
+                    Postfix = "Meta",
+                    Callback = this.LogBatchedFacebook,
+                }
+            };
+
+            batchedData.ForEach(batchedData => batchedData.Initialize(_progressService));
+
+            return batchedData;
         }
     }
 }
