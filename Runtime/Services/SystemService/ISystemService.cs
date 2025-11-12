@@ -7,5 +7,6 @@ namespace TapEmpire.Services
     public interface ISystemService : IService
     {
         Subject<bool> OnApplicationFocusChanged { get; }
+        Subject<Unit> OnSessionStarted { get; }
     }
 }
