@@ -22,23 +22,28 @@ namespace TapEmpire.Services
         public Observable<T> OnVirtualAdded => _onVirtualAdded;
 
         protected IProgressService _progressService;
+        protected ISystemService _systemService;
         protected DiContainer _diContainer;
         protected ResourcesAnalyticsModule<T> _analyticsModule;
 
         protected Dictionary<T, ResourceRuntimeData<T>> _resources = new();
 
+        protected CompositeDisposable _disposables = new();
+
         public ResourceRuntimeData<T> GetResourceData(T type) => _resources[type];
 
         [Inject]
-        private void Construct(IProgressService progressService, DiContainer diContainer)
+        private void Construct(IProgressService progressService, DiContainer diContainer, ISystemService systemService)
         {
             _diContainer = diContainer;
             _progressService = progressService;
+            _systemService = systemService;
         }
 
         protected override UniTask OnInitializeAsync(CancellationToken cancellationToken)
         {
             _settings.Resources.ForEach(resource => _resources.Add(resource.ResourceType, new ResourceRuntimeData<T>(resource, _progressService)));
+            _systemService.OnApplicationFocusChanged.Subscribe(UpdateOnFocusChange).AddTo(_disposables);
 
             _analyticsModule = new ResourcesAnalyticsModule<T>(_diContainer);
 
@@ -90,6 +95,11 @@ namespace TapEmpire.Services
                 _onResourceAdded.OnNext((resource, _resources[resource].Amount.Value + amount, reason));
             }
             _onVirtualAdded.OnNext(resource);
+        }
+
+        private void UpdateOnFocusChange(bool hasFocus)
+        {
+            _resources.ForEach(resource => resource.Value.RecheckAbsentTime());
         }
     }
 }
