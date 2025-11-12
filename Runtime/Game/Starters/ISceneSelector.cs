@@ -4,6 +4,6 @@ namespace TapEmpire.Game
 {
     public interface ISceneSelector
     {
-        SceneName GetNextScene();
+        (SceneName, bool) GetNextScene();
     }
 }

@@ -101,8 +101,8 @@ namespace TapEmpire.Game
             await UniTask.WaitUntil(() => _isInitialized, cancellationToken: _cancellationTokenSource.Token);
             if (_autoLoadSceneOnStart)
             {
-                var sceneName = _sceneSelector != null ? _sceneSelector.GetNextScene() : _sceneName;
-                _sceneManagementService.LoadSceneAsync(sceneName, _cancellationTokenSource.Token, _shouldManualClose).Forget();
+                var (sceneName, shouldManualClose) = _sceneSelector != null ? _sceneSelector.GetNextScene() : (_sceneName, _shouldManualClose);
+                _sceneManagementService.LoadSceneAsync(sceneName, _cancellationTokenSource.Token, shouldManualClose).Forget();
             }
         }
     }
