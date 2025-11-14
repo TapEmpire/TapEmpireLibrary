@@ -68,7 +68,7 @@ namespace TapEmpire.UI
                 _imageTransform.localPosition = position;
             }
 
-            if (_inputCoreSystem != null && _inputCoreSystem.IsSimulated.Value == true)
+            if (_inputCoreSystem != null && _inputCoreSystem.IsSimulated)
             {
                 Vector2 position;
                 RectTransformUtility.ScreenPointToLocalPointInRectangle(
@@ -91,27 +91,35 @@ namespace TapEmpire.UI
                     _compositeDisposable.Dispose();
                     _compositeDisposable = new CompositeDisposable();
 
+                    _levelExecutionCoreSystem.OnLevelStarted -= LevelExecutionCoreSystemOnOnLevelStarted;
+                    _levelExecutionCoreSystem.OnLevelCompleted -= LevelExecutionCoreSystemOnOnLevelCompleted;
+
                     _inputCoreSystem.OnScreenInputStart -= InputCoreSystemOnOnScreenInputStart;
                     _inputCoreSystem.OnScreenInputEnd -= InputCoreSystemOnOnScreenInputEnd;
                 }
 
                 _inputCoreSystem = pair.Item2.Container.Resolve<IInputCoreSystem>();
-                _inputCoreSystem.IsSimulated.Subscribe(OnSimulationStateChanged).AddTo(_compositeDisposable);
 
                 _levelExecutionCoreSystem = pair.Item2.Container.Resolve<ILevelExecutionCoreSystem>();
+                _levelExecutionCoreSystem.OnLevelStarted += LevelExecutionCoreSystemOnOnLevelStarted;
                 _levelExecutionCoreSystem.OnLevelCompleted += LevelExecutionCoreSystemOnOnLevelCompleted;
 
                 _inputCoreSystem.OnScreenInputStart += InputCoreSystemOnOnScreenInputStart;
                 _inputCoreSystem.OnScreenInputEnd += InputCoreSystemOnOnScreenInputEnd;
-                OnSimulationStateChanged(_inputCoreSystem.IsSimulated.Value);
+                OnSimulationStateChanged(_inputCoreSystem.IsSimulated);
 
                 _isSimulating = true;
             }
         }
 
+        private void LevelExecutionCoreSystemOnOnLevelStarted(LevelExecutionData obj)
+        {
+            OnSimulationStateChanged(_inputCoreSystem.IsSimulated);
+        }
+
         private void LevelExecutionCoreSystemOnOnLevelCompleted(LevelEndReason obj)
         {
-            _inputCoreSystem.IsSimulated.Value = false;
+            _inputCoreSystem.IsSimulated = false;
         }
 
         private void InputCoreSystemOnOnScreenInputStart(Vector2 obj)
@@ -134,6 +142,9 @@ namespace TapEmpire.UI
         private void OnDestroy()
         {
             _compositeDisposable.Dispose();
+
+            _levelExecutionCoreSystem.OnLevelStarted += LevelExecutionCoreSystemOnOnLevelStarted;
+            _levelExecutionCoreSystem.OnLevelCompleted += LevelExecutionCoreSystemOnOnLevelCompleted;
 
             _inputCoreSystem.OnScreenInputStart -= InputCoreSystemOnOnScreenInputStart;
             _inputCoreSystem.OnScreenInputEnd -= InputCoreSystemOnOnScreenInputEnd;
