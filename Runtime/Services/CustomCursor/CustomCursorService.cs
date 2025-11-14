@@ -31,7 +31,6 @@ namespace TapEmpire.Services
             _isInitialized = false;
 
             _sceneContextsService.OnSceneContextInstalledR3.Subscribe(OnContextInitialized).AddTo(_disposables);
-            // _uiView.SetInfo(_diContainer);
         }
         
         protected override UniTask OnInitializeAsync(CancellationToken cancellationToken)
