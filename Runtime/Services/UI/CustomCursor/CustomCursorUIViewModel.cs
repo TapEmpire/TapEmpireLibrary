@@ -1,6 +1,6 @@
 namespace TapEmpire.UI
 {
-    public class CustomCursorUIViewModel : IUIViewModel
+    public class CustomCursorUIViewModel : IUIViewModel, IInjectable
     {
     }
 }
