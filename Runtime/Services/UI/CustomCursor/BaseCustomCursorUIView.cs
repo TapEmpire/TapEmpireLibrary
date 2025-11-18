@@ -18,25 +18,24 @@ namespace TapEmpire.UI
 
         protected RectTransform _canvasTransform;
         protected bool _isRunning;
-        protected bool _isSimulating;
 
         protected CompositeDisposable _compositeDisposable;
 
-        public override UniTask OpenAsync(CancellationToken cancellationToken)
+        protected override UniTask OnOpenAsync(CancellationToken cancellationToken)
         {
             var canvas = GetComponentInParent<Canvas>();
             _canvasTransform = (RectTransform) canvas.transform;
 
             _isRunning = true;
 
-            return base.OpenAsync(cancellationToken);
+            return base.OnOpenAsync(cancellationToken);
         }
 
-        protected override UniTask OnOpenAsync(CancellationToken cancellationToken)
+        protected override UniTask OnCloseAsync(CancellationToken cancellationToken)
         {
             _isRunning = false;
             
-            return base.OnOpenAsync(cancellationToken);
+            return base.OnCloseAsync(cancellationToken);
         }
 
         [Inject]
