@@ -43,7 +43,7 @@ namespace TapEmpire.Services.Shop
             AcquireResources(_data.Reward.Resource, _data.Reward.Amount, ResourceUsage.PopupAds, from, true);
         }
 
-        protected override void AcquireResources(ResourceType resourceType, int amount, ResourceUsage usage,
+        protected override void AcquireResources<ResourceUsage>(ResourceType resourceType, int amount, ResourceUsage usage,
             Vector3 startPosition, bool shouldAddResource)
         {
             _resourcesService.Add(resourceType, amount, usage.ToString());

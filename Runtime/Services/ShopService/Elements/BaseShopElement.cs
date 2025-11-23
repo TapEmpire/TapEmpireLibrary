@@ -55,7 +55,7 @@ namespace TapEmpire.Services.Shop
         protected IResourcesService<ResourceType> _resourcesService;
         protected IAnimationService<ResourceType> _animationService;
 
-        protected virtual void AcquireResources(ResourceType resourceType, int amount, ResourceUsage usage,
+        protected virtual void AcquireResources<ResourceUsage>(ResourceType resourceType, int amount, ResourceUsage usage,
             Vector3 startPosition, bool shouldAddResource)
         {
             var animation = _animationService.CollectResource(resourceType, amount, startPosition, shouldAddResource);
