@@ -1,8 +1,4 @@
-using System.Collections;
-using System.Collections.Generic;
 using R3;
-using WordGame.Services;
-using TapEmpire.Services;
 using TapEmpire.UI;
 using TapEmpire.Utility;
 using TMPro;
@@ -12,7 +8,7 @@ using Zenject;
 
 namespace TapEmpire.Services.Shop
 {
-    public class SoftShopElement : BaseShopElement
+    public class SoftShopElement<ResourceType> : BaseShopElement<ResourceType>
     {
         [SerializeField] private Button _purchaseButton;
         [SerializeField] protected Image _icon;
@@ -20,19 +16,18 @@ namespace TapEmpire.Services.Shop
         [SerializeField] private TMP_Text _priceText;
         [SerializeField] private Image _special;
         [SerializeField] private CustomButton _customButton;
-        [SerializeField] private ResourceUsage _resourceUsage = ResourceUsage.ShopSoft;
 
         protected ProductData _data;
         private ShopSettings _shopSettings;
 
         [Inject]
-        private void Construct(IResourcesService resourcesService,
-            IUIService uiService, IGameGenericService gameGenericService, IAnimationService animationService)
+        private void Construct(IResourcesService<ResourceType> resourcesService, IAnimationService<ResourceType> animationService,
+            IUIService uiService, IShopService shopService)
         {
             _resourcesService = resourcesService;
             _uiService = uiService;
             _animationService = animationService;
-            _shopSettings = gameGenericService.GameplaySettings.ShopSettings;
+            _shopSettings = shopService.ShopSettings;
         }
 
         public override void Initialize(ProductData data)
@@ -41,11 +36,14 @@ namespace TapEmpire.Services.Shop
             _data = data;
             _purchaseButton.onClick.Subscribe(OnPurchase).AddTo(_disposables);
 
-            _priceText.text = $"{_data.Price.Amount}";
+            var reward = _data.Reward.As<ProductReward<ResourceType>>();
+            var price = _data.Price.As<ProductReward<ResourceType>>();
+
+            _priceText.text = $"{price.Amount}";
 
             if (_amount != null)
             {
-                _amount.text = $"x{_data.Reward.Amount}";
+                _amount.text = $"x{reward.Amount}";
             }
 
             if (data.Icon != null)
@@ -62,16 +60,18 @@ namespace TapEmpire.Services.Shop
             _purchaseButton.enabled = HasAmount();
             _customButton.SetActive(_purchaseButton.enabled);
 
-            _resourcesService.GetResourceData(ResourceType.Coins).Amount.Subscribe(OnCoinsChanged).AddTo(_disposables);
+            _resourcesService.GetResourceData(price.Resource).Amount.Subscribe(OnCoinsChanged).AddTo(_disposables);
         }
 
         private void OnPurchase()
         {
             if (HasAmount())
             {
+                var reward = _data.Reward.As<ProductReward<ResourceType>>();
+                var price = _data.Price.As<ProductReward<ResourceType>>();
                 var from = _icon.transform.position;
-                _resourcesService.Subtract(_data.Price.Resource, _data.Price.Amount, $"{ResourceUsage.For}{_data.Price.Resource}");
-                AcquireResources(_data.Reward.Resource, _data.Reward.Amount, _resourceUsage, from, true);
+                _resourcesService.Subtract(price.Resource, price.Amount, $"{ResourceUsageType.For}{price.Resource}");
+                AcquireResources(reward.Resource, reward.Amount, ResourceUsageType.ShopSoft, from, true);
             }
         }
 
@@ -83,7 +83,8 @@ namespace TapEmpire.Services.Shop
 
         private bool HasAmount()
         {
-            return _resourcesService.HasAmount(_data.Price.Resource, _data.Price.Amount);
+            var price = _data.Price.As<ProductReward<ResourceType>>();
+            return _resourcesService.HasAmount(price.Resource, price.Amount);
         }
     }
 }

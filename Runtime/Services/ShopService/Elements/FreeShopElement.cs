@@ -1,8 +1,5 @@
 using System;
 using R3;
-using WordGame.Level;
-using WordGame.Services;
-using TapEmpire.Services;
 using TapEmpire.UI;
 using TapEmpire.Utility;
 using TMPro;
@@ -12,7 +9,7 @@ using Zenject;
 
 namespace TapEmpire.Services.Shop
 {
-    public class FreeShopElement : BaseShopElement
+    public class FreeShopElement<ResourceType> : BaseShopElement<ResourceType>
     {
         [SerializeField] protected Button _purchaseButton;
         [SerializeField] private Image _icon;
@@ -33,8 +30,8 @@ namespace TapEmpire.Services.Shop
         private const float _timerTotal = 24 * 60 * 60;
 
         [Inject]
-        private void Construct(IResourcesService resourcesService, IAdsService adsService, IUIService uiService,
-            IGameGenericService gameGenericService, IShopService shopService, IAnimationService animationService)
+        private void Construct(IResourcesService<ResourceType> resourcesService, IAdsService adsService, IUIService uiService,
+            IShopService shopService, IAnimationService<ResourceType> animationService)
         {
             _resourcesService = resourcesService;
             _adsService = adsService;
@@ -57,7 +54,7 @@ namespace TapEmpire.Services.Shop
             _freeButton.onClick.Subscribe(OnClick).AddTo(_disposables);
             _adsButton.onClick.Subscribe(OnClick).AddTo(_disposables);
 
-            _amount.text = $"x{_data.Reward.Amount}";
+            _amount.text = $"x{_data.Reward.As<ProductReward<ResourceType>>().Amount}";
             _icon.sprite = data.Icon;
 
             UpdateTimer();
@@ -67,19 +64,20 @@ namespace TapEmpire.Services.Shop
         {
             if (_data.Type == ProductType.Free)
             {
-                OnClickResult(ResourceUsage.ShopFree);
+                OnClickResult(ResourceUsageType.ShopFree);
             }
 
             if (_data.Type == ProductType.Ads)
             {
-                _adsService.ShowRewarded(AdType.ShopCoins.ToString(), () => OnClickResult(ResourceUsage.ForAds));
+                _adsService.ShowRewarded(AdType.ShopCoins.ToString(), () => OnClickResult(ResourceUsageType.ShopAds));
             }
         }
 
-        private void OnClickResult(ResourceUsage resourceUsage)
+        private void OnClickResult(string resourceUsage)
         {
             var from = _icon.transform.position;
-            AcquireResources(ResourceType.Coins, _data.Reward.Amount, resourceUsage, from, true);
+            var reward = _data.Reward.As<ProductReward<ResourceType>>();
+            AcquireResources(reward.Resource, reward.Amount, resourceUsage, from, true);
 
             _shopService.SetTimeStamp(_data.Key);
             UpdateTimer();

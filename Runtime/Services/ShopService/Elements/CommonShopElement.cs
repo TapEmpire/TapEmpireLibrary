@@ -1,8 +1,4 @@
-using System.Collections;
-using System.Collections.Generic;
 using R3;
-using WordGame.Services;
-using TapEmpire.Services;
 using TapEmpire.UI;
 using TapEmpire.Utility;
 using TMPro;
@@ -12,27 +8,26 @@ using Zenject;
 
 namespace TapEmpire.Services.Shop
 {
-    public class CommonShopElement : BaseShopElement
+    public class CommonShopElement<ResourceType> : BaseShopElement<ResourceType>
     {
         [SerializeField] private Button _purchaseButton;
         [SerializeField] private Image _icon;
         [SerializeField] private TMP_Text _amount;
         [SerializeField] private TMP_Text _priceText;
         [SerializeField] private Image _special;
-        [SerializeField] private ResourceUsage _resourceUsage = ResourceUsage.ShopPaid;
 
         private ProductData _data;
         private ShopSettings _shopSettings;
 
         [Inject]
-        private void Construct(IIapService iapService, IResourcesService resourcesService,
-            IUIService uiService, IGameGenericService gameGenericService, IAnimationService animationService)
+        private void Construct(IIapService iapService, IResourcesService<ResourceType> resourcesService,
+            IUIService uiService, IAnimationService<ResourceType> animationService, IShopService shopService)
         {
             _resourcesService = resourcesService;
             _iapService = iapService;
             _uiService = uiService;
             _animationService = animationService;
-            _shopSettings = gameGenericService.GameplaySettings.ShopSettings;
+            _shopSettings = shopService.ShopSettings;
         }
 
         public override void Initialize(ProductData data)
@@ -45,7 +40,7 @@ namespace TapEmpire.Services.Shop
             var price = GetPrice(data.Key);
             _priceText.text = price; // $"BUY {price}";
 
-            var product = GetProduct<AddResourceProduct>(_data.Key);
+            var product = GetProduct<AddResourceProduct<ResourceType>>(_data.Key);
             _amount.text = $"x{product.Amount}";
             _icon.sprite = data.Icon;
 
@@ -61,8 +56,8 @@ namespace TapEmpire.Services.Shop
             if (_data.Key == productId)
             {
                 var from = _icon.transform.position;
-                var product = GetProduct<AddResourceProduct>(_data.Key);
-                AcquireResources(product.ResourceType, product.Amount, _resourceUsage, from, false);
+                var product = GetProduct<AddResourceProduct<ResourceType>>(_data.Key);
+                AcquireResources(product.ResourceType, product.Amount, ResourceUsageType.ShopPaid, from, false);
             }
         }
     }

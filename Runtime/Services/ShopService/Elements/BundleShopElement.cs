@@ -1,9 +1,6 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using R3;
-using WordGame.Services;
-using TapEmpire.Services;
 using TapEmpire.UI;
 using TapEmpire.Utility;
 using TMPro;
@@ -11,18 +8,16 @@ using UnityEngine;
 using UnityEngine.UI;
 using Zenject;
 using System.Linq;
-using WordGame.Level;
 
 namespace TapEmpire.Services.Shop
 {
-    public class BundleShopElement : BaseShopElement
+    public class BundleShopElement<ResourceType> : BaseShopElement<ResourceType>
     {
         [SerializeField] private List<OfferChoiceData> _offerChoices;
         [SerializeField] private TMP_Text _timerText;
         [SerializeField] private Image _timerProgress;
 
         private IShopService _shopService;
-        private ProjectResourcesSettings _projectResourcesSettings;
 
         private OfferData _data;
         private UniTaskTimer _timer = null;
@@ -31,14 +26,13 @@ namespace TapEmpire.Services.Shop
 
         [Inject]
         private void Construct(IIapService iapService, IShopService shopService, IUIService uiService,
-            IResourcesService resourcesService, IAnimationService animationService, IGameGenericService gameGenericService)
+            IResourcesService<ResourceType> resourcesService, IAnimationService<ResourceType> animationService)
         {
             _iapService = iapService;
             _shopService = shopService;
             _uiService = uiService;
             _resourcesService = resourcesService;
             _animationService = animationService;
-            _projectResourcesSettings = gameGenericService.GameplaySettings.ProjectResourcesSettings;
         }
 
         public override void Initialize(OfferData data)
@@ -51,16 +45,16 @@ namespace TapEmpire.Services.Shop
             _offerChoices.ForEach((visual, index) =>
             {
                 var product = data.Products[index];
-                visual.Button.onClick.Subscribe(() => _iapService.BuyProduct(product.Key)).AddTo(_disposables);
+                visual.Button.onClick.Subscribe(() => _iapService.BuyProduct(product)).AddTo(_disposables);
 
-                var price = GetPrice(product.Key);
+                var price = GetPrice(product);
                 visual.Price.text = price;
 
-                _iapService.SetResources<ResourceType>(product.Key, visual.Resources.Select(resource => resource.Amount));
+                _iapService.SetResources<ResourceType>(product, visual.Resources.Select(resource => resource.Amount));
 
-                var rewards = _iapService.GetRewards<ResourceType>(product.Key);
+                var rewards = _iapService.GetRewards<ResourceType>(product);
                 rewards.ForEach((reward, index2) =>
-                    visual.Resources[index2].Icon.sprite = _projectResourcesSettings.GetFlyingSprite(reward.ResourceType));
+                    visual.Resources[index2].Icon.sprite = _resourcesService.GetFlyingSprite(reward.ResourceType));
             });
 
             UpdateTimer();
@@ -68,13 +62,13 @@ namespace TapEmpire.Services.Shop
 
         private void OnPurchaseSuccess(string productId)
         {
-            var index = _data.Products.FindIndex(product => product.Key == productId);
+            var index = _data.Products.FindIndex(product => product == productId);
             if (index == -1) return;
 
             var rewards = _iapService.GetRewards<ResourceType>(productId);
 
             rewards.ForEach((reward, index2) =>
-                AcquireResources(reward.ResourceType, reward.Amount, ResourceUsage.ShopPaid,
+                AcquireResources(reward.ResourceType, reward.Amount, ResourceUsageType.ShopPaid,
                     _offerChoices[index].Resources[index2].Icon.transform.position, false));
 
             OnShouldDestroy.OnNext(this);

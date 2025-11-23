@@ -1,18 +1,12 @@
-using System.Collections;
-using System.Collections.Generic;
 using R3;
-using WordGame.Services;
-using TapEmpire.Services;
-using TapEmpire.UI;
 using TapEmpire.Utility;
-using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using Zenject;
 
 namespace TapEmpire.Services.Shop
 {
-    public class ChoiceShopElement : SoftShopElement
+    public class ChoiceShopElement<ResourceType> : SoftShopElement<ResourceType>
     {
         public ReactiveCommand<ResourceType> OnResourceAdded { get; } = new();
 
@@ -34,19 +28,21 @@ namespace TapEmpire.Services.Shop
 
         private void OnClick()
         {
-            _adsService.ShowRewarded($"{AdType.Resources_}{_data.Reward.Resource}", OnClickResult);
+            var reward = _data.Reward.As<ProductReward<ResourceType>>();
+            _adsService.ShowRewarded($"{AdType.Resources_}{reward.Resource}", OnClickResult);
         }
 
         private void OnClickResult()
         {
+            var reward = _data.Reward.As<ProductReward<ResourceType>>();
             var from = _icon.transform.position;
-            AcquireResources(_data.Reward.Resource, _data.Reward.Amount, ResourceUsage.PopupAds, from, true);
+            AcquireResources(reward.Resource, reward.Amount, ResourceUsageType.PopupAds, from, true);
         }
 
-        protected override void AcquireResources<ResourceUsage>(ResourceType resourceType, int amount, ResourceUsage usage,
+        protected override void AcquireResources(ResourceType resourceType, int amount, string usageType,
             Vector3 startPosition, bool shouldAddResource)
         {
-            _resourcesService.Add(resourceType, amount, usage.ToString());
+            _resourcesService.Add(resourceType, amount, usageType);
             OnResourceAdded.Execute(resourceType);
         }
     }

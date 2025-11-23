@@ -14,11 +14,6 @@ using System.Linq;
 
 namespace TapEmpire.Services.Shop
 {
-    internal enum ResourceUsage // should be a generic enum
-    {
-        ShopPaid,
-    }
-
     public class StarterOfferUIView<ResourceType> : UIView<NoAdsPopupViewModel>, IInjectable
     {
         [SerializeField] private string _offerName;
@@ -85,16 +80,16 @@ namespace TapEmpire.Services.Shop
             var rewards = DerivedModel.IapService.GetRewards<ResourceType>(productId);
 
             rewards.ForEach((reward, index2) =>
-                AcquireResources(reward.ResourceType, reward.Amount, ResourceUsage.ShopPaid,
+                AcquireResources(reward.ResourceType, reward.Amount, ResourceUsageType.ShopPaid,
                     _offerChoices[index].Resources[index2].Icon.transform.position, false));
         }
 
-        private void AcquireResources(ResourceType resourceType, int amount, ResourceUsage usage,
+        private void AcquireResources(ResourceType resourceType, int amount, string usageType,
             Vector3 startPosition, bool shouldAddResource)
         {
             var animation = _animationService.CollectResource(resourceType, amount, startPosition, false);
 
-            var reason = shouldAddResource ? usage.ToString() : string.Empty;
+            var reason = shouldAddResource ? usageType : string.Empty;
             _resourcesService.AddVirtual(resourceType, amount, reason);
 
             animation.Play();

@@ -52,13 +52,20 @@ namespace TapEmpire.Services.Shop
         public Sprite Icon;
 
         [ShowIf("@Type == ProductType.Free || Type == ProductType.Ads || Type == ProductType.Soft")]
-        public ProductReward Reward;
+        [SerializeReference]
+        public IProductReward Reward;
         [ShowIf("@Type == ProductType.Soft")]
-        public ProductReward Price;
+        [SerializeReference]
+        public IProductReward Price;
+    }
+
+    public class IProductReward
+    {
+        public T As<T>() where T : IProductReward { return this as T; }
     }
 
     [Serializable]
-    public class ProductReward
+    public class ProductReward<ResourceType> : IProductReward
     {
         public ResourceType Resource;
         public int Amount;
