@@ -75,5 +75,7 @@ namespace TapEmpire.Services.Shop
             Resource = resourceType;
             Amount = amount;
         }
+
+        public ProductReward() { }
     }
 }

@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace TapEmpire.Services
 {
-    [CreateAssetMenu(menuName = "TapEmpire/AnimationSettings", fileName = "AnimationSettings")]
+    [CreateAssetMenu(menuName = "TapEmpire/Settings/AnimationSettings", fileName = "AnimationSettings")]
     public class AnimationSettings : ScriptableObject
     {
         [Header("UI animations")]

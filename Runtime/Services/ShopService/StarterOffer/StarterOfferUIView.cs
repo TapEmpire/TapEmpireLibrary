@@ -19,7 +19,6 @@ namespace TapEmpire.Services.Shop
         [SerializeField] private string _offerName;
         [SerializeField] private List<OfferChoiceData> _offerChoices;
         [SerializeField] private Button _closeButton;
-        [SerializeField] private LocalizedString _buyLocalization;
 
         private IAdsService _adsService;
         private IResourcesService<ResourceType> _resourcesService;
