@@ -25,4 +25,18 @@ namespace TapEmpire.Services.Offer
     public interface ICondition
     {   
     }
+
+    public class OfferRuntimeData
+    {
+        public OfferType Type;
+        public Rarity Rarity;
+        public List<string> Products;
+
+        public OfferRuntimeData(OfferType type, Rarity rarity, List<string> products)
+        {
+            Type = type;
+            Rarity = rarity;
+            Products = products;
+        }
+    }
 }

@@ -5,7 +5,10 @@ namespace TapEmpire.Services.Offer
 {
     public interface IOfferService : IService
     {
-        // ShopSettings ShopSettings { get; }
+        OfferSettings Settings { get; }
+
+        OfferRuntimeData GetOffer(string placement);
+        OfferRuntimeData GetOffer(OfferType type, Rarity rarity);
 
         // Observable<Unit> OnShopChanged { get; }
         // ReadOnlyReactiveProperty<bool> AreFreeItemsAvailable { get; }

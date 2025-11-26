@@ -14,84 +14,107 @@ using TapEmpire.Services.Shop;
 
 namespace TapEmpire.Services.Offer
 {
-    public class OfferUIView<ResourceType> : UIView<NoAdsPopupViewModel>, IInjectable
+    public class OfferUIView<ResourceType> : UIView<OfferViewModel>, IInjectable
     {
-        // [SerializeField] private string _offerName;
-        // [SerializeField] private List<ShopChoiceData> _offerChoices;
-        // [SerializeField] private Button _closeButton;
+        [SerializeField] private List<ShopChoiceData> _offerChoices;
+        [SerializeField] private Button _closeButton;
+        [SerializeField] private bool _disableBanners = false;
+        [SerializeField] private Button _debugSwitchButton;
 
-        // private IAdsService _adsService;
-        // private IResourcesService<ResourceType> _resourcesService;
-        // private IAnimationService<ResourceType> _animationService;
+        private IAdsService _adsService;
+        private IOfferService _offerService;
+        private IResourcesService<ResourceType> _resourcesService;
+        private IAnimationService<ResourceType> _animationService;
 
-        // private OfferData _offerData;
-        // private bool _shouldEnableBanners;
-        // private CompositeDisposable _disposables = new();
+        private bool _shouldEnableBanners;
+        private bool _isDebug;
+        private CompositeDisposable _disposables = new();
 
-        // [Inject]
-        // private void Construct(IAdsService adsService, IResourcesService<ResourceType> resourcesService,
-        //     IAnimationService<ResourceType> animationService, IShopService shopService)
-        // {
-        //     _adsService = adsService;
-        //     _resourcesService = resourcesService;
-        //     _animationService = animationService;
+        [Inject]
+        private void Construct(IAdsService adsService, IResourcesService<ResourceType> resourcesService,
+            IAnimationService<ResourceType> animationService, IOfferService offerService, ISystemService systemService)
+        {
+            _adsService = adsService;
+            _resourcesService = resourcesService;
+            _animationService = animationService;
+            _offerService = offerService;
 
-        //     _offerData = shopService.ShopSettings.Offer;
-        // }
+            _isDebug = systemService.StaticSettings.Debug;
+        }
 
-        // public override UniTask OpenAsync(CancellationToken cancellationToken)
-        // {
-        //     _shouldEnableBanners = _adsService.ShowBanners(false);
-        //     _closeButton.onClick.Subscribe(DerivedModel.Close).AddTo(_disposables);
+        protected override UniTask OnOpenAsync(CancellationToken cancellationToken)
+        {
+            if (_disableBanners)
+            {
+                _shouldEnableBanners = _adsService.ShowBanners(false);
+            }
 
-        //     _offerChoices.ForEach((visual, index) =>
-        //     {
-        //         var product = _offerData.Products[index];
-        //         visual.Button.onClick.Subscribe(() => DerivedModel.StartPurchase(product)).AddTo(_disposables);
+            _closeButton.onClick.Subscribe(DerivedModel.Close).AddTo(_disposables);
+            _debugSwitchButton.onClick.Subscribe(SwitchRarity).AddTo(_disposables);
+            DerivedModel.IapService.OnPurchaseSuccess.Subscribe(OnPurchaseSuccess).AddTo(_disposables);
 
-        //         var price = DerivedModel.GetPrice(product);
-        //         visual.Price.text = price;
+            SetupVisual();
 
-        //         DerivedModel.IapService.SetResources<ResourceType>(product, visual.Resources.Select(resource => resource.Amount));
+            return base.OnOpenAsync(cancellationToken);
+        }
 
-        //         var rewards = DerivedModel.IapService.GetRewards<ResourceType>(product);
-        //         rewards.ForEach((reward, index2) =>
-        //             visual.Resources[index2].Icon.sprite = _resourcesService.GetFlyingSprite(reward.ResourceType));
-        //     });
+        protected override UniTask OnCloseAsync(CancellationToken cancellationToken)
+        {
+            if (_disableBanners)
+            {
+                _adsService.ShowBanners(_shouldEnableBanners);
+            }
+            _disposables.Dispose();
 
-        //     DerivedModel.IapService.OnPurchaseSuccess.Subscribe(OnPurchaseSuccess).AddTo(_disposables);
+            return base.OnCloseAsync(cancellationToken);
+        }
 
-        //     return base.OpenAsync(cancellationToken);
-        // }
+        private void SetupVisual()
+        {
+            _offerChoices.ForEach((visual, index) =>
+            {
+                var product = DerivedModel.OfferData.Products[index];
+                visual.Button.onClick.Subscribe(() => DerivedModel.StartPurchase(product)).AddTo(_disposables);
 
-        // public override UniTask CloseAsync(CancellationToken cancellationToken)
-        // {
-        //     _adsService.ShowBanners(_shouldEnableBanners);
-        //     _disposables.Dispose();
-        //     return base.CloseAsync(cancellationToken);
-        // }
+                var price = DerivedModel.GetPrice(product);
+                visual.Price.text = price;
 
-        // private void OnPurchaseSuccess(string productId)
-        // {
-        //     var index = _offerData.Products.FindIndex(product => product == productId);
-        //     if (index == -1) return;
+                DerivedModel.IapService.SetResources<ResourceType>(product, visual.Resources.Select(resource => resource.Amount));
 
-        //     var rewards = DerivedModel.IapService.GetRewards<ResourceType>(productId);
+                var rewards = DerivedModel.IapService.GetRewards<ResourceType>(product);
+                rewards.ForEach((reward, index2) =>
+                    visual.Resources[index2].Icon.sprite = _resourcesService.GetFlyingSprite(reward.ResourceType));
+            });
+        }
 
-        //     rewards.ForEach((reward, index2) =>
-        //         AcquireResources(reward.ResourceType, reward.Amount, ResourceUsageType.ShopPaid,
-        //             _offerChoices[index].Resources[index2].Icon.transform.position, false));
-        // }
+        private void OnPurchaseSuccess(string productId)
+        {
+            var index = DerivedModel.OfferData.Products.FindIndex(product => product == productId);
+            if (index == -1) return;
 
-        // private void AcquireResources(ResourceType resourceType, int amount, string usageType,
-        //     Vector3 startPosition, bool shouldAddResource)
-        // {
-        //     var animation = _animationService.CollectResource(resourceType, amount, startPosition, false);
+            var rewards = DerivedModel.IapService.GetRewards<ResourceType>(productId);
 
-        //     var reason = shouldAddResource ? usageType : string.Empty;
-        //     _resourcesService.AddVirtual(resourceType, amount, reason);
+            rewards.ForEach((reward, index2) =>
+                AcquireResources(reward.ResourceType, reward.Amount, ResourceUsageType.Offer,
+                    _offerChoices[index].Resources[index2].Icon.transform.position, false));
+        }
 
-        //     animation.Play();
-        // }
+        private void AcquireResources(ResourceType resourceType, int amount, string usageType,
+            Vector3 startPosition, bool shouldAddResource)
+        {
+            var animation = _animationService.CollectResource(resourceType, amount, startPosition, false);
+
+            var reason = shouldAddResource ? usageType : string.Empty;
+            _resourcesService.AddVirtual(resourceType, amount, reason);
+
+            animation.Play();
+        }
+
+        private void SwitchRarity()
+        {
+            var nextOffer = _offerService.GetOffer(DerivedModel.OfferData.Type, DerivedModel.OfferData.Rarity.Next());
+            DerivedModel.SetOfferData(nextOffer);
+            SetupVisual();
+        }
     }
 }

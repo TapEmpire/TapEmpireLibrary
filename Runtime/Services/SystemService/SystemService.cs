@@ -2,6 +2,7 @@
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using R3;
+using TapEmpire.Settings;
 using UnityEngine;
 using Zenject;
 using Object = UnityEngine.Object;
@@ -15,6 +16,7 @@ namespace TapEmpire.Services
         public Subject<Unit> OnSessionStarted { get; private set; } = new Subject<Unit>();
 
         [SerializeField] private SystemSettings _settings;
+        [field: SerializeField] public GameStartSettings StaticSettings { get; private set; }
         [SerializeField] private MonoCallbacksService _monoCallbackServicePrefab = null;
 
         private MonoCallbacksService _monoCallbackService = null;

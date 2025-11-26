@@ -12,9 +12,9 @@ namespace TapEmpire.Services.Offer
 {
     public class OfferService : Initializable, IOfferService
     {
-        // [SerializeField] private ShopSettings _shopSettings;
+        [SerializeField] private OfferSettings _settings;
 
-        // public ShopSettings ShopSettings => _shopSettings;
+        public OfferSettings Settings => _settings;
 
         // public Observable<Unit> OnShopChanged => _onShopChanged;
         // public ReadOnlyReactiveProperty<bool> AreFreeItemsAvailable => _areFreeItemsAvailable;
@@ -65,110 +65,19 @@ namespace TapEmpire.Services.Offer
         //     base.OnRelease();
         // }
 
-        // public void SetTimeStamp(string key)
-        // {
-        //     _progressService.SetCurrentTimeStamp(key);
-        //     UpdateFreeItems();
-        // }
+        public OfferRuntimeData GetOffer(string placement)
+        {
+            return null;
+        }
 
-        // public (bool, TimeSpan) HasTimeStampToday(string key)
-        // {
-        //     var timestamp = _progressService.GetTimeStampDefault(key);
-        //     var isToday = timestamp.IsTodayUTC();
-        //     var elapsed = isToday ? MiscExtensions.GetTimeFromMidnight() : default;
+        public OfferRuntimeData GetOffer(OfferType type, Rarity rarity)
+        {
+            return null;
+        }
 
-        //     return (isToday, elapsed);
-        // }
-
-        // public void ResetTimers()
-        // {
-        //     _freeItemsKeys.ForEach(key => _progressService.CleanTimeStamp(key));
-        //     UpdateFreeItems();
-        // }
-
-        // public void RewindTimers()
-        // {
-        //     var savedData = _progressService.GetOfferData();
-        //     var timeStamp = DateTime.UtcNow - TimeSpan.FromDays(1) + TimeSpan.FromSeconds(20);
-        //     _progressService.SetOfferData(savedData.Key, timeStamp);
-        //     UpdateCurrentOffer();
-        // }
-
-        // private void UpdateFreeItems()
-        // {
-        //     _areFreeItemsAvailable.Value = _freeItemsKeys.Any(key => !HasTimeStampToday(key).Item1);
-        // }
-
-        // private void SetMidnightTimer()
-        // {
-        //     UpdateFreeItems();
-        //     var timeLeft = MiscExtensions.GetTimeTillMidnight();
-        //     _midnightTimer = UniTaskUtility.Delay(timeLeft.RoundedSeconds() + 1, SetMidnightTimer);
-        // }
-
-        // private void UpdateCurrentOffer()
-        // {
-        //     _activeOffer.Value = GetCurrentOffer();
-        //     _onShopChanged.OnNext(Unit.Default);
-
-        //     if (_activeOffer.Value.Data != null)
-        //     {
-        //         var timeLeft = _activeOffer.Value.TimeStamp + TimeSpan.FromDays(1) - DateTime.UtcNow;
-        //         _offerTimer?.Dispose();
-        //         _offerTimer = UniTaskUtility.Delay(timeLeft.RoundedSeconds() + 1, UpdateCurrentOffer);
-        //     }
-        // }
-
-        // private (OfferData, DateTime) GetCurrentOffer()
-        // {
-        //     var offers = _shopSettings.Sections
-        //         .OfType<OfferSectionData>()
-        //         .SelectMany(section => section.OfferData)
-        //         .Where(offer => offer.BundleType == BundleType.Swap).ToList();
-        //     var savedData = _progressService.GetOfferData();
-
-        //     if (offers.Count == 0)
-        //     {
-        //         return (null, default);
-        //     }
-
-        //     var currentIndex = offers.FindIndex(offerData => offerData.Name == savedData.Key);
-
-        //     if (currentIndex == -1)
-        //     {
-        //         _progressService.SetOfferData(offers[0].Name, DateTime.UtcNow);
-        //         return (offers[0], DateTime.UtcNow);
-        //     }
-
-        //     var elapsed = DateTime.UtcNow - savedData.TimeStamp;
-        //     int daysPassed = (int)elapsed.TotalDays;
-        //     int index = (currentIndex + daysPassed) % offers.Count;
-        //     var timeStamp = savedData.TimeStamp;
-
-        //     if (daysPassed > 0)
-        //     {
-        //         timeStamp = savedData.TimeStamp + TimeSpan.FromDays(daysPassed);
-        //         _progressService.SetOfferData(offers[index].Name, timeStamp);
-        //     }
-
-        //     return (offers[index], timeStamp);
-        // }
-
-        // private void OnPurchaseSuccess(string productId)
-        // {
-        //     var hasKey = _activeOffer.Value.Data.Products.Any(product => product == productId);
-
-        //     if (hasKey)
-        //     {
-        //         var offers = _shopSettings.Sections
-        //             .OfType<OfferSectionData>()
-        //             .SelectMany(section => section.OfferData)
-        //             .Where(offer => offer.BundleType == BundleType.Swap).ToList();
-        //         var currentIndex = offers.FindIndex(offerData => offerData.Name == _activeOffer.Value.Data.Name);
-        //         currentIndex = MathUtility.LoopValue(currentIndex, offers.Count);
-        //         _progressService.SetOfferData(offers[currentIndex].Name, DateTime.UtcNow);
-        //         UpdateCurrentOffer();
-        //     }
-        // }
+        private void OnPurchaseSuccess(string productId)
+        {
+            
+        }
     }
 }
