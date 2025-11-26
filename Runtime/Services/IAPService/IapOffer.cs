@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Newtonsoft.Json;
+using TapEmpire.Services.Offer;
 using UnityEngine;
 using UnityEngine.Purchasing;
 
@@ -18,6 +19,7 @@ namespace TapEmpire.Services
 
         [Header("Product Type")]
         [SerializeField, JsonProperty("ProductType"), JsonIgnore] private ProductType _productType = ProductType.NonConsumable;
+        [field: SerializeField] public Rarity Rarity { get; set; } = Rarity.Five;
     
         [Header("Rewards")]
         [SerializeReference, JsonProperty("Products")]
