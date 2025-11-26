@@ -5,7 +5,7 @@ using UnityEngine.UI;
 namespace TapEmpire.Services.Shop
 {
     [System.Serializable]
-    public struct OfferChoiceData
+    public struct ShopChoiceData
     {
         public Button Button;
         public TMP_Text Price;

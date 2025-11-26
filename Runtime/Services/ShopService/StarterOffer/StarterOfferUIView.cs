@@ -17,7 +17,7 @@ namespace TapEmpire.Services.Shop
     public class StarterOfferUIView<ResourceType> : UIView<NoAdsPopupViewModel>, IInjectable
     {
         [SerializeField] private string _offerName;
-        [SerializeField] private List<OfferChoiceData> _offerChoices;
+        [SerializeField] private List<ShopChoiceData> _offerChoices;
         [SerializeField] private Button _closeButton;
 
         private IAdsService _adsService;
