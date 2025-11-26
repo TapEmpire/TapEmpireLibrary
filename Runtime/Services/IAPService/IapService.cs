@@ -154,7 +154,7 @@ namespace TapEmpire.Services
                     _onIapShownCallback = onComplete;
                     _iapShowProgress.Add(level);
                     _progressService.SetIapShowProgress(_iapShowProgress);
-                    var noAdsPopupViewModel = new NoAdsPopupViewModel(_uiService, this, new JObject(new JProperty("Level", $"Level_{level}")).ToString());
+                    var noAdsPopupViewModel = new NoAdsPopupViewModel(new JObject(new JProperty("Level", $"Level_{level}")).ToString());
                     _uiService.OnBeforeCloseView += UiServiceOnOnBeforeCloseView;
                     _uiService.OpenViewAsync(_noAdsPopupView, noAdsPopupViewModel, CancellationToken.None).Forget();
                 }

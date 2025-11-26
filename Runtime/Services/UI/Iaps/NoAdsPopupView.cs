@@ -11,6 +11,7 @@ namespace TapEmpire.UI
 {
     public class NoAdsPopupView : UIView<NoAdsPopupViewModel>, IInjectable
     {
+        [SerializeField] private string _iapKey = "no_ads_default";
         [SerializeField] private Button _purchaseButton;
         [SerializeField] private TMP_Text _priceText;
         [SerializeField] private Button _closeButton;
@@ -34,7 +35,7 @@ namespace TapEmpire.UI
 
         private void ConfigureIap()
         {
-            var localizedPrice = DerivedModel.GetPrice();
+            var localizedPrice = DerivedModel.GetPrice(_iapKey);
             var buyText = string.IsNullOrEmpty(_buyLocalization.TableEntryReference) ? "BUY" : _buyLocalization.GetLocalizedString();
             _priceText.text = $"{buyText} {localizedPrice}";
         }
@@ -46,7 +47,7 @@ namespace TapEmpire.UI
 
         private void Purchase()
         {
-            DerivedModel.StartPurchase();
+            DerivedModel.StartPurchase(_iapKey);
         }
     }
 }
