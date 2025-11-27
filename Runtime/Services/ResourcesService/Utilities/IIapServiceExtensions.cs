@@ -44,6 +44,7 @@ namespace TapEmpire.Services
 
             resources.ForEach((resource, index) =>
             {
+                if (index >= products.Count) return;
                 resource.text = $"x{products[index].Amount}";
             });
         }

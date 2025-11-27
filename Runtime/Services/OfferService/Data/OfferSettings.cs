@@ -44,8 +44,7 @@ namespace TapEmpire.Services.Offer
         public OfferRuntimeData(OfferData data, Rarity rarity)
         {
             Type = data.Type;
-            Rarity = rarity;
-            Products = data.Products.GetValueOrFirst(rarity);
+            (Rarity, Products) = data.Products.GetValueOrFirst(rarity);
         }
     }
 }

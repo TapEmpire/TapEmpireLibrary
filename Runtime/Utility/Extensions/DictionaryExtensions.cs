@@ -82,9 +82,9 @@ namespace TapEmpire.Utility
             return self.TryGetValue(key, out var value) ? value : default(TValue);
         }
 
-        public static TValue GetValueOrFirst<TKey, TValue>(this IDictionary<TKey, TValue> self, TKey key)
+        public static KeyValuePair<TKey, TValue> GetValueOrFirst<TKey, TValue>(this IDictionary<TKey, TValue> self, TKey key)
         {
-            return self.TryGetValue(key, out var value) ? value : self.First().Value;
+            return self.TryGetValue(key, out var value) ? KeyValuePair.Create(key, value) : self.First();
         }
 
         public static IEnumerable<KeyValuePair<TKey, TValue>> FindAll<TKey, TValue>(this Dictionary<TKey, TValue> self, Predicate<KeyValuePair<TKey, TValue>> predicate)

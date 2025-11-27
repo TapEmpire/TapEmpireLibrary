@@ -16,6 +16,8 @@ namespace TapEmpire.Services.Offer
 {
     public class OfferUIView<ResourceType> : BaseOfferUIView, IInjectable
     {
+        [SerializeField] private Image _header;
+        [SerializeField] private Image _border;
         [SerializeField] private List<ShopChoiceData> _offerChoices;
         [SerializeField] private Button _closeButton;
         [SerializeField] private bool _disableBanners = false;
@@ -79,6 +81,11 @@ namespace TapEmpire.Services.Offer
             _visualDisposables.Dispose();
             _visualDisposables = new();
 
+            var rarityVisual = _offerService.Settings.Rarity.Visual[DerivedModel.OfferData.Rarity];
+
+            _header.sprite = rarityVisual.Header;
+            _border.sprite = rarityVisual.Border;
+
             _offerChoices.ForEach((visual, index) =>
             {
                 var product = DerivedModel.OfferData.Products[index];
@@ -87,11 +94,19 @@ namespace TapEmpire.Services.Offer
                 var price = DerivedModel.GetPrice(product);
                 visual.Price.text = price;
 
-                DerivedModel.IapService.SetResources<ResourceType>(product, visual.Resources.Select(resource => resource.Amount));
+                // DerivedModel.IapService.SetResources<ResourceType>(product, visual.Resources.Select(resource => resource.Amount));
 
                 var rewards = DerivedModel.IapService.GetRewards<ResourceType>(product);
                 rewards.ForEach((reward, index2) =>
-                    visual.Resources[index2].Icon.sprite = _resourcesService.GetFlyingSprite(reward.ResourceType));
+                {
+                    visual.Resources[index2].Amount.text = $"x{reward.Amount}";
+                    visual.Resources[index2].Icon.sprite = _resourcesService.GetFlyingSprite(reward.ResourceType);
+                });
+
+                for (int i = rewards.Count(); i < visual.Resources.Count; i++)
+                {
+                    visual.Resources[i].Icon.transform.parent.gameObject.SetActive(false);
+                }
             });
         }
 

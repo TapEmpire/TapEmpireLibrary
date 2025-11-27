@@ -35,7 +35,8 @@ namespace TapEmpire.Utility
 
         public static T Max<T>(T enumValue1, T enumValue2) where T : Enum
         {
-            return (T)(object)Mathf.Max(enumValue1.ToInt(), enumValue2.ToInt());
+            return Comparer<T>.Default.Compare(enumValue1, enumValue2) >= 0 ? enumValue1 : enumValue2;
+            // return (T)(object)Mathf.Max(enumValue1.ToInt(), enumValue2.ToInt());
         }
 
         public static float RotationDistanceY(Quaternion from, Quaternion to)
