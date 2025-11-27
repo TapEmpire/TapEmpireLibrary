@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using TapEmpire.Services.Shop;
+using TapEmpire.Utility;
 using UnityEngine;
 
 namespace TapEmpire.Services.Offer
@@ -17,9 +17,11 @@ namespace TapEmpire.Services.Offer
     public class OfferData
     {
         public OfferType Type;
-        public BaseShopElement ShopElement;
+        public BaseOfferUIView Element;
         public SerializableDictionary<Rarity, List<string>> Products;
         [SerializeReference] public List<ICondition> Conditions = new();
+
+        public OfferRuntimeData ToRuntime(Rarity rarity) => new OfferRuntimeData(this, rarity);
     }
 
     public interface ICondition
@@ -37,6 +39,13 @@ namespace TapEmpire.Services.Offer
             Type = type;
             Rarity = rarity;
             Products = products;
+        }
+
+        public OfferRuntimeData(OfferData data, Rarity rarity)
+        {
+            Type = data.Type;
+            Rarity = rarity;
+            Products = data.Products.GetValueOrFirst(rarity);
         }
     }
 }

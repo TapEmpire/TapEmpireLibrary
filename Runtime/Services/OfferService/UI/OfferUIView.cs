@@ -14,7 +14,7 @@ using TapEmpire.Services.Shop;
 
 namespace TapEmpire.Services.Offer
 {
-    public class OfferUIView<ResourceType> : UIView<OfferViewModel>, IInjectable
+    public class OfferUIView<ResourceType> : BaseOfferUIView, IInjectable
     {
         [SerializeField] private List<ShopChoiceData> _offerChoices;
         [SerializeField] private Button _closeButton;
@@ -29,6 +29,7 @@ namespace TapEmpire.Services.Offer
         private bool _shouldEnableBanners;
         private bool _isDebug;
         private CompositeDisposable _disposables = new();
+        private CompositeDisposable _visualDisposables = new();
 
         [Inject]
         private void Construct(IAdsService adsService, IResourcesService<ResourceType> resourcesService,
@@ -66,6 +67,8 @@ namespace TapEmpire.Services.Offer
             {
                 _adsService.ShowBanners(_shouldEnableBanners);
             }
+
+            _visualDisposables.Dispose();
             _disposables.Dispose();
 
             return base.OnCloseAsync(cancellationToken);
@@ -73,10 +76,13 @@ namespace TapEmpire.Services.Offer
 
         private void SetupVisual()
         {
+            _visualDisposables.Dispose();
+            _visualDisposables = new();
+
             _offerChoices.ForEach((visual, index) =>
             {
                 var product = DerivedModel.OfferData.Products[index];
-                visual.Button.onClick.Subscribe(() => DerivedModel.StartPurchase(product)).AddTo(_disposables);
+                visual.Button.onClick.Subscribe(() => DerivedModel.StartPurchase(product)).AddTo(_visualDisposables);
 
                 var price = DerivedModel.GetPrice(product);
                 visual.Price.text = price;
@@ -115,7 +121,7 @@ namespace TapEmpire.Services.Offer
         private void SwitchRarity()
         {
             var nextOffer = _offerService.GetOffer(DerivedModel.OfferData.Type, DerivedModel.OfferData.Rarity.Next());
-            DerivedModel.SetOfferData(nextOffer);
+            DerivedModel.SetOfferData(nextOffer.Data);
             SetupVisual();
         }
     }

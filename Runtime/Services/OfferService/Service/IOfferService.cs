@@ -7,8 +7,8 @@ namespace TapEmpire.Services.Offer
     {
         OfferSettings Settings { get; }
 
-        OfferRuntimeData GetOffer(string placement);
-        OfferRuntimeData GetOffer(OfferType type, Rarity rarity);
+        (BaseOfferUIView View, OfferRuntimeData Data) GetOffer(string placement);
+        (BaseOfferUIView View, OfferRuntimeData Data) GetOffer(OfferType type, Rarity rarity);
 
         // Observable<Unit> OnShopChanged { get; }
         // ReadOnlyReactiveProperty<bool> AreFreeItemsAvailable { get; }

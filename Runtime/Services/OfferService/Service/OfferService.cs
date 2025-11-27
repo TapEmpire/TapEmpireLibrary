@@ -16,6 +16,8 @@ namespace TapEmpire.Services.Offer
 
         public OfferSettings Settings => _settings;
 
+        private Rarity _currentRarity = Rarity.Five;
+
         // public Observable<Unit> OnShopChanged => _onShopChanged;
         // public ReadOnlyReactiveProperty<bool> AreFreeItemsAvailable => _areFreeItemsAvailable;
         // public ReadOnlyReactiveProperty<(OfferData, DateTime)> ActiveOffer => _activeOffer;
@@ -65,14 +67,18 @@ namespace TapEmpire.Services.Offer
         //     base.OnRelease();
         // }
 
-        public OfferRuntimeData GetOffer(string placement)
+        public (BaseOfferUIView ,OfferRuntimeData) GetOffer(string placement)
         {
-            return null;
+            var offerType = _settings.Placements[placement].First();
+            var offerData = _settings.Offers[offerType];
+
+            return (offerData.Element, offerData.ToRuntime(_currentRarity));
         }
 
-        public OfferRuntimeData GetOffer(OfferType type, Rarity rarity)
+        public (BaseOfferUIView ,OfferRuntimeData) GetOffer(OfferType type, Rarity rarity)
         {
-            return null;
+            var offerData = _settings.Offers[type];
+            return (offerData.Element, offerData.ToRuntime(rarity));
         }
 
         private void OnPurchaseSuccess(string productId)
