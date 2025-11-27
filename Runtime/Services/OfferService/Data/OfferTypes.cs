@@ -16,9 +16,4 @@ namespace TapEmpire.Services.Offer
         Mystery,
         Daily
     }
-
-    public enum Placement
-    {
-        // Might be different
-    }
 }

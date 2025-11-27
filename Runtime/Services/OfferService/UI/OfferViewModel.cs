@@ -7,13 +7,11 @@ namespace TapEmpire.Services.Offer
     {
         public string Placement { get; private set; } = String.Empty;
         public OfferRuntimeData OfferData { get; private set; } = null;
-        public bool IsDebug { get; private set; } = false;
 
-        public OfferViewModel(OfferRuntimeData data, string placement, bool isDebug)
+        public OfferViewModel(OfferRuntimeData data, string placement)
         {
             OfferData = data;
             Placement = placement;
-            IsDebug = isDebug;
         }
 
         public void SetOfferData(OfferRuntimeData data)

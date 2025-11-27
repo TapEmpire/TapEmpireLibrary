@@ -53,6 +53,8 @@ namespace TapEmpire.Services.Offer
             _debugSwitchButton.onClick.Subscribe(SwitchRarity).AddTo(_disposables);
             DerivedModel.IapService.OnPurchaseSuccess.Subscribe(OnPurchaseSuccess).AddTo(_disposables);
 
+            _debugSwitchButton.gameObject.SetActive(_isDebug);
+
             SetupVisual();
 
             return base.OnOpenAsync(cancellationToken);
