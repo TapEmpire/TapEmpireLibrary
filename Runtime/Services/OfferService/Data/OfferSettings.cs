@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using TapEmpire.Patterns.Strategy;
 using TapEmpire.Utility;
 using UnityEngine;
 
@@ -11,6 +12,7 @@ namespace TapEmpire.Services.Offer
         public RaritySettings Rarity;
         public SerializableDictionary<string, List<OfferType>> Placements;
         public SerializableDictionary<OfferType, OfferData> Offers;
+        [SerializeReference] public List<IHandler> ConditionHandlers;
     }
 
     [Serializable]
@@ -22,10 +24,6 @@ namespace TapEmpire.Services.Offer
         [SerializeReference] public List<ICondition> Conditions = new();
 
         public OfferRuntimeData ToRuntime(Rarity rarity) => new OfferRuntimeData(this, rarity);
-    }
-
-    public interface ICondition
-    {   
     }
 
     public class OfferRuntimeData

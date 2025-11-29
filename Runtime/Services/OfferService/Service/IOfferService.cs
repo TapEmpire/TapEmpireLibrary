@@ -5,9 +5,13 @@ namespace TapEmpire.Services.Offer
 {
     public interface IOfferService : IService
     {
+        Subject<(OfferType, bool)> OnOfferShown { get; }
+
         OfferSettings Settings { get; }
 
-        (BaseOfferUIView View, OfferRuntimeData Data) GetOffer(string placement);
-        (BaseOfferUIView View, OfferRuntimeData Data) GetOffer(OfferType type, Rarity rarity);
+        void ShowOffer(string placement);
+        void ShowOffer(OfferType type, Rarity rarity, string placement);
+
+        (BaseOfferUIView View, OfferRuntimeData Data) GetOffer(OfferType type, Rarity rarity); // For debug purposes
     }
 }
