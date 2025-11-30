@@ -15,12 +15,14 @@ namespace TapEmpire.Services
     [Serializable]
     public class IapService : Initializable, IIapService
     {
-        [field: SerializeField] public string AdjustPurchaseToken { get; private set;}
+        [field: SerializeField] public string AdjustPurchaseToken { get; private set; }
         [SerializeField] private IapProductsSettings _iapProductsSettings;
         [SerializeField] private IapShowSettings _iapShowSettings;
         [SerializeField] private UIView _noAdsPopupView;
         [SerializeField] private UIView _iapLoadingView;
         [SerializeReference] private IIapHandler[] _iapHandlers;
+
+        public bool IsPayer { get; private set; }
 
         private readonly Dictionary<Type, IIapHandler> _handlers = new();
 
@@ -181,6 +183,8 @@ namespace TapEmpire.Services
 
         protected override UniTask OnInitializeAsync(CancellationToken cancellationToken)
         {
+            IsPayer = GetIsPayer();
+
             var iapCollection = _iapProductsSettings.Products;
             _storeOffers = iapCollection.ToDictionary(x => x.GetStoreID(), x => x);
             _purchasingModule.Init(iapCollection, _iapProductsSettings.HasVerification);
@@ -192,12 +196,19 @@ namespace TapEmpire.Services
             return base.OnInitializeAsync(cancellationToken);
         }
 
+        protected override void OnRelease()
+        {
+            _disposable.Dispose();
+        }
+
         protected void OnProductPurchaseSuccess(Product product)
         {
             var iapId = product.definition.id;
             Debug.Log($"IAP OnProductPurchaseSuccess {iapId}");
             if (!_storeOffers.ContainsKey(iapId))
                 return;
+
+            UpdateIsPayer();
             ProcessPurchase(_storeOffers[iapId]).Forget();
             _progressService.AddPurchase();
             _onPurchaseSuccessDetailed.Execute(product);
@@ -216,6 +227,8 @@ namespace TapEmpire.Services
 
             if (!_storeOffers.ContainsKey(iapId))
                 return;
+
+            UpdateIsPayer();
             ProcessPurchase(_storeOffers[iapId]).Forget();
             _progressService.AddPurchase();
             _onPurchaseRestored.Execute(iapId);
@@ -234,9 +247,16 @@ namespace TapEmpire.Services
             }
         }
 
-        protected override void OnRelease()
+        private bool GetIsPayer()
         {
-            _disposable.Dispose();
+            var isPayer = _progressService.GetIsPayer();
+            return isPayer ? true : _purchasingModule.HasAnyPurchases();
+        }
+
+        private void UpdateIsPayer()
+        {
+            IsPayer = true;
+            _progressService.SetIsPayer(IsPayer);
         }
     }
 }
