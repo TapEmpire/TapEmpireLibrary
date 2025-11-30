@@ -93,8 +93,18 @@ namespace TapEmpire.Services.Offer
             return false;
         }
 
+        private bool VerifyGenericConditions()
+        {
+            return Settings.GenericConditions.All(condition => VerifyCondition(condition));
+        }
+
         private OfferData FindOffer(string placement)
         {
+            if (!VerifyGenericConditions())
+            {
+                return null;
+            }
+
             var offerTypes = Settings.Placements[placement];
 
             foreach (var offerType in offerTypes)

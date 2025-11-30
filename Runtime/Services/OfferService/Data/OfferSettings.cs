@@ -13,6 +13,7 @@ namespace TapEmpire.Services.Offer
         public SerializableDictionary<string, List<OfferType>> Placements;
         public SerializableDictionary<OfferType, OfferData> Offers;
         [SerializeReference] public List<IHandler> ConditionHandlers;
+        [SerializeReference] public List<ICondition> GenericConditions;
     }
 
     [Serializable]
