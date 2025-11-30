@@ -119,6 +119,7 @@ namespace TapEmpire.Services.Offer
         private void InitializeAndRegisterHandler(IHandler handler)
         {
             handler.Initialize(_diContainer);
+            handler.AddTo(_disposables);
             _handlers[handler.GetSubjectType()] = handler;
         }
     }

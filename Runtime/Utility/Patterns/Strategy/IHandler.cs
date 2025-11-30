@@ -4,7 +4,7 @@ using Zenject;
 
 namespace TapEmpire.Patterns.Strategy
 {
-    public interface IHandler
+    public interface IHandler : IDisposable
     {
         bool CanHandle(ISubject subject);
         bool Handle(ISubject subject);
@@ -33,5 +33,6 @@ namespace TapEmpire.Patterns.Strategy
         public abstract bool Handle(T subject);
         public abstract void Initialize(DiContainer diContainer);
         public virtual Type GetSubjectType() => typeof(T);
+        public virtual void Dispose() { }
     }
 }
