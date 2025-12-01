@@ -39,7 +39,7 @@ namespace TapEmpire.UI
 
         public void Close()
         {
-            _uiService.CloseViewAsync(this, CancellationToken.None);
+            _uiService.CloseViewAsync(this, default);
         }
 
         public string GetPrice(string key = null)
@@ -50,7 +50,7 @@ namespace TapEmpire.UI
 
         private void OnPurchaseSuccess(string productId)
         {
-            _uiService.CloseViewAsync(this, CancellationToken.None);
+            _uiService.CloseViewAsync(this, default);
             Unsubscribe();
         }
 

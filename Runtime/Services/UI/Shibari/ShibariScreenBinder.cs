@@ -49,7 +49,9 @@ namespace TapEmpire.UI
 
         private void AddToContext()
         {
-            if (!string.IsNullOrEmpty(_shibariName))
+            if (_uiService == null) return;
+
+            if (!string.IsNullOrEmpty(_shibariName) && !_uiService.ShibariContext.ContainsKey(_shibariName))
             {
                 _uiService?.AddToContext(_shibariName, GetComponent<RectTransform>());
             }

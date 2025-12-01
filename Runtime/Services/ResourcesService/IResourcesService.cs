@@ -1,4 +1,5 @@
 using R3;
+using UnityEngine;
 
 namespace TapEmpire.Services
 {
@@ -15,6 +16,7 @@ namespace TapEmpire.Services
         void Set(T resource, int amount); // For update purposes.
 
         ResourceRuntimeData<T> GetResourceData(T type);
+        Sprite GetFlyingSprite(T type);
 
         void AddVirtual(T resource, int amount, string reason);
     }
