@@ -183,8 +183,6 @@ namespace TapEmpire.Services
 
         protected override UniTask OnInitializeAsync(CancellationToken cancellationToken)
         {
-            IsPayer = GetIsPayer();
-
             var iapCollection = _iapProductsSettings.Products;
             _storeOffers = iapCollection.ToDictionary(x => x.GetStoreID(), x => x);
             _purchasingModule.Init(iapCollection, _iapProductsSettings.HasVerification);
@@ -193,6 +191,7 @@ namespace TapEmpire.Services
             _iapAnalyticsModule.Initialize();
 
             _iapShowProgress = _progressService.GetIapShowProgress();
+            IsPayer = GetIsPayer();
             return base.OnInitializeAsync(cancellationToken);
         }
 
