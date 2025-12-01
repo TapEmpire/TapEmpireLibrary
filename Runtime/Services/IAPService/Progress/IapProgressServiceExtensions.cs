@@ -6,6 +6,7 @@ namespace TapEmpire.Services
     public static partial class ProgressServiceExtensions
     {
         public const string PurchasesTag = "Purchases";
+        public const string PayerTag = "Payer";
 
         public static int GetPurchases(this IProgressService self)
         {
@@ -37,6 +38,21 @@ namespace TapEmpire.Services
             }
 
             return hashSet;
+        }
+
+        public static void SetIsPayer(this IProgressService self, bool value)
+        {
+            self.BoolValuesDictionary.SetValue(PayerTag, value);
+        }
+
+        public static bool GetIsPayer(this IProgressService self)
+        {
+            return self.BoolValuesDictionary.TryGetValue(PayerTag, out var value) ? value : default;
+        }
+
+        public static void ClearIsPayer(this IProgressService self)
+        {
+            self.BoolValuesDictionary.SetValue(PayerTag, default);
         }
     }
 }

@@ -6,7 +6,7 @@ namespace TapEmpire.Services
     public interface IResourcesService<T> : IService
     {   
         Observable<(T, int, string)> OnResourceAdded { get; }
-        Observable<(T, int, string)> OnResourceUsed { get; }
+        Observable<(T ResourceType, int AmountLeft, string Reason)> OnResourceUsed { get; }
         Observable<T> OnVirtualAdded { get; } // For various events
 
         void Add(T resource, int amount, string reason = "");

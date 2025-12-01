@@ -20,7 +20,11 @@ namespace TapEmpire.Services.Shop
 
             var offers = data.OfferData.Where(offer => offer.BundleType == BundleType.Always ||
                 (offer.BundleType == BundleType.NoAds && !adsService.AdsDisabled));
-            offers = offers.Prepend(activeOffer.Data).ToList();
+
+            if (activeOffer.Data != null)
+            {
+                offers = offers.Prepend(activeOffer.Data).ToList();
+            }
 
             foreach (var offer in offers)
             {

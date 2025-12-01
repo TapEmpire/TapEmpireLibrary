@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using TapEmpire.Services.Offer;
 using TapEmpire.Utility;
 using TMPro;
 
@@ -43,6 +44,7 @@ namespace TapEmpire.Services
 
             resources.ForEach((resource, index) =>
             {
+                if (index >= products.Count) return;
                 resource.text = $"x{products[index].Amount}";
             });
         }
@@ -60,6 +62,12 @@ namespace TapEmpire.Services
                     break;
                 }
             }
+        }
+
+        public static void SetRarity(this IapProductsSettings settings, string key, Rarity rarity)
+        {
+            var offer = settings.Products.FirstOrDefault(x => x.Key == key);
+            offer.Rarity = rarity;
         }
     }
 }

@@ -8,6 +8,7 @@ namespace TapEmpire.Services
     public interface IIapService : IService
     {
         string AdjustPurchaseToken { get; }
+        bool IsPayer { get; }
 
         void RegisterHandler<T>(IIapHandler<T> handler) where T : IIapProduct;
         void BuyProduct(IapOffer iapId);

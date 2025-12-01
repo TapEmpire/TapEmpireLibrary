@@ -13,7 +13,7 @@ namespace TapEmpire.Services.Shop
 {
     public class BundleShopElement<ResourceType> : BaseShopElement<ResourceType>
     {
-        [SerializeField] private List<OfferChoiceData> _offerChoices;
+        [SerializeField] private List<ShopChoiceData> _offerChoices;
         [SerializeField] private TMP_Text _timerText;
         [SerializeField] private Image _timerProgress;
 
