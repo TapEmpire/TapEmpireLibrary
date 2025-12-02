@@ -12,7 +12,7 @@ namespace TapEmpire.Services
     public class BaseAddResourceHandler<ResourceType, T> : BaseIapHandler<T>
         where T : AddResourceProduct<ResourceType>
     {
-        private IResourcesService<ResourceType> _resourcesService;
+        protected IResourcesService<ResourceType> _resourcesService;
 
         public override void Initialize(DiContainer diContainer)
         {

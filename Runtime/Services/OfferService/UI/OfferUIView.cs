@@ -23,8 +23,8 @@ namespace TapEmpire.Services.Offer
         [SerializeField] private bool _disableBanners = false;
         [SerializeField] private Button _debugSwitchButton;
 
+        protected IOfferService _offerService;
         private IAdsService _adsService;
-        private IOfferService _offerService;
         private IResourcesService<ResourceType> _resourcesService;
         private IAnimationService<ResourceType> _animationService;
 
@@ -76,6 +76,11 @@ namespace TapEmpire.Services.Offer
             return base.OnCloseAsync(cancellationToken);
         }
 
+        protected virtual IEnumerable<AddResourceProduct<ResourceType>> GetRewards(string productId)
+        {
+            return DerivedModel.IapService.GetRewards<ResourceType>(productId);
+        }
+
         private void SetupVisual()
         {
             _visualDisposables.Dispose();
@@ -96,7 +101,7 @@ namespace TapEmpire.Services.Offer
 
                 // DerivedModel.IapService.SetResources<ResourceType>(product, visual.Resources.Select(resource => resource.Amount));
 
-                var rewards = DerivedModel.IapService.GetRewards<ResourceType>(product);
+                var rewards = GetRewards(product);
                 rewards.ForEach((reward, index2) =>
                 {
                     visual.Resources[index2].Amount.text = $"x{reward.Amount}";
@@ -115,7 +120,7 @@ namespace TapEmpire.Services.Offer
             var index = DerivedModel.OfferData.Products.FindIndex(product => product == productId);
             if (index == -1) return;
 
-            var rewards = DerivedModel.IapService.GetRewards<ResourceType>(productId);
+            var rewards = GetRewards(productId);
 
             rewards.ForEach((reward, index2) =>
                 AcquireResources(reward.ResourceType, reward.Amount, ResourceUsageType.Offer,

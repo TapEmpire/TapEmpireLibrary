@@ -53,6 +53,11 @@ namespace TapEmpire.Services.Offer
             base.OnRelease();
         }
 
+        public T GetHandler<T>() where T : IHandler
+        {
+            return _handlers.Values.OfType<T>().FirstOrDefault();
+        }
+
         public (BaseOfferUIView, OfferRuntimeData) GetOffer(OfferType type, Rarity rarity)
         {
             var offerData = Settings.Offers[type];

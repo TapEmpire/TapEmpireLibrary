@@ -11,6 +11,7 @@ namespace TapEmpire.Services
         bool IsPayer { get; }
 
         void RegisterHandler<T>(IIapHandler<T> handler) where T : IIapProduct;
+        T GetHandler<T>() where T : IIapHandler;
         void BuyProduct(IapOffer iapId);
         void BuyProduct(string iapId);
         void RestoreProducts();

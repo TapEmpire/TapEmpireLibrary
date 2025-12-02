@@ -72,6 +72,11 @@ namespace TapEmpire.Services
             _handlers[typeof(T)] = handler;
         }
 
+        public T GetHandler<T>() where T : IIapHandler
+        {
+            return _handlers.Values.OfType<T>().FirstOrDefault();
+        }
+
         private void InitializeAndRegisterHandler(IIapHandler handler)
         {
             handler.Initialize(_diContainer);
