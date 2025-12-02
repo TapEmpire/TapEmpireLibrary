@@ -11,7 +11,7 @@ namespace TapEmpire.Services
 {
     public class ResourcesService<T> : Initializable, IResourcesService<T>
     {
-        [SerializeField] private ResourcesSettings<T> _settings = null;
+        [SerializeField] protected ResourcesSettings<T> _settings = null;
 
         private Subject<(T, int, string)> _onResourceAdded = new();
         private Subject<(T, int, string)> _onResourceUsed = new();
