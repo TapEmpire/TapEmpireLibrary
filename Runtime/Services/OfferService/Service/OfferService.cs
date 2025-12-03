@@ -17,6 +17,7 @@ namespace TapEmpire.Services.Offer
         [field: SerializeField] public OfferSettings Settings { get; private set; }
 
         public Subject<(OfferType, bool)> OnOfferShown { get; } = new();
+        public Subject<OfferType> OnOfferClosed { get; } = new();
 
         private Rarity _currentRarity = Rarity.Five;
 
@@ -61,7 +62,7 @@ namespace TapEmpire.Services.Offer
             return _handlers.Values.OfType<T>().FirstOrDefault();
         }
 
-        public void ShowOffer(string placement)
+        public bool ShowOffer(string placement)
         {
             var offerData = FindOffer(placement);
             if (offerData != null)
@@ -70,6 +71,8 @@ namespace TapEmpire.Services.Offer
                 _progressService.SetRaritySequence(_rarityRandomizer.CurrentElements);
                 ShowOfferInternal(offerData, rarity, placement, true);
             }
+
+            return offerData != null;
         }
 
         public void ShowOffer(OfferType type, Rarity rarity, string placement)
@@ -86,8 +89,9 @@ namespace TapEmpire.Services.Offer
 
         private void ShowOfferInternal(OfferData data, Rarity rarity, string placement, bool autoshown)
         {
-            _uiService.OpenViewAsync(data.Element,
-                new OfferViewModel(data.ToRuntime(rarity), placement), default).Forget();
+            var model = new OfferViewModel(data.ToRuntime(rarity), placement);
+            model.OnViewClosed.Take(1).Subscribe(_ => OnOfferClosed.OnNext(data.Type));
+            _uiService.OpenViewAsync(data.Element, model, default).Forget();
             
             OnOfferShown.OnNext((data.Type, autoshown));
         }
