@@ -3,7 +3,6 @@ using System.Threading;
 using Cysharp.Threading.Tasks;
 using R3;
 using UnityEngine;
-using Zenject;
 using Object = UnityEngine.Object;
 
 namespace TapEmpire.Services
@@ -21,11 +20,6 @@ namespace TapEmpire.Services
         private DateTime _sessionTimeStamp = DateTime.UtcNow;
         private CompositeDisposable _disposables = new();
 
-        [Inject]
-        private void Construct()
-        {
-        }
-
         protected override UniTask OnInitializeAsync(CancellationToken cancellationToken)
         {
             if (_monoCallbackService == null)
@@ -33,7 +27,8 @@ namespace TapEmpire.Services
                 _monoCallbackService = Object.Instantiate(_monoCallbackServicePrefab);
                 Object.DontDestroyOnLoad(_monoCallbackService.gameObject);
 
-                OnApplicationFocusChanged.Subscribe(OnFocusChanged).AddTo(_disposables);
+                // _monoCallbackService.OnApplicationFocusChanged.Subscribe(OnFocusChanged).AddTo(_disposables);
+                _monoCallbackService.OnApplicationFocusChangedAction += OnFocusChanged;
             }
 
             return UniTask.CompletedTask;
@@ -41,6 +36,8 @@ namespace TapEmpire.Services
 
         protected override void OnRelease()
         {
+            _monoCallbackService.OnApplicationFocusChangedAction -= OnFocusChanged;
+
             _disposables?.Dispose();
         }
 
