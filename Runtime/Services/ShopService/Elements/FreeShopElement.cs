@@ -1,4 +1,6 @@
 using System;
+using Cysharp.Threading.Tasks;
+using DG.Tweening;
 using R3;
 using TapEmpire.UI;
 using TapEmpire.Utility;
@@ -77,7 +79,9 @@ namespace TapEmpire.Services.Shop
         {
             var from = _icon.transform.position;
             var reward = _data.Reward.As<ProductReward<ResourceType>>();
-            AcquireResources(reward.Resource, reward.Amount, resourceUsage, from, true);
+            var sequence = AcquireResources(reward.Resource, reward.Amount, resourceUsage, from, true);
+
+            sequence.OnComplete(() => OnAnimationComplete(_data.Type));
 
             _shopService.SetTimeStamp(_data.Key);
             UpdateTimer();
@@ -115,5 +119,7 @@ namespace TapEmpire.Services.Shop
             _timerParent.SetActive(!isAvailable);
             _circle.SetActive(isAvailable);
         }
+
+        protected virtual void OnAnimationComplete(ProductType productType) { }
     }
 }
