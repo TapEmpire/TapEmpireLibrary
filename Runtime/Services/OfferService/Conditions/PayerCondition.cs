@@ -8,6 +8,7 @@ namespace TapEmpire.Services.Offer
     [Serializable]
     public class PayerCondition : ICondition
     {
+        public bool IsPayer;
     }
 
     [Serializable]
@@ -22,7 +23,7 @@ namespace TapEmpire.Services.Offer
 
         public override bool Handle(PayerCondition condition)
         {
-            return _iapService.IsPayer;
+            return _iapService.IsPayer == condition.IsPayer;
         }
     }
 }
