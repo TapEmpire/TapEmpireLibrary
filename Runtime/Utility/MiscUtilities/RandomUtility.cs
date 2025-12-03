@@ -88,10 +88,14 @@ namespace TapEmpire.Utility
     {
         private List<T> _elements;
         private List<T> _currentElements = new();
+        private bool _withShuffle = true;
 
-        public BoxRandomizer(List<T> elements, List<T> currentElements = null)
+        public List<T> CurrentElements => _currentElements;
+
+        public BoxRandomizer(List<T> elements, List<T> currentElements = null, bool withShuffle = true)
         {
             _elements = elements;
+            _withShuffle = withShuffle;
             _currentElements = currentElements ?? FillElements();
         }
 
@@ -114,7 +118,10 @@ namespace TapEmpire.Utility
         {
             _currentElements.Clear();
             _currentElements.AddRange(_elements);
-            _currentElements.Shuffle();
+            if (_withShuffle)
+            {
+                _currentElements.Shuffle();
+            }
             return _currentElements;
         }
     }

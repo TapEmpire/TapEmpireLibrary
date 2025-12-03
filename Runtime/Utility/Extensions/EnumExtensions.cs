@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using UnityEngine;
 
 namespace TapEmpire.Utility
 {
@@ -24,6 +25,14 @@ namespace TapEmpire.Utility
             int currentIndex = Array.IndexOf(values, value);
             int nextIndex = MathUtility.LoopClamp(currentIndex + 1, values.Length);
             return values[nextIndex];
+        }
+
+        public static TValue Add<TValue>(this TValue value, int delta) where TValue : Enum
+        {
+            TValue[] values = (TValue[])Enum.GetValues(typeof(TValue));
+            int currentIndex = Array.IndexOf(values, value);
+            int sum = Mathf.Clamp(currentIndex + delta, 0, values.Length - 1);
+            return values[sum];
         }
     }
 }

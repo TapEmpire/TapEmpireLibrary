@@ -26,6 +26,7 @@ namespace TapEmpire.Services.Offer
         private IUIService _uiService;
 
         private readonly Dictionary<Type, IHandler> _handlers = new();
+        private BoxRandomizer<int> _rarityRandomizer = null;
         private CompositeDisposable _disposables = new();
 
         [Inject]
@@ -40,6 +41,8 @@ namespace TapEmpire.Services.Offer
         protected override UniTask OnInitializeAsync(CancellationToken cancellationToken)
         {
             _currentRarity = _progressService.GetRarity();
+            var save = _progressService.GetRaritySequence();
+            _rarityRandomizer = new BoxRandomizer<int>(Settings.RaritySequence, save, false);
 
             Settings.ConditionHandlers.ForEach(handler => InitializeAndRegisterHandler(handler));
 
@@ -58,18 +61,14 @@ namespace TapEmpire.Services.Offer
             return _handlers.Values.OfType<T>().FirstOrDefault();
         }
 
-        public (BaseOfferUIView, OfferRuntimeData) GetOffer(OfferType type, Rarity rarity)
-        {
-            var offerData = Settings.Offers[type];
-            return (offerData.Element, offerData.ToRuntime(rarity));
-        }
-
         public void ShowOffer(string placement)
         {
             var offerData = FindOffer(placement);
             if (offerData != null)
             {
-                ShowOfferInternal(offerData, _currentRarity, placement, true);
+                var rarity = _currentRarity.Add(_rarityRandomizer.GetRandomElement());
+                _progressService.SetRaritySequence(_rarityRandomizer.CurrentElements);
+                ShowOfferInternal(offerData, rarity, placement, true);
             }
         }
 
@@ -77,6 +76,12 @@ namespace TapEmpire.Services.Offer
         {
             var offerData = Settings.Offers[type];
             ShowOfferInternal(offerData, rarity, placement, false);
+        }
+
+        public (BaseOfferUIView, OfferRuntimeData) GetOffer(OfferType type, Rarity rarity)
+        {
+            var offerData = Settings.Offers[type];
+            return (offerData.Element, offerData.ToRuntime(rarity));
         }
 
         private void ShowOfferInternal(OfferData data, Rarity rarity, string placement, bool autoshown)
