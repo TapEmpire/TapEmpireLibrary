@@ -155,7 +155,7 @@ namespace TapEmpire.Services
             });
 
             var parameters = new Dictionary<string, object> { };
-            var levelParameter = $"level_{levelsCompleted}";
+            var levelParameter = $"level_{levelsCompleted + 1}";
 
             if (format == AdFormat.Interstitial)
             {
