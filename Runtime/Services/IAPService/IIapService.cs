@@ -26,5 +26,8 @@ namespace TapEmpire.Services
         IapOffer GetOfferInfoByStoreId(string key);
         IapOffer GetOfferInfoById(string key);
         void ShowOnLevel(int dataLevelIndex, Action callback);
+
+        // public for debug purposes
+        public void UpdateIsPayer();
     }
 }

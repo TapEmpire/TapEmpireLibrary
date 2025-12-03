@@ -257,7 +257,7 @@ namespace TapEmpire.Services
             return isPayer ? true : _purchasingModule.HasAnyPurchases();
         }
 
-        private void UpdateIsPayer()
+        public void UpdateIsPayer()
         {
             IsPayer = true;
             _progressService.SetIsPayer(IsPayer);

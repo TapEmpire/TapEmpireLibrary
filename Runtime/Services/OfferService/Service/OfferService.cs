@@ -41,6 +41,7 @@ namespace TapEmpire.Services.Offer
 
         protected override UniTask OnInitializeAsync(CancellationToken cancellationToken)
         {
+            _disposables = new();
             _currentRarity = _progressService.GetRarity();
             var save = _progressService.GetRaritySequence();
             _rarityRandomizer = new BoxRandomizer<int>(Settings.RaritySequence, save, false);
