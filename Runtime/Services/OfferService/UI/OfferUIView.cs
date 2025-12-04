@@ -25,19 +25,23 @@ namespace TapEmpire.Services.Offer
 
         protected IOfferService _offerService;
         private IAdsService _adsService;
+        private IUIService _uiService;
         private IResourcesService<ResourceType> _resourcesService;
         private IAnimationService<ResourceType> _animationService;
 
         private bool _shouldEnableBanners;
         private bool _isDebug;
+        private ResourcesBar _resourcesBar;
         private CompositeDisposable _disposables = new();
         private CompositeDisposable _visualDisposables = new();
 
         [Inject]
         private void Construct(IAdsService adsService, IResourcesService<ResourceType> resourcesService,
-            IAnimationService<ResourceType> animationService, IOfferService offerService, ISystemService systemService)
+            IAnimationService<ResourceType> animationService, IOfferService offerService, ISystemService systemService,
+            IUIService uiService)
         {
             _adsService = adsService;
+            _uiService = uiService;
             _resourcesService = resourcesService;
             _animationService = animationService;
             _offerService = offerService;
@@ -58,6 +62,9 @@ namespace TapEmpire.Services.Offer
 
             _debugSwitchButton.gameObject.SetActive(_isDebug);
 
+            _resourcesBar = _uiService.ShibariContext.TryGetValue("Resources")?.GetComponent<ResourcesBar>();
+            _resourcesBar?.MoveFront();
+
             SetupVisual();
 
             return base.OnOpenAsync(cancellationToken);
@@ -72,6 +79,7 @@ namespace TapEmpire.Services.Offer
 
             _visualDisposables.Dispose();
             _disposables.Dispose();
+            _resourcesBar?.MoveBack();
 
             return base.OnCloseAsync(cancellationToken);
         }
