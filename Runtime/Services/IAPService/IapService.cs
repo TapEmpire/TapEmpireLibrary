@@ -212,7 +212,7 @@ namespace TapEmpire.Services
             if (!_storeOffers.ContainsKey(iapId))
                 return;
 
-            UpdateIsPayer();
+            SetIsPayer(true);
             ProcessPurchase(_storeOffers[iapId]).Forget();
             _progressService.AddPurchase();
             _onPurchaseSuccessDetailed.Execute(product);
@@ -232,7 +232,7 @@ namespace TapEmpire.Services
             if (!_storeOffers.ContainsKey(iapId))
                 return;
 
-            UpdateIsPayer();
+            SetIsPayer(true);
             ProcessPurchase(_storeOffers[iapId]).Forget();
             _progressService.AddPurchase();
             _onPurchaseRestored.Execute(iapId);
@@ -265,9 +265,9 @@ namespace TapEmpire.Services
             return isPayer ? true : _purchasingModule.HasAnyPurchases();
         }
 
-        public void UpdateIsPayer()
+        public void SetIsPayer(bool isPayer)
         {
-            IsPayer = true;
+            IsPayer = isPayer;
             _progressService.SetIsPayer(IsPayer);
         }
     }

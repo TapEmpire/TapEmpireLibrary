@@ -28,6 +28,6 @@ namespace TapEmpire.Services
         void ShowOnLevel(int dataLevelIndex, Action callback);
 
         // public for debug purposes
-        public void UpdateIsPayer();
+        public void SetIsPayer(bool isPayer);
     }
 }
