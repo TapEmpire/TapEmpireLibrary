@@ -61,6 +61,7 @@ namespace TapEmpire.Services
             _purchasingModule.OnPurchaseSuccess.Subscribe(OnProductPurchaseSuccess).AddTo(_disposable);
             _purchasingModule.OnProductPurchaseFailed.Subscribe(OnProductPurchaseFailed).AddTo(_disposable);
             _purchasingModule.OnPurchaseRestored.Subscribe(OnProductPurchaseRestored).AddTo(_disposable);
+            _purchasingModule.IsInitialized.Subscribe(OnPurchasingInitialized).AddTo(_disposable);
 
             _purchasingModule.OnPurchaseInProgress.Subscribe(OnPurchaseInProgress).AddTo(_disposable);
             _iapAnalyticsModule = new IapAnalyticsModule(diContainer);
@@ -163,7 +164,7 @@ namespace TapEmpire.Services
                     _progressService.SetIapShowProgress(_iapShowProgress);
                     var noAdsPopupViewModel = new NoAdsPopupViewModel(new JObject(new JProperty("Level", $"Level_{level}")).ToString());
                     _uiService.OnBeforeCloseView += UiServiceOnOnBeforeCloseView;
-                    _uiService.OpenViewAsync(_noAdsPopupView, noAdsPopupViewModel, CancellationToken.None).Forget();
+                    _uiService.OpenViewAsync(_noAdsPopupView, noAdsPopupViewModel, default).Forget();
                 }
                 else
                 {
@@ -196,7 +197,6 @@ namespace TapEmpire.Services
             _iapAnalyticsModule.Initialize();
 
             _iapShowProgress = _progressService.GetIapShowProgress();
-            IsPayer = GetIsPayer();
             return base.OnInitializeAsync(cancellationToken);
         }
 
@@ -248,6 +248,14 @@ namespace TapEmpire.Services
                     await handler.Handle(iapProduct);
                     _onIapHandle.Execute(handler);
                 }
+            }
+        }
+
+        private void OnPurchasingInitialized(bool isInitialized)
+        {
+            if (isInitialized)
+            {
+                IsPayer = GetIsPayer();
             }
         }
 
