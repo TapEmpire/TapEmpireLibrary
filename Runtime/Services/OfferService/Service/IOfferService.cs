@@ -6,7 +6,7 @@ namespace TapEmpire.Services.Offer
 {
     public interface IOfferService : IService
     {
-        Subject<(OfferType OfferType, bool Autoshown)> OnOfferShown { get; }
+        Subject<(OfferType OfferType, bool Autoshown, string Placement)> OnOfferShown { get; }
         Subject<OfferType> OnOfferClosed { get; }
 
         OfferSettings Settings { get; }

@@ -16,7 +16,7 @@ namespace TapEmpire.Services.Offer
     {
         [field: SerializeField] public OfferSettings Settings { get; private set; }
 
-        public Subject<(OfferType, bool)> OnOfferShown { get; } = new();
+        public Subject<(OfferType, bool, string)> OnOfferShown { get; } = new();
         public Subject<OfferType> OnOfferClosed { get; } = new();
 
         private Rarity _currentRarity = Rarity.Five;
@@ -26,6 +26,7 @@ namespace TapEmpire.Services.Offer
         private IIapService _iapService;
         private IUIService _uiService;
 
+        private OfferAnalyticsModule _analyticsModule;
         private readonly Dictionary<Type, IHandler> _handlers = new();
         private BoxRandomizer<int> _rarityRandomizer = null;
         private CompositeDisposable _disposables = new();
@@ -45,6 +46,9 @@ namespace TapEmpire.Services.Offer
             _currentRarity = _progressService.GetRarity();
             var save = _progressService.GetRaritySequence();
             _rarityRandomizer = new BoxRandomizer<int>(Settings.RaritySequence, save, false);
+
+            _analyticsModule = new OfferAnalyticsModule(_diContainer);
+            _analyticsModule.AddTo(_disposables);
 
             Settings.ConditionHandlers.ForEach(handler => InitializeAndRegisterHandler(handler));
 
@@ -94,7 +98,7 @@ namespace TapEmpire.Services.Offer
             model.OnViewClosed.Take(1).Subscribe(_ => OnOfferClosed.OnNext(data.Type));
             _uiService.OpenViewAsync(data.Element, model, default).Forget();
             
-            OnOfferShown.OnNext((data.Type, autoshown));
+            OnOfferShown.OnNext((data.Type, autoshown, placement));
         }
 
         private bool VerifyCondition(ICondition condition)
