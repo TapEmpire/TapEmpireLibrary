@@ -6,23 +6,19 @@ using Zenject;
 namespace TapEmpire.Services
 {
     [Serializable]
-    public class AddResourceHandler<ResourceType> : BaseAddResourceHandler<ResourceType, AddResourceProduct<ResourceType>> { }
-
-    [Serializable]
-    public class BaseAddResourceHandler<ResourceType, T> : BaseIapHandler<T>
-        where T : AddResourceProduct<ResourceType>
+    public class AddResourceHandler<ResourceType> : BaseIapHandler<AddResourceProduct<ResourceType>>
     {
-        private IResourcesService<ResourceType> _resourcesService;
+        protected IResourcesService<ResourceType> _resourcesService;
 
         public override void Initialize(DiContainer diContainer)
         {
             _resourcesService = diContainer.Resolve<IResourcesService<ResourceType>>();
         }
 
-        public override UniTask Handle(T product)
+        public override UniTask Handle(AddResourceProduct<ResourceType> product)
         {
             Debug.Log($"IAP AddHintsHandler Handle: {product.ProductId}");
-            _resourcesService.Add(product.ResourceType, product.Amount, "ShopPaid");
+            _resourcesService.Add(product.ResourceType, product.Amount, Shop.ResourceUsageType.ShopPaid.ToString());
             return UniTask.CompletedTask;
         }
     }

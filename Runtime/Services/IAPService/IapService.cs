@@ -61,6 +61,7 @@ namespace TapEmpire.Services
             _purchasingModule.OnPurchaseSuccess.Subscribe(OnProductPurchaseSuccess).AddTo(_disposable);
             _purchasingModule.OnProductPurchaseFailed.Subscribe(OnProductPurchaseFailed).AddTo(_disposable);
             _purchasingModule.OnPurchaseRestored.Subscribe(OnProductPurchaseRestored).AddTo(_disposable);
+            _purchasingModule.IsInitialized.Subscribe(OnPurchasingInitialized).AddTo(_disposable);
 
             _purchasingModule.OnPurchaseInProgress.Subscribe(OnPurchaseInProgress).AddTo(_disposable);
             _iapAnalyticsModule = new IapAnalyticsModule(diContainer);
@@ -70,6 +71,11 @@ namespace TapEmpire.Services
         public void RegisterHandler<T>(IIapHandler<T> handler) where T : IIapProduct
         {
             _handlers[typeof(T)] = handler;
+        }
+
+        public T GetHandler<T>() where T : IIapHandler
+        {
+            return _handlers.Values.OfType<T>().FirstOrDefault();
         }
 
         private void InitializeAndRegisterHandler(IIapHandler handler)
@@ -158,7 +164,7 @@ namespace TapEmpire.Services
                     _progressService.SetIapShowProgress(_iapShowProgress);
                     var noAdsPopupViewModel = new NoAdsPopupViewModel(new JObject(new JProperty("Level", $"Level_{level}")).ToString());
                     _uiService.OnBeforeCloseView += UiServiceOnOnBeforeCloseView;
-                    _uiService.OpenViewAsync(_noAdsPopupView, noAdsPopupViewModel, CancellationToken.None).Forget();
+                    _uiService.OpenViewAsync(_noAdsPopupView, noAdsPopupViewModel, default).Forget();
                 }
                 else
                 {
@@ -191,7 +197,6 @@ namespace TapEmpire.Services
             _iapAnalyticsModule.Initialize();
 
             _iapShowProgress = _progressService.GetIapShowProgress();
-            IsPayer = GetIsPayer();
             return base.OnInitializeAsync(cancellationToken);
         }
 
@@ -207,7 +212,7 @@ namespace TapEmpire.Services
             if (!_storeOffers.ContainsKey(iapId))
                 return;
 
-            UpdateIsPayer();
+            SetIsPayer(true);
             ProcessPurchase(_storeOffers[iapId]).Forget();
             _progressService.AddPurchase();
             _onPurchaseSuccessDetailed.Execute(product);
@@ -227,7 +232,7 @@ namespace TapEmpire.Services
             if (!_storeOffers.ContainsKey(iapId))
                 return;
 
-            UpdateIsPayer();
+            SetIsPayer(true);
             ProcessPurchase(_storeOffers[iapId]).Forget();
             _progressService.AddPurchase();
             _onPurchaseRestored.Execute(iapId);
@@ -246,15 +251,23 @@ namespace TapEmpire.Services
             }
         }
 
+        private void OnPurchasingInitialized(bool isInitialized)
+        {
+            if (isInitialized)
+            {
+                IsPayer = GetIsPayer();
+            }
+        }
+
         private bool GetIsPayer()
         {
             var isPayer = _progressService.GetIsPayer();
             return isPayer ? true : _purchasingModule.HasAnyPurchases();
         }
 
-        private void UpdateIsPayer()
+        public void SetIsPayer(bool isPayer)
         {
-            IsPayer = true;
+            IsPayer = isPayer;
             _progressService.SetIsPayer(IsPayer);
         }
     }

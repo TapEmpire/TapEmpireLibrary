@@ -14,6 +14,12 @@ namespace TapEmpire.Services
             return offer.Products.OfType<AddResourceProduct<ResourceType>>();
         }
 
+        public static IEnumerable<T> GetRewardsGeneric<T>(this IIapService service, string key)
+        {
+            var offer = service.GetOfferInfoById(key);
+            return offer.Products.OfType<T>();
+        }
+
         public static int GetReward<ResourceType>(this IIapService service, string key)
         {
             var offer = service.GetOfferInfoById(key);

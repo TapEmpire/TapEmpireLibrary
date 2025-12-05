@@ -9,6 +9,7 @@ namespace TapEmpire.Services
     public interface IPurchasingModule : IDisposable
     {
         public ReadOnlyReactiveProperty<bool> IsReady { get; }
+        public ReadOnlyReactiveProperty<bool> IsInitialized { get; }
 
         public Observable<Product> OnPurchaseSuccess { get; }
         public Observable<string> OnPurchaseRestored { get; }

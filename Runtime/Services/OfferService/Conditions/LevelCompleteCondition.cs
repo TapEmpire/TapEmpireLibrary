@@ -25,7 +25,7 @@ namespace WordGame.Services.Offer
         public override bool Handle(LevelCompleteCondition condition)
         {
             var level = _progressService.GetLevelProgress();
-            return condition.Levels.Contains(level + 1);
+            return condition.Levels.Contains(level);
         }
     }
 }

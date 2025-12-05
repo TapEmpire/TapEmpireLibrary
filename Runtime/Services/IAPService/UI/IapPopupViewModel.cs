@@ -8,6 +8,8 @@ namespace TapEmpire.Services
 {
     public class IapPopupViewModel : IUIViewModel, IInjectable, IDisposable
     {
+        public Subject<Unit> OnViewClosed { get; } = new();
+
         public IIapService IapService => _iapService;
         public IUIService UiService => _uiService;
 
@@ -25,7 +27,7 @@ namespace TapEmpire.Services
 
         public void Dispose()
         {
-            Unsubscribe();
+            _disposables.Dispose();
         }
 
         public void StartPurchase(string key)
@@ -41,6 +43,7 @@ namespace TapEmpire.Services
         public void Close()
         {
             _uiService.CloseViewAsync(this, default);
+            OnViewClosed.OnNext(default);
         }
 
         public string GetPrice(string key)
@@ -51,8 +54,7 @@ namespace TapEmpire.Services
 
         private void OnPurchaseSuccess(string productId)
         {
-            _uiService.CloseViewAsync(this, default);
-            Unsubscribe();
+            Close();
         }
 
         private void OnPurchaseFailed(PurchaseFailArgs args)

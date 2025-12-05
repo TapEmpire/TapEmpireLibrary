@@ -1,3 +1,4 @@
+using DG.Tweening;
 using R3;
 using TapEmpire.Utility;
 using UnityEngine;
@@ -39,11 +40,12 @@ namespace TapEmpire.Services.Shop
             AcquireResources(reward.Resource, reward.Amount, ResourceUsageType.PopupAds, from, true);
         }
 
-        protected override void AcquireResources(ResourceType resourceType, int amount, string usageType,
+        protected override Sequence AcquireResources(ResourceType resourceType, int amount, string usageType,
             Vector3 startPosition, bool shouldAddResource)
         {
             _resourcesService.Add(resourceType, amount, usageType);
             OnResourceAdded.Execute(resourceType);
+            return null;
         }
     }
 }

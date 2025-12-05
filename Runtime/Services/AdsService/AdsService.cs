@@ -139,6 +139,7 @@ namespace TapEmpire.Services
                 }, _cancellationTokenSource.Token);
 
             await UniTask.WaitUntil(() => ShouldWaitAppOpen.CurrentValue == false, cancellationToken: cancellationToken);
+            await base.OnInitializeAsync(cancellationToken);
         }
 
         protected override void OnRelease()

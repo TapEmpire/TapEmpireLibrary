@@ -10,6 +10,8 @@ namespace TapEmpire.Services.Offer
     public class OfferSettings : ScriptableObject
     {
         public RaritySettings Rarity;
+        public Rarity ButtonOfferRarity;
+        public List<int> RaritySequence;
         public SerializableDictionary<string, List<OfferType>> Placements;
         public SerializableDictionary<OfferType, OfferData> Offers;
         [SerializeReference] public List<IHandler> ConditionHandlers;

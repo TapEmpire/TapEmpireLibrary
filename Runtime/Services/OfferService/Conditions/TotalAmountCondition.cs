@@ -40,7 +40,7 @@ namespace TapEmpire.Services.Offer
             _counter = 0;
         }
 
-        private void OnOfferShown((OfferType OfferType, bool Autoshown) data)
+        private void OnOfferShown((OfferType OfferType, bool Autoshown, string Placement) data)
         {
             if (data.Autoshown)
             {
