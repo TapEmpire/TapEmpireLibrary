@@ -57,10 +57,10 @@ namespace TapEmpire.Services.Offer
             }
 
             _closeButton.onClick.Subscribe(DerivedModel.Close).AddTo(_disposables);
-            _debugSwitchButton.onClick.Subscribe(SwitchRarity).AddTo(_disposables);
+            _debugSwitchButton?.onClick.Subscribe(SwitchRarity).AddTo(_disposables);
             DerivedModel.IapService.OnPurchaseSuccess.Subscribe(OnPurchaseSuccess).AddTo(_disposables);
 
-            _debugSwitchButton.gameObject.SetActive(_isDebug);
+            _debugSwitchButton?.gameObject.SetActive(_isDebug);
 
             _resourcesBar = _uiService.ShibariContext.TryGetValue("Resources")?.GetComponent<ResourcesBar>();
             _resourcesBar?.MoveFront();
