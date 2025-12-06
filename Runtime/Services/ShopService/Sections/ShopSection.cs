@@ -15,13 +15,16 @@ namespace TapEmpire.Services.Shop
     {
         [SerializeField] protected LayoutGroup _layoutGroup;
         [SerializeField] protected TMP_Text _title;
+        [SerializeField] protected bool _hasLocalization = false;
 
         protected bool IsGridLayout => _layoutGroup is GridLayoutGroup;
         protected List<BaseShopElement> _elements = new();
 
         public virtual void Initialize(DiContainer diContainer, SectionData sectionData)
         {
-            _title.text = new LocalizedString(LocalizationConstants.UITable, sectionData.Name.ToLower()).GetLocalizedString();
+            _title.text = _hasLocalization ?
+                new LocalizedString(LocalizationConstants.UITable, sectionData.Name.ToLower()).GetLocalizedString() :
+                sectionData.Name;
             CalculateHeight();
         }
 
