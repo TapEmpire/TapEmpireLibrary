@@ -146,7 +146,7 @@ namespace TapEmpire.Services
 #endif
             }
 
-            var levelsCompleted = _progressService.GetLevelProgress();
+            var levelsCompleted = _progressService.GetLevelProgress() + 1;
             _analyticsService.LogEvent(AdsAnalyticsEvents.AdsPayed, new Dictionary<string, object>{
                 { "placement", adType },
                 { "network", network },
