@@ -144,7 +144,7 @@ namespace TapEmpire.Services
                 }
             }
 
-            var levelsCompleted = _progressService.GetLevelProgress();
+            var levelsCompleted = _progressService.GetLevelProgress() + 1;
             _analyticsService.LogEvent(AdsAnalyticsEvents.AdsPayed, new Dictionary<string, object>{
                 { "placement", adType },
                 { "network", network },
@@ -155,7 +155,7 @@ namespace TapEmpire.Services
             });
 
             var parameters = new Dictionary<string, object> { };
-            var levelParameter = $"level_{levelsCompleted + 1}";
+            var levelParameter = $"level_{levelsCompleted}";
 
             if (format == AdFormat.Interstitial)
             {
