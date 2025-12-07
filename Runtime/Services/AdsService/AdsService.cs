@@ -69,7 +69,10 @@ namespace TapEmpire.Services
         public bool IsMeticaEnabled => global::AdsManager.Instance.IsMeticaEnabled;
 
         private AdsRuntimeScenario _adsRuntimeScenario;
+
+#if TEL_META
         private FacebookModule _facebookModule = null;
+#endif
 
         protected override async UniTask OnInitializeAsync(CancellationToken cancellationToken)
         {
@@ -317,11 +320,13 @@ namespace TapEmpire.Services
 
             firebaseService.UpdateConsentStatus(isPersonalized);
 
+#if TEL_META
             if (_adsSettings.EnableMeta)
             {
                 _facebookModule = new FacebookModule();
                 _facebookModule.Initialize(isPersonalized);
             }
+#endif
 
             // GameAnalyticsSDK.GameAnalytics.SetCustomDimension01(ConsentInformation.ConsentStatus.ToString());
         }

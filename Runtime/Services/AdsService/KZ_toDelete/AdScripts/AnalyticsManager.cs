@@ -5,7 +5,10 @@ using System.Text;
 using Firebase.Analytics;
 using Io.AppMetrica;
 using AdjustSdk;
+
+#if TEL_META
 using Facebook.Unity;
+#endif
 
 public class AdData
 {
@@ -146,6 +149,7 @@ public static class AnalyticsManager
     private static void LogFacebookRevenue(string platform, string source, string format, string placement,
         double value, string currency, string precision = null)
     {
+#if TEL_META
         var parameters = new System.Collections.Generic.Dictionary<string, object>
         {
             { "ad_platform", "AdMob" },
@@ -158,6 +162,7 @@ public static class AnalyticsManager
         if (!string.IsNullOrEmpty(precision)) parameters["precision"] = precision;
 
         FB.LogAppEvent("ad_impression", valueToSum: (float)value, parameters: parameters);
+#endif
     }
 
     /*static YandexAppMetricaAdRevenue.AdTypeEnum GetAdType(AdFormat format)

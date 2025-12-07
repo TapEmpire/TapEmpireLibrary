@@ -137,11 +137,13 @@ namespace TapEmpire.Services
             {
                 OnBatchedRevenue(price, _batchedData[(int)BatchAnalyticsType.Firebase]);
 
+#if TEL_META
                 if (_settings.EnableMeta)
                 {
                     OnBatchedRevenue(price, _batchedData[(int)BatchAnalyticsType.Facebook]);
                     OnAdRevenue(price);
                 }
+#endif
             }
 
             var levelsCompleted = _progressService.GetLevelProgress();
@@ -187,6 +189,7 @@ namespace TapEmpire.Services
             });
         }
 
+#if TEL_META
         private void OnAdRevenue(double price)
         {
             if (_isRevenueEnough)
@@ -210,6 +213,7 @@ namespace TapEmpire.Services
             _currentRevenue = newRevenue;
             CheckIsRevenueEnough();
         }
+#endif
 
         private void CheckIsRevenueEnough()
         {
@@ -266,6 +270,7 @@ namespace TapEmpire.Services
             FirebaseAnalytics.LogEvent("ad_revenue_batched", impressionParameters);
         }
 
+#if TEL_META
         private void LogBatchedFacebook(double revenue)
         {
             Facebook.Unity.FB.LogAppEvent("ad_revenue_batched", valueToSum: (float)revenue,
@@ -274,6 +279,7 @@ namespace TapEmpire.Services
                     { "fb_currency", "USD" }
                 });
         }
+#endif
 
         private BatchedData[] InitializedBatchedData()
         {
@@ -284,12 +290,14 @@ namespace TapEmpire.Services
                     Postfix = "",
                     Callback = this.LogBatchedFirebase,
                 },
+#if TEL_META
                 new BatchedData() {
                     BatchType = _settings.AdsAnalyticsSettings.BatchTypeMeta,
                     Threshold = _settings.AdsAnalyticsSettings.ThresholdMeta,
                     Postfix = "Meta",
                     Callback = this.LogBatchedFacebook,
                 }
+#endif
             };
 
             batchedData.ForEach(batchedData => batchedData.Initialize(_progressService));
