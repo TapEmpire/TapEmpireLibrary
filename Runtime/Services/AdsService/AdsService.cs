@@ -156,7 +156,9 @@ namespace TapEmpire.Services
             _cancellationTokenSource?.Cancel();
             _cancellationTokenSource = null;
 
+#if TEL_META
             _facebookModule = null;
+#endif
 
             global::AdsManager.Instance?.OnRelease();
         }

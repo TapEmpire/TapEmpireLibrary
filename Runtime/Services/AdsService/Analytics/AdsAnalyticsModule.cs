@@ -283,7 +283,7 @@ namespace TapEmpire.Services
 
         private BatchedData[] InitializedBatchedData()
         {
-            var batchedData = new BatchedData[2] {
+            var batchedData = new BatchedData[] {
                 new BatchedData() {
                     BatchType = _settings.AdsAnalyticsSettings.BatchType,
                     Threshold = _settings.AdsAnalyticsSettings.Threshold,
