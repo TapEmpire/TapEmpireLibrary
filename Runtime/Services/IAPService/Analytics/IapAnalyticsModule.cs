@@ -18,7 +18,7 @@ namespace TapEmpire.Services
         private readonly IIapService _iapService;
         private readonly IUIService _uiService;
 
-        private AdsAnalyticsSettings _adsAnalyticsSettings;
+        private AdsSettings _adsSettings;
 
         public IapAnalyticsModule(DiContainer diContainer)
         {
@@ -27,7 +27,7 @@ namespace TapEmpire.Services
             _iapService = _diContainer.Resolve<IIapService>();
             _uiService = _diContainer.Resolve<IUIService>();
 
-            _adsAnalyticsSettings = _diContainer.Resolve<IAdsService>().Settings.AdsAnalyticsSettings;
+            _adsSettings = _diContainer.Resolve<IAdsService>().Settings;
         }
 
         public void Initialize()
@@ -80,7 +80,7 @@ namespace TapEmpire.Services
                 new Parameter(FirebaseAnalytics.ParameterCurrency, isoCode),
             });
 
-            if (_adsAnalyticsSettings.EnableMetaPurchases)
+            if (_adsSettings.EnableMeta && _adsSettings.AdsAnalyticsSettings.EnableMetaPurchases)
             {
                 Facebook.Unity.FB.LogPurchase(price, isoCode, new Dictionary<string, object>
                 {
