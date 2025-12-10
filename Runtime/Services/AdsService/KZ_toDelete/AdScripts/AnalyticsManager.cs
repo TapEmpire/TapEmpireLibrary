@@ -67,8 +67,11 @@ public static class AnalyticsManager
             rev.AdPlacementName = PlacementName.ToLower();
         AppMetrica.ReportAdRevenue(rev);
 
-        LogFacebookRevenue("Admob", "Simple Admob", data.Format.ToString(), targetPlacement, revenue,
-            admobAd.CurrencyCode, admobAd.Precision.ToString());
+        if (global::AdsManager.Instance.AdsSettings.EnableMeta)
+        {
+            LogFacebookRevenue("Admob", "Simple Admob", data.Format.ToString(), targetPlacement, revenue,
+                admobAd.CurrencyCode, admobAd.Precision.ToString());
+        }
 
         LastAdData.Network = "AdMob";
         LastAdData.Mediation = "AdMob Mediation";
@@ -120,7 +123,10 @@ public static class AnalyticsManager
 
         // GameAnalytics.NewAdEvent(GAAdAction.Show, GetAdType(format), "Max", targetPlacement);
 
-        LogFacebookRevenue("AppLovin", maxAd.NetworkName, format.ToString(), targetPlacement, revenue, "USD", maxAd.RevenuePrecision);
+        if (global::AdsManager.Instance.AdsSettings.EnableMeta)
+        {
+            LogFacebookRevenue("AppLovin", maxAd.NetworkName, format.ToString(), targetPlacement, revenue, "USD", maxAd.RevenuePrecision);
+        }
 
         //Rev Event for Appmetrica
         AdRevenue rev = new AdRevenue(revenue, "USD");

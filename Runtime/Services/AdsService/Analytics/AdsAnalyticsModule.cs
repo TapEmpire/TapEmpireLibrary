@@ -273,11 +273,14 @@ namespace TapEmpire.Services
 #if TEL_META
         private void LogBatchedFacebook(double revenue)
         {
-            Facebook.Unity.FB.LogAppEvent("ad_revenue_batched", valueToSum: (float)revenue,
-                parameters: new Dictionary<string, object>
-                {
-                    { "fb_currency", "USD" }
-                });
+            if (_settings.EnableMeta)
+            {
+                Facebook.Unity.FB.LogAppEvent("ad_revenue_batched", valueToSum: (float)revenue,
+                    parameters: new Dictionary<string, object>
+                    {
+                        { "fb_currency", "USD" }
+                    });
+            }
         }
 #endif
 
