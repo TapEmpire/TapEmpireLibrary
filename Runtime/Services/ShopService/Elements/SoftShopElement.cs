@@ -58,7 +58,7 @@ namespace TapEmpire.Services.Shop
             }
 
             _purchaseButton.enabled = HasAmount();
-            _customButton.SetActive(_purchaseButton.enabled);
+            _customButton?.SetActive(_purchaseButton.enabled);
 
             _resourcesService.GetResourceData(price.Resource).Amount.Subscribe(OnCoinsChanged).AddTo(_disposables);
         }
@@ -78,7 +78,7 @@ namespace TapEmpire.Services.Shop
         private void OnCoinsChanged(int _)
         {
             _purchaseButton.enabled = HasAmount();
-            _customButton.SetActive(_purchaseButton.enabled);
+            _customButton?.SetActive(_purchaseButton.enabled);
         }
 
         private bool HasAmount()
