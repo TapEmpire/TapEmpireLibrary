@@ -6,10 +6,6 @@ using Firebase.Analytics;
 using Io.AppMetrica;
 using AdjustSdk;
 
-#if TEL_META
-using Facebook.Unity;
-#endif
-
 public class AdData
 {
     public string Network;
@@ -167,7 +163,7 @@ public static class AnalyticsManager
 
         if (!string.IsNullOrEmpty(precision)) parameters["precision"] = precision;
 
-        FB.LogAppEvent("ad_impression", valueToSum: (float)value, parameters: parameters);
+        Facebook.Unity.FB.LogAppEvent("ad_impression", valueToSum: (float)value, parameters: parameters);
 #endif
     }
 

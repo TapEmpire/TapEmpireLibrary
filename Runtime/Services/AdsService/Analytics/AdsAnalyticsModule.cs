@@ -206,7 +206,11 @@ namespace TapEmpire.Services
 
                 if (layer.Value > _currentRevenue)
                 {
-                    Facebook.Unity.FB.LogAppEvent(layer.Name);
+                    Facebook.Unity.FB.LogAppEvent(layer.Name, valueToSum: (float)newRevenue,
+                    parameters: new Dictionary<string, object>
+                    {
+                        { "fb_currency", "USD" }
+                    });
                 }
             }
 
