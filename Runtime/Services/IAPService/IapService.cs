@@ -15,12 +15,14 @@ namespace TapEmpire.Services
     [Serializable]
     public class IapService : Initializable, IIapService
     {
-        [field: SerializeField] public string AdjustPurchaseToken { get; private set;}
+        [field: SerializeField] public string AdjustPurchaseToken { get; private set; }
         [SerializeField] private IapProductsSettings _iapProductsSettings;
         [SerializeField] private IapShowSettings _iapShowSettings;
         [SerializeField] private UIView _noAdsPopupView;
         [SerializeField] private UIView _iapLoadingView;
         [SerializeReference] private IIapHandler[] _iapHandlers;
+
+        public bool IsPayer { get; private set; }
 
         private readonly Dictionary<Type, IIapHandler> _handlers = new();
 
@@ -59,6 +61,7 @@ namespace TapEmpire.Services
             _purchasingModule.OnPurchaseSuccess.Subscribe(OnProductPurchaseSuccess).AddTo(_disposable);
             _purchasingModule.OnProductPurchaseFailed.Subscribe(OnProductPurchaseFailed).AddTo(_disposable);
             _purchasingModule.OnPurchaseRestored.Subscribe(OnProductPurchaseRestored).AddTo(_disposable);
+            _purchasingModule.IsInitialized.Subscribe(OnPurchasingInitialized).AddTo(_disposable);
 
             _purchasingModule.OnPurchaseInProgress.Subscribe(OnPurchaseInProgress).AddTo(_disposable);
             _iapAnalyticsModule = new IapAnalyticsModule(diContainer);
@@ -68,6 +71,11 @@ namespace TapEmpire.Services
         public void RegisterHandler<T>(IIapHandler<T> handler) where T : IIapProduct
         {
             _handlers[typeof(T)] = handler;
+        }
+
+        public T GetHandler<T>() where T : IIapHandler
+        {
+            return _handlers.Values.OfType<T>().FirstOrDefault();
         }
 
         private void InitializeAndRegisterHandler(IIapHandler handler)
@@ -154,9 +162,9 @@ namespace TapEmpire.Services
                     _onIapShownCallback = onComplete;
                     _iapShowProgress.Add(level);
                     _progressService.SetIapShowProgress(_iapShowProgress);
-                    var noAdsPopupViewModel = new NoAdsPopupViewModel(_uiService, this, new JObject(new JProperty("Level", $"Level_{level}")).ToString());
+                    var noAdsPopupViewModel = new NoAdsPopupViewModel(new JObject(new JProperty("Level", $"Level_{level}")).ToString());
                     _uiService.OnBeforeCloseView += UiServiceOnOnBeforeCloseView;
-                    _uiService.OpenViewAsync(_noAdsPopupView, noAdsPopupViewModel, CancellationToken.None).Forget();
+                    _uiService.OpenViewAsync(_noAdsPopupView, noAdsPopupViewModel, default).Forget();
                 }
                 else
                 {
@@ -192,12 +200,19 @@ namespace TapEmpire.Services
             return base.OnInitializeAsync(cancellationToken);
         }
 
+        protected override void OnRelease()
+        {
+            _disposable.Dispose();
+        }
+
         protected void OnProductPurchaseSuccess(Product product)
         {
             var iapId = product.definition.id;
             Debug.Log($"IAP OnProductPurchaseSuccess {iapId}");
             if (!_storeOffers.ContainsKey(iapId))
                 return;
+
+            SetIsPayer(true);
             ProcessPurchase(_storeOffers[iapId]).Forget();
             _progressService.AddPurchase();
             _onPurchaseSuccessDetailed.Execute(product);
@@ -216,6 +231,8 @@ namespace TapEmpire.Services
 
             if (!_storeOffers.ContainsKey(iapId))
                 return;
+
+            SetIsPayer(true);
             ProcessPurchase(_storeOffers[iapId]).Forget();
             _progressService.AddPurchase();
             _onPurchaseRestored.Execute(iapId);
@@ -234,9 +251,24 @@ namespace TapEmpire.Services
             }
         }
 
-        protected override void OnRelease()
+        private void OnPurchasingInitialized(bool isInitialized)
         {
-            _disposable.Dispose();
+            if (isInitialized)
+            {
+                IsPayer = GetIsPayer();
+            }
+        }
+
+        private bool GetIsPayer()
+        {
+            var isPayer = _progressService.GetIsPayer();
+            return isPayer ? true : _purchasingModule.HasAnyPurchases();
+        }
+
+        public void SetIsPayer(bool isPayer)
+        {
+            IsPayer = isPayer;
+            _progressService.SetIsPayer(IsPayer);
         }
     }
 }

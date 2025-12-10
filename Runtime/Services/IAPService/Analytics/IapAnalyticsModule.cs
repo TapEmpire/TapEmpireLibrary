@@ -80,6 +80,7 @@ namespace TapEmpire.Services
                 new Parameter(FirebaseAnalytics.ParameterCurrency, isoCode),
             });
 
+#if TEL_META
             if (_adsSettings.EnableMeta && _adsSettings.AdsAnalyticsSettings.EnableMetaPurchases)
             {
                 Facebook.Unity.FB.LogPurchase(price, isoCode, new Dictionary<string, object>
@@ -89,6 +90,7 @@ namespace TapEmpire.Services
                     { "fb_order_id", product.transactionID }
                 });
             }
+#endif
 
             _analyticsService.LogEvent(IapAnalyticsStrings.AdsPlacements, new Dictionary<string, object>()
             {

@@ -19,6 +19,7 @@ namespace TapEmpire.Services
 
         protected override UniTask OnInitializeAsync(CancellationToken cancellationToken)
         {
+            _onSceneContextInstalledR3 = new();
             _sceneContexts = new Dictionary<string, SceneContext>();
             return base.OnInitializeAsync(cancellationToken);
         }

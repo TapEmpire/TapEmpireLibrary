@@ -1,6 +1,7 @@
 ﻿using System.Threading;
 using Cysharp.Threading.Tasks;
 using R3;
+using TapEmpire.Settings;
 
 namespace TapEmpire.Services
 {
@@ -8,5 +9,7 @@ namespace TapEmpire.Services
     {
         Subject<bool> OnApplicationFocusChanged { get; }
         Subject<Unit> OnSessionStarted { get; }
+
+        GameStartSettings StaticSettings { get; }
     }
 }

@@ -69,7 +69,10 @@ namespace TapEmpire.Services
         public bool IsMeticaEnabled => global::AdsManager.Instance.IsMeticaEnabled;
 
         private AdsRuntimeScenario _adsRuntimeScenario;
+
+#if TEL_META
         private FacebookModule _facebookModule = null;
+#endif
 
         protected override async UniTask OnInitializeAsync(CancellationToken cancellationToken)
         {
@@ -139,6 +142,7 @@ namespace TapEmpire.Services
                 }, _cancellationTokenSource.Token);
 
             await UniTask.WaitUntil(() => ShouldWaitAppOpen.CurrentValue == false, cancellationToken: cancellationToken);
+            await base.OnInitializeAsync(cancellationToken);
         }
 
         protected override void OnRelease()
@@ -152,7 +156,9 @@ namespace TapEmpire.Services
             _cancellationTokenSource?.Cancel();
             _cancellationTokenSource = null;
 
+#if TEL_META
             _facebookModule = null;
+#endif
 
             global::AdsManager.Instance?.OnRelease();
         }
@@ -316,11 +322,13 @@ namespace TapEmpire.Services
 
             firebaseService.UpdateConsentStatus(isPersonalized);
 
+#if TEL_META
             if (_adsSettings.EnableMeta)
             {
                 _facebookModule = new FacebookModule();
                 _facebookModule.Initialize(isPersonalized);
             }
+#endif
 
             // GameAnalyticsSDK.GameAnalytics.SetCustomDimension01(ConsentInformation.ConsentStatus.ToString());
         }

@@ -137,14 +137,16 @@ namespace TapEmpire.Services
             {
                 OnBatchedRevenue(price, _batchedData[(int)BatchAnalyticsType.Firebase]);
 
+#if TEL_META
                 if (_settings.EnableMeta)
                 {
                     OnBatchedRevenue(price, _batchedData[(int)BatchAnalyticsType.Facebook]);
                     OnAdRevenue(price);
                 }
+#endif
             }
 
-            var levelsCompleted = _progressService.GetLevelProgress();
+            var levelsCompleted = _progressService.GetLevelProgress() + 1;
             _analyticsService.LogEvent(AdsAnalyticsEvents.AdsPayed, new Dictionary<string, object>{
                 { "placement", adType },
                 { "network", network },
@@ -155,7 +157,7 @@ namespace TapEmpire.Services
             });
 
             var parameters = new Dictionary<string, object> { };
-            var levelParameter = $"level_{levelsCompleted + 1}";
+            var levelParameter = $"level_{levelsCompleted}";
 
             if (format == AdFormat.Interstitial)
             {
@@ -187,6 +189,7 @@ namespace TapEmpire.Services
             });
         }
 
+#if TEL_META
         private void OnAdRevenue(double price)
         {
             if (_isRevenueEnough)
@@ -210,6 +213,7 @@ namespace TapEmpire.Services
             _currentRevenue = newRevenue;
             CheckIsRevenueEnough();
         }
+#endif
 
         private void CheckIsRevenueEnough()
         {
@@ -266,6 +270,7 @@ namespace TapEmpire.Services
             FirebaseAnalytics.LogEvent("ad_revenue_batched", impressionParameters);
         }
 
+#if TEL_META
         private void LogBatchedFacebook(double revenue)
         {
             if (_settings.EnableMeta)
@@ -277,22 +282,25 @@ namespace TapEmpire.Services
                     });
             }
         }
+#endif
 
         private BatchedData[] InitializedBatchedData()
         {
-            var batchedData = new BatchedData[2] {
+            var batchedData = new BatchedData[] {
                 new BatchedData() {
                     BatchType = _settings.AdsAnalyticsSettings.BatchType,
                     Threshold = _settings.AdsAnalyticsSettings.Threshold,
                     Postfix = "",
                     Callback = this.LogBatchedFirebase,
                 },
+#if TEL_META
                 new BatchedData() {
                     BatchType = _settings.AdsAnalyticsSettings.BatchTypeMeta,
                     Threshold = _settings.AdsAnalyticsSettings.ThresholdMeta,
                     Postfix = "Meta",
                     Callback = this.LogBatchedFacebook,
                 }
+#endif
             };
 
             batchedData.ForEach(batchedData => batchedData.Initialize(_progressService));

@@ -79,7 +79,7 @@ namespace TapEmpire.UI
             _customCanvasRectTransform = customCanvasObject.transform;
             
             _sceneContextsService.OnSceneContextInstalled += SceneContextsService_OnSceneContextInstalled;
-            return UniTask.CompletedTask;
+            return base.OnInitializeAsync(cancellationToken);
         }
 
         private void SceneContextsService_OnSceneContextInstalled(string contextId, SceneContext context)

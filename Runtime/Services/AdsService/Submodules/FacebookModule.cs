@@ -1,3 +1,4 @@
+#if TEL_META
 using Facebook.Unity;
 
 namespace TapEmpire.Modules
@@ -36,3 +37,4 @@ namespace TapEmpire.Modules
         }
     }
 }
+#endif

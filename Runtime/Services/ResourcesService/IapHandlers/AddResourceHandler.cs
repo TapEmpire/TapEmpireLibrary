@@ -8,7 +8,7 @@ namespace TapEmpire.Services
     [Serializable]
     public class AddResourceHandler<ResourceType> : BaseIapHandler<AddResourceProduct<ResourceType>>
     {
-        private IResourcesService<ResourceType> _resourcesService;
+        protected IResourcesService<ResourceType> _resourcesService;
 
         public override void Initialize(DiContainer diContainer)
         {
@@ -18,7 +18,7 @@ namespace TapEmpire.Services
         public override UniTask Handle(AddResourceProduct<ResourceType> product)
         {
             Debug.Log($"IAP AddHintsHandler Handle: {product.ProductId}");
-            _resourcesService.Add(product.ResourceType, product.Amount, "ShopPaid");
+            _resourcesService.Add(product.ResourceType, product.Amount, Shop.ResourceUsageType.ShopPaid.ToString());
             return UniTask.CompletedTask;
         }
     }

@@ -97,6 +97,16 @@ namespace TapEmpire.Services
             _onVirtualAdded.OnNext(resource);
         }
 
+        public Sprite GetFlyingSprite(T type)
+        {
+            return GetSettings(type).FlyingSprite;
+        }
+
+        private ResourceSettings<T> GetSettings(T type)
+        {
+            return _settings.Resources.Find(setting => EqualityComparer<T>.Default.Equals(setting.ResourceType, type));
+        }
+
         private void UpdateOnFocusChange(bool hasFocus)
         {
             _resources.ForEach(resource => resource.Value.RecheckAbsentTime());

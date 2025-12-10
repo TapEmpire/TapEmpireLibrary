@@ -44,6 +44,7 @@ namespace TapEmpire.Services
 
         protected virtual UniTask OnInitializeAsync(CancellationToken cancellationToken)
         {
+            // Debug.Log($"[CHECK] {this.GetType().Name}");
             return UniTask.CompletedTask;
         }
 

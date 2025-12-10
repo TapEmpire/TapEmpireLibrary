@@ -207,6 +207,11 @@ namespace TapEmpire.Services
             return _storeController.GetProductById(productId);
         }
 
+        public bool HasAnyPurchases()
+        {
+            return _storeController.GetPurchases().Count > 0;
+        }
+
         private void OnTransactionsRestored(bool success, string msg)
         {
             Debug.Log($"IAP Transactions restored. {success.ToString()}");
