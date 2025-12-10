@@ -34,7 +34,7 @@ namespace TapEmpire.Services.Offer
 
         private void OnOfferShown((OfferType OfferType, bool Autoshown, string Placement) data)
         {
-            var level = _progressService.GetLevelProgress() + 1;
+            var level = _progressService.GetVisualProgress();
 
             _analyticsService.LogEvent(CoreAnalyticsStrings.CommonData, new Dictionary<string, object>()
             {
