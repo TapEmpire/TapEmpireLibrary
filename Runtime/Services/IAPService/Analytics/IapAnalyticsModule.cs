@@ -55,7 +55,7 @@ namespace TapEmpire.Services
             }
 
             var progressService = _diContainer.Resolve<IProgressService>();
-            var levelsCompleted = progressService.GetLevelProgress();
+            var levelsCompleted = progressService.GetVisualProgress();
             _analyticsService.LogEvent(IapAnalyticsEvents.IapPurchased, new Dictionary<string, object>()
             {
                 { "purchase_id", iapId },
@@ -112,7 +112,7 @@ namespace TapEmpire.Services
         private void OnPurchaseFailed(PurchaseFailArgs args)
         {
             var progressService = _diContainer.Resolve<IProgressService>();
-            var levelsCompleted = progressService.GetLevelProgress();
+            var levelsCompleted = progressService.GetVisualProgress();
             _analyticsService.LogEvent(IapAnalyticsEvents.IapError, new Dictionary<string, object>()
             {
                 { "purchase_id", args.IapId },
@@ -136,7 +136,7 @@ namespace TapEmpire.Services
         private void OnPurchaseRestored(string iapId)
         {
             var progressService = _diContainer.Resolve<IProgressService>();
-            var levelsCompleted = progressService.GetLevelProgress();
+            var levelsCompleted = progressService.GetVisualProgress();
             _analyticsService.LogEvent(IapAnalyticsEvents.IapRestored, new Dictionary<string, object>()
             {
                 { "purchase_id", iapId },

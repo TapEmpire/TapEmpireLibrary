@@ -118,7 +118,7 @@ namespace TapEmpire.Services
             var adData = AnalyticsManager.LastAdData;
 
             var adsWatchedCount = _progressService.UpdateAdsWatchedProgress();
-            var levelsCompleted = _progressService.GetLevelProgress();
+            var levelsCompleted = _progressService.GetVisualProgress();
 
             _analyticsService.SetUserProperty(AdsAnalyticsParameters.AdsWatched, adsWatchedCount);
             _analyticsService.LogEvent(AdsAnalyticsEvents.AdsWatched, new Dictionary<string, object>{
@@ -146,7 +146,7 @@ namespace TapEmpire.Services
 #endif
             }
 
-            var levelsCompleted = _progressService.GetLevelProgress() + 1;
+            var levelsCompleted = _progressService.GetVisualProgress();
             _analyticsService.LogEvent(AdsAnalyticsEvents.AdsPayed, new Dictionary<string, object>{
                 { "placement", adType },
                 { "network", network },

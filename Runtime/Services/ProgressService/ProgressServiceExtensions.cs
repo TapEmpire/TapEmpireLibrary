@@ -140,6 +140,18 @@ namespace TapEmpire.Services
             var key = $"{ProgressIntProp.CompletedLevelCount}";
             self.IntValuesDictionary.SetValue(key, value);
         }
+        
+        public static string GetVisualProgress(this IProgressService self)
+        {
+            var key = $"{ProgressIntProp.VisualProgress}";
+            return self.StringValuesDictionary.TryGetValue(key, out var value) ? value : default;
+        }
+
+        public static void SetVisualProgress(this IProgressService self, string value)
+        {
+            var key = $"{ProgressIntProp.VisualProgress}";
+            self.StringValuesDictionary.SetValue(key, value);
+        }
 
         public static int GetCyclesProgress(this IProgressService self)
         {
