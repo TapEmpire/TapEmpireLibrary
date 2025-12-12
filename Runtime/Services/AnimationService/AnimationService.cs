@@ -1,4 +1,5 @@
 using System.Threading;
+using _ConnectWords.Scripts.CoinSort.Scripts.UI;
 using Cysharp.Threading.Tasks;
 using DG.Tweening;
 using TapEmpire.UI;
@@ -26,6 +27,8 @@ namespace TapEmpire.Services
         private Transform _parent;
         private const int MaxResourceAmount = 40;
         private CompositeDisposable _disposables = new();
+        
+        protected CoinsortHudBinder HudBinder { get; set;}
 
         [Inject]
         private void Construct(IUIService uiService, IResourcesService<ResourceType> resourceService, IAudioService audioService)
@@ -91,6 +94,44 @@ namespace TapEmpire.Services
                     {
                         _resourcesService.Add(resourceType, flyAmount);
                     }
+                    _flyingResources.Release(resourceRenderer);
+                    resourceRenderer.transform.parent = _parent;
+                });
+                animation.Join(sequence);
+            }
+
+            animation.SetLink(target.gameObject);
+
+            return animation;
+        }
+        
+        public Sequence CollectExperience(int amount, Vector3 start, Transform target)
+        {
+            var newAmount = Mathf.Clamp(amount, 0, MaxResourceAmount);
+            
+            var points = AnimationFragment.GetRadialSpreadPoints(start, newAmount, _settings.ExperienceScatterRadius, _settings.ExperienceScatterRandomness);
+            var animation = DOTween.Sequence();
+            var end = target.position;
+
+            foreach (var point in points)
+            {
+                var resourceRenderer = _flyingResources.Get();
+                resourceRenderer.transform.localScale = Vector3.one;
+                resourceRenderer.rectTransform.sizeDelta = _settings.ExperienceCustomSize;
+                resourceRenderer.raycastTarget = false;
+                var resource = resourceRenderer.transform;
+                resourceRenderer.sprite = _settings.ExperienceSprite;
+
+                resource.position = start;
+                resource.parent = target.transform;
+
+                var sequence = DOTween.Sequence();
+                resource.DOMove(point, 0.3f).AppendTo(sequence);
+                resource.DOMove(end, 0.5f).SetDelay(Random.Range(0.05f, 0.2f)).SetEase(Ease.InBack).AppendTo(sequence);
+                sequence.AppendCallback(() =>
+                {
+                    HudBinder?.PlayXpHitBounceAsync().Forget();
+
                     _flyingResources.Release(resourceRenderer);
                     resourceRenderer.transform.parent = _parent;
                 });

@@ -97,7 +97,8 @@ namespace TapEmpire.Services.Offer
             var rarityVisual = _offerService.Settings.Rarity.Visual[DerivedModel.OfferData.Rarity];
 
             _header.sprite = rarityVisual.Header;
-            _border.sprite = rarityVisual.Border;
+            if (_border != null) 
+                _border.sprite = rarityVisual.Border;
 
             _offerChoices.ForEach((visual, index) =>
             {

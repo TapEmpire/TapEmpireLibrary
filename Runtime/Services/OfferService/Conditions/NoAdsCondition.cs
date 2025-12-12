@@ -1,0 +1,31 @@
+﻿using System;
+using TapEmpire.Services.Offer;
+using TapEmpire.Services;
+using Zenject;
+
+namespace _TapEmpireLibrary.Runtime.Services.OfferService.Conditions
+{
+
+    [Serializable]
+    public class NoAdsCondition : ICondition
+    {
+        public bool ShouldHaveNoAds = true;
+    }
+    
+    [Serializable]
+    public class NoAdsConditionHandler : ConditionHandler<NoAdsCondition>
+    {
+        private IAdsService _adsService;
+
+        public override void Initialize(DiContainer diContainer)
+        {
+            _adsService = diContainer.Resolve<IAdsService>();
+        }
+
+        public override bool Handle(NoAdsCondition condition)
+        {
+            bool hasNoAds = _adsService.AdsDisabled;
+            return condition.ShouldHaveNoAds == hasNoAds;
+        }
+    }
+}
