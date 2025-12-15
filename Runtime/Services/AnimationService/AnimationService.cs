@@ -1,3 +1,4 @@
+using System;
 using System.Threading;
 using _ConnectWords.Scripts.CoinSort.Scripts.UI;
 using Cysharp.Threading.Tasks;
@@ -10,6 +11,8 @@ using WordGame.Fragments;
 using WordGame.Level;
 using Zenject;
 using R3;
+using Object = UnityEngine.Object;
+using Random = UnityEngine.Random;
 
 namespace TapEmpire.Services
 {
@@ -28,8 +31,6 @@ namespace TapEmpire.Services
         private const int MaxResourceAmount = 40;
         private CompositeDisposable _disposables = new();
         
-        protected CoinsortHudBinder HudBinder { get; set;}
-
         [Inject]
         private void Construct(IUIService uiService, IResourcesService<ResourceType> resourceService, IAudioService audioService)
         {
@@ -105,11 +106,11 @@ namespace TapEmpire.Services
             return animation;
         }
         
-        public Sequence CollectExperience(int amount, Vector3 start, Transform target)
+        public Sequence CollectVirtualResource(int amount, Vector3 start, Transform target, float scatterRadius, float scatterRandomness, Vector2 sizeDelta, Sprite sprite, Action onComplete)
         {
             var newAmount = Mathf.Clamp(amount, 0, MaxResourceAmount);
             
-            var points = AnimationFragment.GetRadialSpreadPoints(start, newAmount, _settings.ExperienceScatterRadius, _settings.ExperienceScatterRandomness);
+            var points = AnimationFragment.GetRadialSpreadPoints(start, newAmount, scatterRadius, scatterRandomness);
             var animation = DOTween.Sequence();
             var end = target.position;
 
@@ -117,10 +118,10 @@ namespace TapEmpire.Services
             {
                 var resourceRenderer = _flyingResources.Get();
                 resourceRenderer.transform.localScale = Vector3.one;
-                resourceRenderer.rectTransform.sizeDelta = _settings.ExperienceCustomSize;
+                resourceRenderer.rectTransform.sizeDelta = sizeDelta;
                 resourceRenderer.raycastTarget = false;
                 var resource = resourceRenderer.transform;
-                resourceRenderer.sprite = _settings.ExperienceSprite;
+                resourceRenderer.sprite = sprite;
 
                 resource.position = start;
                 resource.parent = target.transform;
@@ -130,7 +131,7 @@ namespace TapEmpire.Services
                 resource.DOMove(end, 0.5f).SetDelay(Random.Range(0.05f, 0.2f)).SetEase(Ease.InBack).AppendTo(sequence);
                 sequence.AppendCallback(() =>
                 {
-                    HudBinder?.PlayXpHitBounceAsync().Forget();
+                    onComplete?.Invoke();
 
                     _flyingResources.Release(resourceRenderer);
                     resourceRenderer.transform.parent = _parent;
