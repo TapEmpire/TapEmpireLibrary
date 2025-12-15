@@ -5,8 +5,7 @@ using TapEmpire.UI;
 using TapEmpire.Utility;
 using UnityEngine;
 using UnityEngine.UI;
-using WordGame.Fragments;
-using WordGame.Level;
+using TapEmpire.Fragments;
 using Zenject;
 using R3;
 
