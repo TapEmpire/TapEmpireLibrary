@@ -1,6 +1,5 @@
 using System;
 using System.Threading;
-using _ConnectWords.Scripts.CoinSort.Scripts.UI;
 using Cysharp.Threading.Tasks;
 using DG.Tweening;
 using TapEmpire.UI;
@@ -8,7 +7,6 @@ using TapEmpire.Utility;
 using UnityEngine;
 using UnityEngine.UI;
 using WordGame.Fragments;
-using WordGame.Level;
 using Zenject;
 using R3;
 using Object = UnityEngine.Object;
