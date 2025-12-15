@@ -15,6 +15,7 @@ namespace TapEmpire.Services
         public bool EnableMeta = true;
         public bool EnableAppOpen = true;
         public bool EnableBanners = true;
+        public bool DisableAdsForPayers = true;
         public bool ShouldWaitAppOpen = false;
         public float AppOpenWaitTime = 10.0f;
 

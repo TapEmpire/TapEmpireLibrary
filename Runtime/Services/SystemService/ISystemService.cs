@@ -11,5 +11,7 @@ namespace TapEmpire.Services
         Subject<Unit> OnSessionStarted { get; }
 
         GameStartSettings StaticSettings { get; }
+
+        bool CanPlayOffline { get; }
     }
 }

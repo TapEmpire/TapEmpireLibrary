@@ -8,5 +8,6 @@ namespace TapEmpire.Services
     public class SystemSettings : ScriptableObject
     {
         public float SessionInterval = 600.0f;
+        public bool PlayOfflineForPayers = true;
     }
 }

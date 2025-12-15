@@ -7,6 +7,7 @@ namespace TapEmpire.Services
 {
     public interface IIapService : IService
     {
+        IapProductsSettings Settings { get; }
         string AdjustPurchaseToken { get; }
         bool IsPayer { get; }
 

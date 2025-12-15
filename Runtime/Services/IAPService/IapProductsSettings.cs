@@ -7,6 +7,7 @@ namespace TapEmpire.Services
     public class IapProductsSettings : ScriptableObject
     {
         public bool HasVerification = true;
+        public bool DisableAdsForPayers = true;
 
         [SerializeField] private List<IapOffer> _products = new();
 

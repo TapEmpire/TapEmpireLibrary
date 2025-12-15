@@ -4,6 +4,7 @@ using Cysharp.Threading.Tasks;
 using R3;
 using TapEmpire.Settings;
 using UnityEngine;
+using Zenject;
 using Object = UnityEngine.Object;
 
 namespace TapEmpire.Services
@@ -18,9 +19,18 @@ namespace TapEmpire.Services
         [field: SerializeField] public GameStartSettings StaticSettings { get; private set; }
         [SerializeField] private MonoCallbacksService _monoCallbackServicePrefab = null;
 
+        public bool CanPlayOffline => _settings.PlayOfflineForPayers && _progressService.GetIsPayer() || StaticSettings.IgnoreConnection;
+
+        private IProgressService _progressService;
         private MonoCallbacksService _monoCallbackService = null;
         private DateTime _sessionTimeStamp = DateTime.UtcNow;
         private CompositeDisposable _disposables = new();
+
+        [Inject]
+        private void Construct(IProgressService progressService)
+        {
+            _progressService = progressService;
+        }
 
         protected override UniTask OnInitializeAsync(CancellationToken cancellationToken)
         {
