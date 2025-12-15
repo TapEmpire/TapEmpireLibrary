@@ -3,7 +3,7 @@ using TapEmpire.Services.Offer;
 using TapEmpire.Services;
 using Zenject;
 
-namespace _TapEmpireLibrary.Runtime.Services.OfferService.Conditions
+namespace WordGame.Services.Offer
 {
 
     [Serializable]
