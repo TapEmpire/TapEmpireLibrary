@@ -24,9 +24,9 @@ namespace TapEmpire.Services.Shop
         [SerializeField] private TMP_Text _timerText;
         [SerializeField] private Image _timerProgress;
 
+        protected ProductData _data;
         private IAdsService _adsService;
         private IShopService _shopService;
-        private ProductData _data;
         private UniTaskTimer _timer = null;
         private const float _timerInterval = 1.0f;
         private const float _timerTotal = 24 * 60 * 60;
@@ -111,7 +111,7 @@ namespace TapEmpire.Services.Shop
             _timerProgress.fillAmount = value / _timerTotal;
         }
 
-        private void SetAvailable(bool isAvailable)
+        protected virtual void SetAvailable(bool isAvailable)
         {
             _purchaseButton.enabled = isAvailable;
             _freeButton.gameObject.SetActive(isAvailable && _data.Type == ProductType.Free);

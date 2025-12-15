@@ -27,6 +27,11 @@ namespace TapEmpire.UI
         {
             return UniTask.CompletedTask;
         }
+
+        protected void OnDestroy()
+        {
+            CloseAsync(CancellationToken.None).Forget();
+        }
     }
 
     public abstract class UIView<T> : UIView
