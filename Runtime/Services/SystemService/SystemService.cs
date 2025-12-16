@@ -19,7 +19,7 @@ namespace TapEmpire.Services
         [field: SerializeField] public GameStartSettings StaticSettings { get; private set; }
         [SerializeField] private MonoCallbacksService _monoCallbackServicePrefab = null;
 
-        public bool CanPlayOffline => _settings.PlayOfflineForPayers && _progressService.GetIsPayer() || StaticSettings.IgnoreConnection;
+        public bool CanPlayOffline => CanPlayOfflineInternal();
 
         private IProgressService _progressService;
         private MonoCallbacksService _monoCallbackService = null;
@@ -34,6 +34,8 @@ namespace TapEmpire.Services
 
         protected override UniTask OnInitializeAsync(CancellationToken cancellationToken)
         {
+            _disposables = new();
+
             if (_monoCallbackService == null)
             {
                 _monoCallbackService = Object.Instantiate(_monoCallbackServicePrefab);
@@ -43,6 +45,8 @@ namespace TapEmpire.Services
                 _monoCallbackService.OnApplicationFocusChangedAction += OnFocusChanged;
             }
 
+            _settings.OnDataChanged.Subscribe(OnDataChanged).AddTo(_disposables);
+
             return UniTask.CompletedTask;
         }
 
@@ -50,7 +54,7 @@ namespace TapEmpire.Services
         {
             _monoCallbackService.OnApplicationFocusChangedAction -= OnFocusChanged;
 
-            _disposables?.Dispose();
+            _disposables.Dispose();
         }
 
         private void OnFocusChanged(bool hasFocus)
@@ -65,6 +69,16 @@ namespace TapEmpire.Services
             }
 
             _sessionTimeStamp = DateTime.UtcNow;
+        }
+
+        private bool CanPlayOfflineInternal()
+        {
+            return _progressService.GetPlayOffline(_settings.PlayOfflineForPayers) && _progressService.GetIsPayer() || StaticSettings.IgnoreConnection;
+        }
+
+        private void OnDataChanged(SystemSettings settings)
+        {
+            _progressService.SetPlayOffline(settings.PlayOfflineForPayers);
         }
     }
 }
