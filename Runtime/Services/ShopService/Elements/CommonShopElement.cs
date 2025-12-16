@@ -15,6 +15,7 @@ namespace TapEmpire.Services.Shop
         [SerializeField] private TMP_Text _amount;
         [SerializeField] private TMP_Text _priceText;
         [SerializeField] private Image _special;
+        [SerializeField] private string _placement = nameof(ResourceUsageType.ShopPaid);
 
         private ProductData _data;
         private ShopSettings _shopSettings;
@@ -34,7 +35,7 @@ namespace TapEmpire.Services.Shop
         {
             base.Initialize(data);
             _data = data;
-            _purchaseButton.onClick.Subscribe(() => _iapService.BuyProduct(data.Key)).AddTo(_disposables);
+            _purchaseButton.onClick.Subscribe(() => _iapService.BuyProduct(data.Key, _placement)).AddTo(_disposables);
             _iapService.OnPurchaseSuccess.Subscribe(OnPurchaseSuccess).AddTo(_disposables);
 
             var price = GetPrice(data.Key);
@@ -57,7 +58,7 @@ namespace TapEmpire.Services.Shop
             {
                 var from = _icon.transform.position;
                 var product = GetProduct<AddResourceProduct<ResourceType>>(_data.Key);
-                AcquireResources(product.ResourceType, product.Amount, ResourceUsageType.ShopPaid, from, false);
+                AcquireResources(product.ResourceType, product.Amount, _placement, from, false);
             }
         }
     }

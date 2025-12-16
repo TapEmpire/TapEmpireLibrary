@@ -33,7 +33,7 @@ namespace TapEmpire.Services
         private DiContainer _diContainer;
 
         private ReactiveCommand<string> _onPurchaseSuccess = new();
-        private ReactiveCommand<Product> _onPurchaseSuccessDetailed = new();
+        private ReactiveCommand<(Product, string, string)> _onPurchaseSuccessDetailed = new();
         private ReactiveCommand<string> _onPurchaseRestored = new();
         private ReactiveCommand<PurchaseFailArgs> _onPurchaseFailed = new();
         private ReactiveCommand<IIapHandler> _onIapHandle = new();
@@ -43,12 +43,13 @@ namespace TapEmpire.Services
         private List<int> _iapShowProgress = new();
 
         public Observable<string> OnPurchaseSuccess => _onPurchaseSuccess;
-        public Observable<Product> OnPurchaseSuccessDetailed => _onPurchaseSuccessDetailed;
+        public Observable<(Product, string, string)> OnPurchaseSuccessDetailed => _onPurchaseSuccessDetailed;
         public Observable<string> OnPurchaseRestored => _onPurchaseRestored;
         public Observable<PurchaseFailArgs> OnPurchaseFailed => _onPurchaseFailed;
         public Observable<IIapHandler> OnIapHandle => _onIapHandle;
 
         private CompositeDisposable _disposables = new();
+        private string _placement = null;
 
         [Inject]
         private void Construct(DiContainer diContainer, IProgressService progressService, IAdsService adsService, IUIService uiService)
@@ -106,10 +107,11 @@ namespace TapEmpire.Services
 
         public void BuyProduct(IapOffer iapId)
         {
+            _placement = null;
             _purchasingModule.BuyProduct(iapId);
         }
 
-        public void BuyProduct(string key)
+        public void BuyProduct(string key, string placement = null)
         {
             var offer = Settings.Products.FirstOrDefault(x => x.Key == key);
             if (offer == null)
@@ -118,6 +120,7 @@ namespace TapEmpire.Services
                 return;
             }
 
+            _placement = placement;
             _purchasingModule.BuyProduct(offer.GetStoreID());
         }
 
@@ -159,6 +162,7 @@ namespace TapEmpire.Services
 
         public void RestoreProducts()
         {
+            _placement = null;
             _purchasingModule.RestorePurchases();
         }
 
@@ -214,11 +218,13 @@ namespace TapEmpire.Services
             if (!_storeOffers.ContainsKey(iapId))
                 return;
 
+            var offer = _storeOffers[iapId];
+
             SetIsPayer(true);
-            ProcessPurchase(_storeOffers[iapId]).Forget();
+            ProcessPurchase(offer).Forget();
             _progressService.AddPurchase();
-            _onPurchaseSuccessDetailed.Execute(product);
-            _onPurchaseSuccess.Execute(_storeOffers[iapId].Key);
+            _onPurchaseSuccessDetailed.Execute((product, offer.Key, _placement));
+            _onPurchaseSuccess.Execute(offer.Key);
         }
 
         protected void OnProductPurchaseFailed(PurchaseFailArgs args)
@@ -247,7 +253,7 @@ namespace TapEmpire.Services
                 var productType = iapProduct.GetType();
                 if (_handlers.TryGetValue(productType, out var handler) && handler.CanHandle(iapProduct))
                 {
-                    await handler.Handle(iapProduct);
+                    await handler.Handle(iapProduct, _placement);
                     _onIapHandle.Execute(handler);
                 }
             }

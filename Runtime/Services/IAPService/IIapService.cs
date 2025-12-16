@@ -13,12 +13,12 @@ namespace TapEmpire.Services
 
         void RegisterHandler<T>(IIapHandler<T> handler) where T : IIapProduct;
         T GetHandler<T>() where T : IIapHandler;
-        void BuyProduct(IapOffer iapId);
-        void BuyProduct(string iapId);
+        void BuyProduct(IapOffer iapId); // Deprecated, not used.
+        void BuyProduct(string iapId, string placement = null);
         void RestoreProducts();
 
         public Observable<string> OnPurchaseSuccess { get; }
-        public Observable<Product> OnPurchaseSuccessDetailed { get; }
+        public Observable<(Product, string, string)> OnPurchaseSuccessDetailed { get; }
         public Observable<string> OnPurchaseRestored { get; }
         public Observable<PurchaseFailArgs> OnPurchaseFailed { get; }
         public Observable<IIapHandler> OnIapHandle { get; }

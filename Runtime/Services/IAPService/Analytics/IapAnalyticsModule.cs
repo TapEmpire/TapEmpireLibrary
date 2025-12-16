@@ -43,9 +43,9 @@ namespace TapEmpire.Services
             _disposables.Dispose();
         }
 
-        private void OnPurchaseSuccessDetailed(Product product)
+        private void OnPurchaseSuccessDetailed((Product product, string productKey, string placement) data)
         {
-            var iapId = product.definition.id;
+            var iapId = data.product.definition.id;
             var offer = _iapService.GetOfferInfoByStoreId(iapId);
             if (offer == null)
             {
@@ -56,12 +56,12 @@ namespace TapEmpire.Services
             var levelsCompleted = _progressService.GetVisualProgress();
             _analyticsService.LogEvent(IapAnalyticsEvents.IapPurchased, new Dictionary<string, object>()
             {
-                { "purchase_id", iapId },
+                { "purchase_id", new JObject(new JProperty(iapId, data.placement))},
                 { "level", levelsCompleted }
             });
 
-            var price = product.metadata.localizedPrice;
-            var isoCode = product.metadata.isoCurrencyCode;
+            var price = data.product.metadata.localizedPrice;
+            var isoCode = data.product.metadata.isoCurrencyCode;
 
             var revenue = new Revenue((long)(price * 1_000_000m), isoCode);
             AppMetrica.ReportRevenue(revenue);
@@ -85,7 +85,7 @@ namespace TapEmpire.Services
                 {
                     { "fb_content_type", "product" },
                     { "fb_content_id", iapId },
-                    { "fb_order_id", product.transactionID }
+                    { "fb_order_id", data.product.transactionID }
                 });
             }
 #endif
