@@ -37,11 +37,9 @@ namespace TapEmpire.Services
         private IProgressService _progressService = null;
 
         private AdsSettings _settings = null;
-        private System.DateTime _revenueWindowEnd;
         private bool _isRevenueEnough = false;
         private float _currentRevenue = 0.0f;
         private double _batchedRevenue = 0.0f;
-        private bool _isBatchedOnce = false;
         private BatchedData[] _batchedData = null;
         private CompositeDisposable _disposables = new();
 
@@ -62,7 +60,6 @@ namespace TapEmpire.Services
         {
             var adsService = _diContainer.Resolve<IAdsService>();
 
-            _revenueWindowEnd = PlayerPrefsUtility.GetFirstLaunchDate().AddDays(1);
             _currentRevenue = _progressService.GetAdRevenue();
             CheckIsRevenueEnough();
 
@@ -133,7 +130,7 @@ namespace TapEmpire.Services
         private void OnAdPayed(string adType, string network, string mediation, AdFormat format, double price,
             string currencyCode, string unitId)
         {
-            if (mediation != "AdMob Mediation")
+            if (currencyCode == "USD")
             {
                 OnBatchedRevenue(price, _batchedData[(int)BatchAnalyticsType.Firebase]);
 

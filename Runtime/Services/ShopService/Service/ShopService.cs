@@ -4,6 +4,8 @@ using System.Linq;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using R3;
+using TapEmpire.Services.Offer;
+using TapEmpire.UI;
 using TapEmpire.Utility;
 using UnityEngine;
 using Zenject;
@@ -14,6 +16,8 @@ namespace TapEmpire.Services.Shop
     {
         [SerializeField] private ShopSettings _shopSettings;
 
+        public Subject<string> OnShopShown { get; } = new();
+
         public ShopSettings ShopSettings => _shopSettings;
 
         public Observable<Unit> OnShopChanged => _onShopChanged;
@@ -23,6 +27,7 @@ namespace TapEmpire.Services.Shop
         private DiContainer _diContainer;
         private IProgressService _progressService;
         private IIapService _iapService;
+        private IUIService _uiService;
 
         private Subject<Unit> _onShopChanged = new();
         private ReactiveProperty<(OfferData Data, DateTime TimeStamp)> _activeOffer = new();
@@ -34,15 +39,18 @@ namespace TapEmpire.Services.Shop
         private CompositeDisposable _disposables = new();
 
         [Inject]
-        private void Construct(IProgressService progressService, IIapService iapService, DiContainer diContainer)
+        private void Construct(DiContainer diContainer, IProgressService progressService, IIapService iapService, IUIService uiService)
         {
             _diContainer = diContainer;
             _progressService = progressService;
             _iapService = iapService;
+            _uiService = uiService;
         }
 
         protected override UniTask OnInitializeAsync(CancellationToken cancellationToken)
         {
+            _disposables = new();
+
             _freeItemsKeys = _shopSettings.Sections
                 .OfType<CommonSectionData>()
                 .SelectMany(section => section.Products)
@@ -52,6 +60,8 @@ namespace TapEmpire.Services.Shop
 
             UpdateCurrentOffer();
             SetMidnightTimer();
+
+            new ShopAnalyticsModule(_diContainer).AddTo(_disposables);
 
             _iapService.OnPurchaseSuccess.Subscribe(OnPurchaseSuccess).AddTo(_disposables);
             return base.OnInitializeAsync(cancellationToken);
@@ -63,6 +73,12 @@ namespace TapEmpire.Services.Shop
             _midnightTimer?.Dispose();
             _disposables.Dispose();
             base.OnRelease();
+        }
+
+        public void ShowShop(string placement)
+        {
+            _uiService.OpenViewAsync(_shopSettings.ShopView, new ShopUIViewModel(), default).Forget();
+            OnShopShown.OnNext(placement);
         }
 
         public void SetTimeStamp(string key)

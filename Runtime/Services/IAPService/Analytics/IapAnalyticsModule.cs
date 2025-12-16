@@ -63,7 +63,7 @@ namespace TapEmpire.Services
             var price = product.metadata.localizedPrice;
             var isoCode = product.metadata.isoCurrencyCode;
 
-            var revenue = new Revenue((long)price, isoCode);
+            var revenue = new Revenue((long)(price * 1_000_000m), isoCode);
             AppMetrica.ReportRevenue(revenue);
 
             AdjustEvent adjustEvent = new AdjustEvent(_iapService.AdjustPurchaseToken);
