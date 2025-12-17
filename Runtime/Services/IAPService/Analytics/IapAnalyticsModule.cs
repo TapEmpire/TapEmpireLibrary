@@ -81,7 +81,7 @@ namespace TapEmpire.Services
             });
 
 #if TEL_META
-            if (_adsSettings.EnableMeta && _adsSettings.AdsAnalyticsSettings.EnableMetaPurchases)
+            if (_adsSettings.AdsAnalyticsSettings.EnableMeta && _adsSettings.AdsAnalyticsSettings.EnableMetaPurchases)
             {
                 Facebook.Unity.FB.LogPurchase(price, isoCode, new Dictionary<string, object>
                 {

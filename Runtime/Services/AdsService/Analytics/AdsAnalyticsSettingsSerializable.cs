@@ -18,19 +18,34 @@ namespace TapEmpire.Services
         {
             public BatchType BatchType;
             public double Threshold;
+            public bool EnableMeta = false;
             public BatchType BatchTypeMeta;
             public double ThresholdMeta;
             public bool EnableMetaPurchases = false;
-            
+            public bool AddMetaPurchases = false;
+
             public AdsAnalyticsRemoteModel() { }
 
             public AdsAnalyticsRemoteModel(AdsAnalyticsSettings settings)
             {
                 BatchType = settings.BatchType;
                 Threshold = settings.Threshold;
+                EnableMeta = settings.EnableMeta;
                 BatchTypeMeta = settings.BatchTypeMeta;
                 ThresholdMeta = settings.ThresholdMeta;
                 EnableMetaPurchases = settings.EnableMetaPurchases;
+                AddMetaPurchases = settings.AddMetaPurchases;
+            }
+
+            public void ToSettings(AdsAnalyticsSettings settings)
+            {
+                settings.BatchType = BatchType;
+                settings.Threshold = Threshold;
+                settings.EnableMeta = EnableMeta;
+                settings.BatchTypeMeta = BatchTypeMeta;
+                settings.ThresholdMeta = ThresholdMeta;
+                settings.EnableMetaPurchases = EnableMetaPurchases;
+                settings.AddMetaPurchases = AddMetaPurchases;
             }
         }
 
@@ -39,11 +54,7 @@ namespace TapEmpire.Services
         public void DeserializeJson(JToken token)
         {
             var model = token.ToObject<AdsAnalyticsRemoteModel>();
-            _settings.BatchType = model.BatchType;
-            _settings.Threshold = model.Threshold;
-            _settings.BatchTypeMeta = model.BatchTypeMeta;
-            _settings.ThresholdMeta = model.ThresholdMeta;
-            _settings.EnableMetaPurchases = model.EnableMetaPurchases;
+            model.ToSettings(_settings);
         }
 
         public string SerializeJson()
