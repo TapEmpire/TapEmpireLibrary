@@ -63,6 +63,8 @@ namespace TapEmpire.Services
             var price = data.product.metadata.localizedPrice;
             var isoCode = data.product.metadata.isoCurrencyCode;
 
+            SaveSpend(price, isoCode);
+
             var revenue = new Revenue((long)(price * 1_000_000m), isoCode);
             AppMetrica.ReportRevenue(revenue);
 
@@ -170,6 +172,26 @@ namespace TapEmpire.Services
 #elif UNITY_IOS
             adjustEvent.TransactionId = product.transactionID;
 #endif
+        }
+
+        private void SaveSpend(decimal price, string isoCode)
+        {
+            var totalSpend = _progressService.GetTotalSpend();
+            if (totalSpend.IsoCode != isoCode)
+            {
+                totalSpend.IsoCode = isoCode;
+                totalSpend.Value = 0;
+            }
+            totalSpend.Value += price;
+            _progressService.SetTotalSpend(totalSpend);
+
+            var topSpend = _progressService.GetTopSpend();
+            if (topSpend.Value < price || topSpend.IsoCode != isoCode)
+            {
+                topSpend.Value = price;
+                topSpend.IsoCode = isoCode;
+                _progressService.SetTopSpend(topSpend);
+            }
         }
     }
 }

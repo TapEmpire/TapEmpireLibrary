@@ -73,14 +73,14 @@ namespace TapEmpire.Services
             return System.DateTime.TryParse(dateString, out var date) ? date : defaultValue;
         }
 
-        public static T GetSerializableObject<T>(this IProgressService self, string key) where T : new()
+        public static T GetSerializableObject<T>(this IProgressService self, string key, bool createNew = false) where T : new()
         {
             if (self.StringValuesDictionary.TryGetValue(key, out var value, canUseDefault: false))
             {
                 return JsonConvert.DeserializeObject<T>(value);
             }
 
-            return new();
+            return createNew ? new() : default(T);
         }
 
         public static void SetSerializableObject<T>(this IProgressService self, string key, T data)
