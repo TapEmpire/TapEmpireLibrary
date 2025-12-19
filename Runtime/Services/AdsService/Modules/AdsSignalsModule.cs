@@ -5,6 +5,7 @@ using System.Linq;
 using Firebase.Analytics;
 using System.Collections.Generic;
 using TapEmpire.Utility;
+using UnityEngine.Purchasing;
 
 namespace TapEmpire.Services
 {
@@ -31,9 +32,13 @@ namespace TapEmpire.Services
 
             AnalyticsManager.OnAdPayed += OnAdPayed;
 
-            // var iapService = diContainer.Resolve<IIapService>();
-            // iapService.OnPurchaseSuccess.Subscribe(OnPurchase).AddTo(_disposables);
-            // iapService.OnPurchaseRestored.Subscribe(OnPurchase).AddTo(_disposables);
+#if TEL_META
+            if (_settings.AdsAnalyticsSettings.EnableMeta)
+            {
+                var iapService = diContainer.Resolve<IIapService>();
+                iapService.OnPurchaseSuccessDetailed.Subscribe(OnPurchaseDetailed).AddTo(_disposables);
+            }
+#endif
         }
 
         public void Dispose()
@@ -42,9 +47,26 @@ namespace TapEmpire.Services
             _disposables.Dispose();
         }
 
-        private void OnPurchase(string purchaseId)
+#if TEL_META
+        private void OnPurchaseDetailed((Product Product, string ProductId, string Placement) data)
         {
+            var price = data.Product.metadata.localizedPrice;
+            var isoCode = data.Product.metadata.isoCurrencyCode;
+
+            if (isoCode == "USD")
+            {
+                if (_settings.AdsAnalyticsSettings.AddMetaIapBatched)
+                {
+                    OnBatchedRevenue((double)price, _batchedData[(int)BatchAnalyticsType.Facebook]);
+                }
+
+                if (_settings.AdsAnalyticsSettings.AddMetaIapLayered)
+                {
+                    OnAdRevenue((double)price);
+                }
+            }
         }
+#endif
 
         private void OnAdPayed(string adType, string network, string mediation, AdFormat format, double price,
             string currencyCode, string unitId)

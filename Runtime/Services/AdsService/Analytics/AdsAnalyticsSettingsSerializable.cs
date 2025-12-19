@@ -22,7 +22,8 @@ namespace TapEmpire.Services
             public BatchType BatchTypeMeta;
             public double ThresholdMeta;
             public bool EnableMetaPurchases = false;
-            public bool AddMetaPurchases = false;
+            public bool AddMetaIapBatched = false;
+            public bool AddMetaIapLayered = false;
 
             public AdsAnalyticsRemoteModel() { }
 
@@ -34,7 +35,8 @@ namespace TapEmpire.Services
                 BatchTypeMeta = settings.BatchTypeMeta;
                 ThresholdMeta = settings.ThresholdMeta;
                 EnableMetaPurchases = settings.EnableMetaPurchases;
-                AddMetaPurchases = settings.AddMetaPurchases;
+                AddMetaIapBatched = settings.AddMetaIapBatched;
+                AddMetaIapLayered = settings.AddMetaIapLayered;
             }
 
             public void ToSettings(AdsAnalyticsSettings settings)
@@ -45,7 +47,8 @@ namespace TapEmpire.Services
                 settings.BatchTypeMeta = BatchTypeMeta;
                 settings.ThresholdMeta = ThresholdMeta;
                 settings.EnableMetaPurchases = EnableMetaPurchases;
-                settings.AddMetaPurchases = AddMetaPurchases;
+                settings.AddMetaIapBatched = AddMetaIapBatched;
+                settings.AddMetaIapLayered = AddMetaIapLayered;
             }
         }
 
