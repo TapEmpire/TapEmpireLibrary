@@ -12,7 +12,8 @@ namespace TapEmpire.Services.Shop
     {
         None,
         Hot,
-        Best
+        Best,
+        Top
     }
 
     public enum BundleType
