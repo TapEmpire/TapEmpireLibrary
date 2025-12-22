@@ -1,3 +1,4 @@
+using _ConnectWords.Scripts.CoreSystems.Shop;
 using R3;
 using TapEmpire.UI;
 using TapEmpire.Utility;
@@ -19,11 +20,16 @@ namespace TapEmpire.Services.Shop
 
         protected ProductData _data;
         private ShopSettings _shopSettings;
+        private IShopCoreSystem _shopCoreSystem;
 
         [Inject]
-        private void Construct(IResourcesService<ResourceType> resourcesService, IAnimationService<ResourceType> animationService,
-            IUIService uiService, IShopService shopService)
+        private void Construct(IResourcesService<ResourceType> resourcesService, 
+            IAnimationService<ResourceType> animationService,
+            IUIService uiService,
+            IShopService shopService,
+            IShopCoreSystem  shopCoreSystem)
         {
+            _shopCoreSystem = shopCoreSystem;
             _resourcesService = resourcesService;
             _uiService = uiService;
             _animationService = animationService;
@@ -57,7 +63,6 @@ namespace TapEmpire.Services.Shop
                 _special.sprite = _shopSettings.InfoIcons[data.InfoType];
             }
 
-            _purchaseButton.enabled = HasAmount();
             _customButton?.SetActive(_purchaseButton.enabled);
 
             _resourcesService.GetResourceData(price.Resource).Amount.Subscribe(OnCoinsChanged).AddTo(_disposables);
@@ -73,11 +78,14 @@ namespace TapEmpire.Services.Shop
                 _resourcesService.Subtract(price.Resource, price.Amount, $"{ResourceUsageType.For}{price.Resource}");
                 AcquireResources(reward.Resource, reward.Amount, ResourceUsageType.ShopSoft, from, true);
             }
+            else
+            {
+                _shopCoreSystem.OpenShop();
+            }
         }
 
         private void OnCoinsChanged(int _)
         {
-            _purchaseButton.enabled = HasAmount();
             _customButton?.SetActive(_purchaseButton.enabled);
         }
 

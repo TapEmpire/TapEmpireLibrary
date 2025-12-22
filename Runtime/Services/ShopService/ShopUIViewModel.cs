@@ -20,6 +20,8 @@ namespace TapEmpire.Services.Shop
         private ResourcesBar _resourcesBar;
         private CompositeDisposable _disposables = new();
 
+        public event Action OnClose;
+        
         [Inject]
         private void Construct(DiContainer diContainer, IUIService uiService, IIapService iapService,
             IShopService shopService, IAdsService adsService)
@@ -44,6 +46,8 @@ namespace TapEmpire.Services.Shop
 
         public void OnClosePressed()
         {
+            OnClose?.Invoke();
+            OnClose = null;
             _uiService.CloseViewAsync(this, default).Forget();
         }
     }
