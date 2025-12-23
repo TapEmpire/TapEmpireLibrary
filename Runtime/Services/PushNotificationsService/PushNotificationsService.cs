@@ -1,11 +1,13 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using Cysharp.Threading.Tasks;
+using DG.Tweening;
 using R3;
+using TapEmpire.Patterns.Strategy;
+using TapEmpire.Services.Offer;
 using Unity.Notifications;
 using UnityEngine;
 using Zenject;
@@ -18,14 +20,7 @@ namespace TapEmpire.Services.Notifications
     [Serializable]
     public class PushNotificationsService : Initializable, IPushNotificationsService, ITickable
     {
-        // async UniTask RequestPermission()
-        // {
-        //     var request = NotificationCenter.RequestPermission();
-        //
-        //     await UniTask.WaitUntil(() => request.Status != NotificationsPermissionStatus.RequestPending);
-        //
-        //     Debug.Log("Permission result: " + request.Status);
-        // }
+        [SerializeField] private PushNotificationSettings _notificationSettings;
 
         // Default filename for notifications serializer
         private const string DefaultFilename = "notifications.bin";
@@ -81,34 +76,25 @@ namespace TapEmpire.Services.Notifications
         /// </summary>
         public bool AutoBadging => autoBadging;
 
-        // /// <summary>
-        // /// Gets whether this manager has been initialized.
-        // /// </summary>
-        // public bool Initialized { get; private set; } = false;
-
         // Flag set when we're in the foreground
         private bool inForeground = true;
 
+        private DiContainer _diContainer;
         private ISystemService _systemService;
 
         private CompositeDisposable _disposables = new();
+        private List<INotificationHandler> _handlers = new();
         
         [Inject]
-        private void Construct(ISystemService systemService)
+        private void Construct(DiContainer diContainer, ISystemService systemService)
         {
+            _diContainer = diContainer;
             _systemService = systemService;
         }
         
         protected override async UniTask OnInitializeAsync(CancellationToken cancellationToken)
         {
             _systemService.OnApplicationFocusChanged.Subscribe(OnApplicationFocus).AddTo(_disposables);
-            
-            // if (Initialized)
-            // {
-            //     throw new InvalidOperationException("NotificationsManager already initialized.");
-            // }
-            //
-            // Initialized = true;
 
             var args = NotificationCenterArgs.Default;
             args.AndroidChannelId = "notifications";
@@ -129,11 +115,22 @@ namespace TapEmpire.Services.Notifications
 
             OnForegrounding();
             
+            _notificationSettings.NotificationHandlers.ForEach(InitializeAndRegisterHandler);
+            
             await base.OnInitializeAsync(cancellationToken);
         }
-
+        
+        private void InitializeAndRegisterHandler(INotificationHandler handler)
+        {
+            handler.Initialize(_diContainer);
+            handler.AddTo(_disposables);
+            _handlers.Add(handler);
+        }
+        
         protected override void OnRelease()
         {
+            _disposables?.Dispose();
+
             if (Platform == null)
             {
                 return;
@@ -147,7 +144,6 @@ namespace TapEmpire.Services.Notifications
 
             inForeground = false;
             
-            _disposables?.Dispose();
         }
 
         /// <summary>
@@ -314,6 +310,8 @@ namespace TapEmpire.Services.Notifications
 
             var notificationToDisplay = ScheduleNotification(notification, deliveryTime);
             notificationToDisplay.Reschedule = reschedule;
+            
+            Debug.Log($"[PUSH] Scheduled to {deliveryTime}. Title={title}, body={body}");
         }
         
         /// <summary>
@@ -323,11 +321,6 @@ namespace TapEmpire.Services.Notifications
         /// <exception cref="InvalidOperationException"><see cref="Initialize"/> has not been called.</exception>
         public GameNotification CreateNotification()
         {
-            // if (!Initialized)
-            // {
-            //     throw new InvalidOperationException("Must call Initialize() first.");
-            // }
-
             return Platform?.CreateNotification();
         }
 
@@ -337,11 +330,6 @@ namespace TapEmpire.Services.Notifications
         /// <param name="notification">The notification to deliver.</param>
         public PendingNotification ScheduleNotification(GameNotification notification, DateTime deliveryTime)
         {
-            // if (!Initialized)
-            // {
-            //     throw new InvalidOperationException("Must call Initialize() first.");
-            // }
-
             if (notification == null || Platform == null)
             {
                 return null;
@@ -377,11 +365,6 @@ namespace TapEmpire.Services.Notifications
         /// <exception cref="InvalidOperationException"><see cref="Initialize"/> has not been called.</exception>
         public void CancelNotification(int notificationId)
         {
-            // if (!Initialized)
-            // {
-            //     throw new InvalidOperationException("Must call Initialize() first.");
-            // }
-
             if (Platform == null)
             {
                 return;
@@ -405,11 +388,6 @@ namespace TapEmpire.Services.Notifications
         /// <exception cref="InvalidOperationException"><see cref="Initialize"/> has not been called.</exception>
         public void CancelAllNotifications()
         {
-            // if (!Initialized)
-            // {
-            //     throw new InvalidOperationException("Must call Initialize() first.");
-            // }
-
             if (Platform == null)
             {
                 return;
@@ -427,11 +405,6 @@ namespace TapEmpire.Services.Notifications
         /// <exception cref="InvalidOperationException"><see cref="Initialize"/> has not been called.</exception>
         public void DismissNotification(int notificationId)
         {
-            // if (!Initialized)
-            // {
-            //     throw new InvalidOperationException("Must call Initialize() first.");
-            // }
-
             Platform?.DismissNotification(notificationId);
         }
 
@@ -441,11 +414,6 @@ namespace TapEmpire.Services.Notifications
         /// <exception cref="InvalidOperationException"><see cref="Initialize"/> has not been called.</exception>
         public void DismissAllNotifications()
         {
-            // if (!Initialized)
-            // {
-            //     throw new InvalidOperationException("Must call Initialize() first.");
-            // }
-
             Platform?.DismissAllDisplayedNotifications();
         }
 
@@ -455,11 +423,6 @@ namespace TapEmpire.Services.Notifications
         /// <exception cref="InvalidOperationException"></exception>
         public GameNotification GetLastNotification()
         {
-            // if (!Initialized)
-            // {
-            //     throw new InvalidOperationException("Must call Initialize() first.");
-            // }
-
             return Platform?.GetLastNotification();
         }
 
@@ -537,6 +500,5 @@ namespace TapEmpire.Services.Notifications
                 }
             }
         }
-
     }
 }

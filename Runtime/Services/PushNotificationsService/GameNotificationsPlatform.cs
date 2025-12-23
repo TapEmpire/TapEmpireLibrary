@@ -46,7 +46,7 @@ namespace TapEmpire.Services.Notifications
         /// <param name="gameNotification">The notification to deliver.</param>
         /// <exception cref="ArgumentNullException"><paramref name="gameNotification"/> is null.</exception>
         /// <exception cref="InvalidOperationException"><paramref name="gameNotification"/> isn't of the correct type.</exception>
-        public void ScheduleNotification(GameNotification gameNotification, DateTime deliveryTime)
+        public void ScheduleNotification(GameNotification gameNotification, DateTime deliveryTime, NotificationRepeatInterval repeatInterval = NotificationRepeatInterval.OneTime)
         {
             if (gameNotification == null)
             {
