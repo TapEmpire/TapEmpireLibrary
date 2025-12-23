@@ -4,12 +4,10 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using Cysharp.Threading.Tasks;
-using DG.Tweening;
 using R3;
-using TapEmpire.Patterns.Strategy;
-using TapEmpire.Services.Offer;
 using Unity.Notifications;
 using UnityEngine;
+using WordGame.Services;
 using Zenject;
 
 namespace TapEmpire.Services.Notifications
@@ -81,19 +79,27 @@ namespace TapEmpire.Services.Notifications
 
         private DiContainer _diContainer;
         private ISystemService _systemService;
+        private IGameGenericService _genericService;
 
         private CompositeDisposable _disposables = new();
         private List<INotificationHandler> _handlers = new();
         
         [Inject]
-        private void Construct(DiContainer diContainer, ISystemService systemService)
+        private void Construct(DiContainer diContainer, ISystemService systemService, IGameGenericService gameGenericService)
         {
             _diContainer = diContainer;
             _systemService = systemService;
+            _genericService = gameGenericService;
         }
         
         protected override async UniTask OnInitializeAsync(CancellationToken cancellationToken)
         {
+            if (!_genericService.GameplaySettings.IsPushServiceEnabled)
+            {
+                await base.OnInitializeAsync(cancellationToken);
+                return;
+            }
+            
             _systemService.OnApplicationFocusChanged.Subscribe(OnApplicationFocus).AddTo(_disposables);
 
             var args = NotificationCenterArgs.Default;
@@ -172,7 +178,6 @@ namespace TapEmpire.Services.Notifications
 
         private void OnApplicationFocus(bool hasFocus)
         {
-            // if (Platform == null || !Initialized)
             if (Platform == null)
             {
                 return;
@@ -294,6 +299,11 @@ namespace TapEmpire.Services.Notifications
         public void SendNotification(string title, string body, DateTime deliveryTime, int? badgeNumber = null,
             bool reschedule = false)
         {
+            if (Platform == null)
+            {
+                return;
+            }
+            
             var notification = CreateNotification();
 
             if (notification == null)
