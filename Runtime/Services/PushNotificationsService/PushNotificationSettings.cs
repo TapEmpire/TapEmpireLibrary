@@ -8,6 +8,9 @@ namespace TapEmpire.Services.Notifications
     public class PushNotificationSettings : ScriptableObject
     {
         [SerializeReference] public List<INotificationHandler> NotificationHandlers = new();
+        
+        public TimeSerializable DayStartTime;
+        public TimeSerializable DayEndTime;
     }
 
     [Serializable]

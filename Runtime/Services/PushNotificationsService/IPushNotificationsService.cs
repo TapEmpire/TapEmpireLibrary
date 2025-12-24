@@ -1,10 +1,14 @@
 using System;
+using R3;
 
 namespace TapEmpire.Services.Notifications
 {
     public interface IPushNotificationsService : IService
     {
-        public void SendNotification(string title, string body, DateTime deliveryTime, int? badgeNumber = null, bool reschedule = false);
+        ReadOnlyReactiveProperty<bool> OnFocusChanged { get; }
+        PushNotificationSettings NotificationSettings { get; }
+
+        public PendingNotification SendNotification(string title, string body, DateTime deliveryTime, int? badgeNumber = null, bool reschedule = false);
         public GameNotification CreateNotification();
         public PendingNotification ScheduleNotification(GameNotification notification, DateTime deliveryTime);
         public void CancelNotification(int notificationId);

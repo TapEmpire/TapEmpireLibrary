@@ -26,7 +26,6 @@ namespace TapEmpire.Services.Notifications
         // Minimum amount of time that a notification should be into the future before it's queued when we background.
         private static readonly TimeSpan MinimumNotificationTime = new TimeSpan(0, 0, 2);
 
-
         [SerializeField, Tooltip("The operating mode for the notifications manager.")]
         private OperatingMode mode = OperatingMode.QueueClearAndReschedule;
 
@@ -34,6 +33,10 @@ namespace TapEmpire.Services.Notifications
             "Check to make the notifications manager automatically set badge numbers so that they increment.\n" +
             "Schedule notifications with no numbers manually set to make use of this feature.")]
         private bool autoBadging = true;
+
+        public PushNotificationSettings NotificationSettings => _notificationSettings;
+        public ReadOnlyReactiveProperty<bool> OnFocusChanged => _onFocusChanged;
+        private ReactiveProperty<bool> _onFocusChanged = new(false);
 
         /// <summary>
         /// Event fired when a scheduled local notification is delivered while the app is in the foreground.
@@ -83,7 +86,7 @@ namespace TapEmpire.Services.Notifications
 
         private CompositeDisposable _disposables = new();
         private List<INotificationHandler> _handlers = new();
-        
+
         [Inject]
         private void Construct(DiContainer diContainer, ISystemService systemService, IGameGenericService gameGenericService)
         {
@@ -94,7 +97,7 @@ namespace TapEmpire.Services.Notifications
         
         protected override async UniTask OnInitializeAsync(CancellationToken cancellationToken)
         {
-            if (!_genericService.GameplaySettings.IsPushServiceEnabled)
+            if (!_systemService.SystemSettings.IsPushServiceEnabled)
             {
                 await base.OnInitializeAsync(cancellationToken);
                 return;
@@ -182,6 +185,8 @@ namespace TapEmpire.Services.Notifications
             {
                 return;
             }
+            
+            _onFocusChanged.Value = hasFocus;
 
             inForeground = hasFocus;
 
@@ -296,19 +301,21 @@ namespace TapEmpire.Services.Notifications
             Serializer.Serialize(notificationsToSave);
         }
 
-        public void SendNotification(string title, string body, DateTime deliveryTime, int? badgeNumber = null,
+
+
+        public PendingNotification SendNotification(string title, string body, DateTime deliveryTime, int? badgeNumber = null,
             bool reschedule = false)
         {
             if (Platform == null)
             {
-                return;
+                return null;
             }
             
             var notification = CreateNotification();
 
             if (notification == null)
             {
-                return;
+                return null;
             }
 
             notification.Title = title;
@@ -322,6 +329,8 @@ namespace TapEmpire.Services.Notifications
             notificationToDisplay.Reschedule = reschedule;
             
             Debug.Log($"[PUSH] Scheduled to {deliveryTime}. Title={title}, body={body}");
+
+            return notificationToDisplay;
         }
         
         /// <summary>
