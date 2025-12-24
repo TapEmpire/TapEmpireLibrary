@@ -57,6 +57,16 @@ namespace TapEmpire.Services
             self.IntValuesDictionary.SetValue(key, value);
         }
 
+        public static string GetString(this IProgressService self, string key)
+        {
+            return self.StringValuesDictionary.TryGetValue(key, out var value) ? value : default;
+        }
+
+        public static void SetString(this IProgressService self, string key, string value)
+        {
+            self.StringValuesDictionary.SetValue(key, value);
+        }
+
         public static void SetCurrentTimeStamp(this IProgressService self, string key)
         {
             self.StringValuesDictionary.SetValue(key, System.DateTime.UtcNow.ToString());

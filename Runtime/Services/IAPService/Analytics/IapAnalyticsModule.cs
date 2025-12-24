@@ -128,7 +128,7 @@ namespace TapEmpire.Services
                 { "iap_product_id", args.IapId },
                 // { "iap_order_id", product.transactionID },
                 { "iap_price", product.metadata.localizedPrice },
-                { "iap_currency", product.metadata.localizedPriceString }
+                { "iap_currency", product.metadata.isoCurrencyCode }
             });
         }
 

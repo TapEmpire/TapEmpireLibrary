@@ -18,9 +18,9 @@ namespace TapEmpire.Services.Localization
         public LocaleModel SelectedLocale { get; private set; }
         public ReadOnlyReactiveProperty<LocaleModel> Locale => _locale;
 
-        private IProgressService _progressService;
-        private List<LocaleModel> _localeModels = new();
-        private ReactiveProperty<LocaleModel> _locale = new();
+        protected IProgressService _progressService;
+        protected List<LocaleModel> _localeModels = new();
+        protected ReactiveProperty<LocaleModel> _locale = new();
 
         [Inject]
         private void Construct(IProgressService progressService)
@@ -83,10 +83,10 @@ namespace TapEmpire.Services.Localization
 
         private void UpdateFarsiState(LocaleModel model)
         {
-#if TEL_RTL
+#if TEL_RTL 
             TextUtils.IsFarsi = model.ShortName == "Persian";
             Debug.Log($"TTT {TextUtils.IsFarsi}");
 #endif
         }
-        }
     }
+}
