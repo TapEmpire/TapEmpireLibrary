@@ -12,5 +12,9 @@ namespace TapEmpire.Services.Localization
             ShortName = shortName;
             Locale = locale;
         }
+
+        public static LocaleModel None => s_none;
+
+        private static LocaleModel s_none = new ("None", null);
     }
 }
