@@ -15,7 +15,7 @@ namespace TapEmpire.Services
         public Subject<bool> OnApplicationFocusChanged => _monoCallbackService.OnApplicationFocusChanged;
         public Subject<Unit> OnSessionStarted { get; private set; } = new Subject<Unit>();
 
-        [SerializeField] private SystemSettings _settings;
+        [field: SerializeField] public SystemSettings SystemSettings { get; private set; }
         [field: SerializeField] public GameStartSettings StaticSettings { get; private set; }
         [SerializeField] private MonoCallbacksService _monoCallbackServicePrefab = null;
 
@@ -45,7 +45,7 @@ namespace TapEmpire.Services
                 _monoCallbackService.OnApplicationFocusChangedAction += OnFocusChanged;
             }
 
-            _settings.OnDataChanged.Subscribe(OnDataChanged).AddTo(_disposables);
+            SystemSettings.OnDataChanged.Subscribe(OnDataChanged).AddTo(_disposables);
 
             return UniTask.CompletedTask;
         }
@@ -62,7 +62,7 @@ namespace TapEmpire.Services
             if (hasFocus)
             {
                 var elapsed = (DateTime.UtcNow - _sessionTimeStamp).TotalSeconds;
-                if (elapsed > _settings.SessionInterval)
+                if (elapsed > SystemSettings.SessionInterval)
                 {
                     OnSessionStarted.OnNext(Unit.Default);
                 }
@@ -73,7 +73,7 @@ namespace TapEmpire.Services
 
         private bool CanPlayOfflineInternal()
         {
-            return _progressService.GetPlayOffline(_settings.PlayOfflineForPayers) && _progressService.GetIsPayer() || StaticSettings.IgnoreConnection;
+            return _progressService.GetPlayOffline(SystemSettings.PlayOfflineForPayers) && _progressService.GetIsPayer() || StaticSettings.IgnoreConnection;
         }
 
         private void OnDataChanged(SystemSettings settings)

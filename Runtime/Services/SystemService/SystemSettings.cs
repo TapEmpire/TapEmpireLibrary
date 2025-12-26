@@ -13,6 +13,8 @@ namespace TapEmpire.Services
         public float SessionInterval = 600.0f;
         public bool PlayOfflineForPayers = true;
 
+        public bool IsPushServiceEnabled;
+
         public void BroadcastUpdate() => OnDataChanged.OnNext(this);
     }
 }
