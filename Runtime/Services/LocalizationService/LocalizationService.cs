@@ -85,7 +85,6 @@ namespace TapEmpire.Services.Localization
         {
 #if TEL_RTL 
             TextUtils.IsFarsi = model.ShortName == "Persian";
-            Debug.Log($"TTT {TextUtils.IsFarsi}");
 #endif
         }
     }
