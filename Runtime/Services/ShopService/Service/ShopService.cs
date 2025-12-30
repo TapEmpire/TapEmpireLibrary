@@ -172,7 +172,7 @@ namespace TapEmpire.Services.Shop
 
         private void OnPurchaseSuccess(string productId)
         {
-            var hasKey = _activeOffer.Value.Data.Products.Any(product => product == productId);
+            var hasKey = _activeOffer.Value.Data?.Products.Any(product => product == productId) ?? false;
 
             if (hasKey)
             {
