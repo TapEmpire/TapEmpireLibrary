@@ -4,5 +4,7 @@ namespace TapEmpire.Services.Localization
     {
         public static string UITable = "UI";
         public static string PushNotificationsTable = "PushNotifications";
+
+        public const string English = "English";
     }
 }
