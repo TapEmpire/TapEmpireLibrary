@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Newtonsoft.Json;
 
@@ -5,8 +6,10 @@ namespace TapEmpire.Services
 {
     public static partial class ProgressServiceExtensions
     {
-        public const string PurchasesTag = "Purchases";
-        public const string PayerTag = "Payer";
+        private const string PurchasesTag = "Purchases";
+        private const string PayerTag = "Payer";
+        private const string TopSpendTag = "TopSpend";
+        private const string TotalSpendTag = "TotalSpend";
 
         public static int GetPurchases(this IProgressService self)
         {
@@ -54,5 +57,20 @@ namespace TapEmpire.Services
         {
             self.BoolValuesDictionary.SetValue(PayerTag, default);
         }
+
+        public static SpendData GetTotalSpend(this IProgressService self) => self.GetSerializableObject<SpendData>(TotalSpendTag, true);
+        public static void SetTotalSpend(this IProgressService self, SpendData value) => self.SetSerializableObject(TotalSpendTag, value);
+        public static void ClearTotalSpend(this IProgressService self) => self.StringValuesDictionary.DeleteKey(TotalSpendTag);
+
+        public static SpendData GetTopSpend(this IProgressService self) => self.GetSerializableObject<SpendData>(TopSpendTag, true);
+        public static void SetTopSpend(this IProgressService self, SpendData value) => self.SetSerializableObject(TopSpendTag, value);
+        public static void ClearTopSpend(this IProgressService self) => self.StringValuesDictionary.DeleteKey(TopSpendTag);
+    }
+
+    [Serializable]
+    public class SpendData
+    {
+        public decimal Value;
+        public string IsoCode;
     }
 }

@@ -5,11 +5,14 @@ namespace TapEmpire.Services.Shop
 {
     public interface IShopService : IService
     {
-        ShopSettings ShopSettings { get; }
-
+        Subject<string> OnShopShown { get; }
         Observable<Unit> OnShopChanged { get; }
         ReadOnlyReactiveProperty<bool> AreFreeItemsAvailable { get; }
         ReadOnlyReactiveProperty<(OfferData Data, DateTime TimeStamp)> ActiveOffer { get; }
+
+        ShopSettings ShopSettings { get; }
+
+        void ShowShop(string placement);
 
         void SetTimeStamp(string key);
         (bool, TimeSpan) HasTimeStampToday(string key);

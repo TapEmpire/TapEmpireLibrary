@@ -55,7 +55,6 @@ namespace TapEmpire.Services
         private Tween _interstitialTimerTween = null;
         private float _interstitialTimer = 30.0f;
         private bool _isInitialized = false;
-        private AdsAnalyticsModule _analyticsModule = null;
 
         public bool AdsDisabled => _adsDisabled;
         public bool AdsDisabledDebug { get; set; } = false;
@@ -70,6 +69,8 @@ namespace TapEmpire.Services
 
         private AdsRuntimeScenario _adsRuntimeScenario;
 
+        private CompositeDisposable _disposables = new();
+
 #if TEL_META
         private FacebookModule _facebookModule = null;
 #endif
@@ -78,6 +79,8 @@ namespace TapEmpire.Services
         {
             if (_isInitialized)
                 return; //  UniTask.CompletedTask;
+
+            _disposables = new();
 
             _progressService.TryGetBoolProp(ProgressBoolProp.DisableAds, out _adsDisabled);
             _adsEnabled.Value = !_adsDisabled;
@@ -116,8 +119,8 @@ namespace TapEmpire.Services
             _adjustPrefab.environment = PlatformInfo.IsTestFlightOrSandboxReceipt() ? AdjustEnvironment.Sandbox : _adjustPrefab.environment;
             GameObject.Instantiate(_adjustPrefab);
 
-            _analyticsModule = new AdsAnalyticsModule(_diContainer);
-            _analyticsModule.Initialize();
+            new AdsAnalyticsModule(_diContainer).AddTo(_disposables);
+            new AdsSignalsModule(_diContainer).AddTo(_disposables);
 
             // global::AdsManager.Instance.OnInitialized += OnInitialized;
             global::AdsManager.Instance.EnableAppOpen = _adsRuntimeScenario.EnableAppOpen;
@@ -148,10 +151,10 @@ namespace TapEmpire.Services
         protected override void OnRelease()
         {
             _isInitialized = false;
-            _analyticsModule?.OnRelease();
-            _analyticsModule = null;
             _interstitialTimerTween?.Kill();
             _currentAdPlacement = "";
+
+            _disposables.Dispose();
 
             _cancellationTokenSource?.Cancel();
             _cancellationTokenSource = null;
@@ -323,7 +326,7 @@ namespace TapEmpire.Services
             firebaseService.UpdateConsentStatus(isPersonalized);
 
 #if TEL_META
-            if (_adsSettings.EnableMeta)
+            if (_adsSettings.AdsAnalyticsSettings.EnableMeta)
             {
                 _facebookModule = new FacebookModule();
                 _facebookModule.Initialize(isPersonalized);

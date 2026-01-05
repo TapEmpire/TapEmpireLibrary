@@ -19,19 +19,19 @@ namespace TapEmpire.Utility
                 callback.Invoke();
             }
         }
-        
+
         public static async UniTask ExecuteNextFrame(Action callback, CancellationToken cancellationToken)
         {
             await UniTask.Yield(cancellationToken: cancellationToken);
             callback.Invoke();
         }
-        
-        
+
+
         public static async UniTask ExecuteAfterSeconds(float seconds, Action callback, CancellationToken cancellationToken)
         {
             if (seconds > float.Epsilon)
             {
-                await UniTask.WaitForSeconds(seconds, cancellationToken:cancellationToken);
+                await UniTask.WaitForSeconds(seconds, cancellationToken: cancellationToken);
                 callback.Invoke();
             }
             else
@@ -65,7 +65,7 @@ namespace TapEmpire.Utility
             await uniTask;
             callback.Invoke();
         }
-        
+
         public static UniTask ToUniTask(this Action action)
         {
             var tcs = new UniTaskCompletionSource();
@@ -103,6 +103,18 @@ namespace TapEmpire.Utility
         public static CancellableTask ExecuteNextFrame(Action callback)
         {
             return new CancellableTask(token => ExecuteNextFrame(callback, cancellationToken: token));
+        }
+
+        public static CancellableTask LoopedTask(float seconds, Action callback)
+        {
+            return new CancellableTask(async (token) =>
+            {
+                while (!token.IsCancellationRequested)
+                {
+                    await UniTask.WaitForSeconds(seconds, cancellationToken: token);
+                    callback.Invoke();
+                }
+            });
         }
     }
 }

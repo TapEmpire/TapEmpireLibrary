@@ -44,7 +44,7 @@ namespace TapEmpire.Services
 
         protected override void OnRelease()
         {
-            _flyingResources.Clear();
+            _flyingResources?.Clear();
             base.OnRelease();
         }
 

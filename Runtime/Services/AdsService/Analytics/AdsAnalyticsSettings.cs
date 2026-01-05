@@ -8,10 +8,13 @@ namespace TapEmpire.Services
         public BatchType BatchType;
         public double Threshold;
 
+        public bool EnableMeta = false;
         public BatchType BatchTypeMeta;
         public double ThresholdMeta;
 
         public bool EnableMetaPurchases = false;
+        public bool AddMetaIapBatched = false;
+        public bool AddMetaIapLayered = false;
     }
 
     public enum BatchType
