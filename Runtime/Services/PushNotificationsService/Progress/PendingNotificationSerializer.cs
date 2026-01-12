@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using Firebase.Crashlytics;
 using UnityEngine;
 
 namespace TapEmpire.Services.Notifications
@@ -76,7 +77,7 @@ namespace TapEmpire.Services.Notifications
             }
             catch (IOException e)
             {
-                Debug.LogException(e);
+                Crashlytics.LogException(e);
             }
         }
 
@@ -138,7 +139,7 @@ namespace TapEmpire.Services.Notifications
             }
             catch (IOException e)
             {
-                Debug.LogException(e);
+                Crashlytics.LogException(e);
                 return null;
             }
         }

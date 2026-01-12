@@ -115,7 +115,8 @@ namespace TapEmpire.Services
             _analyticsService.LogEvent(IapAnalyticsEvents.IapError, new Dictionary<string, object>()
             {
                 { "purchase_id", args.IapId },
-                { "level", levelsCompleted }
+                { "level", levelsCompleted },
+                { "reason", args.Reason.ToString() },
             });
 
             var product = _iapService.GetProductInfoByStoreId(args.IapId);
@@ -127,8 +128,8 @@ namespace TapEmpire.Services
                 { "iap_status", args.Reason.ToString() },
                 { "iap_product_id", args.IapId },
                 // { "iap_order_id", product.transactionID },
-                { "iap_price", product.metadata.localizedPrice },
-                { "iap_currency", product.metadata.isoCurrencyCode }
+                { "iap_price", product?.metadata.localizedPrice },
+                { "iap_currency", product?.metadata.isoCurrencyCode }
             });
         }
 
