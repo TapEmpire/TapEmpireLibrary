@@ -83,14 +83,21 @@ namespace TapEmpire.Services
         // пока оставил публичный метод, но вообще по идее он сам себя релизит
         public void Release()
         {
-            foreach (var initializable in _runtimeList)
+            if (_ticksContainer == null)
             {
-                _ticksContainer.TryRemoveTicks(initializable);
-                initializable.Release();
+                Firebase.Crashlytics.Crashlytics.LogException(new System.Exception($"[MANUAL] TicksContainer"));
             }
-            _runtimeList.Clear();
+            else
+            {
+                foreach (var initializable in _runtimeList)
+                {
+                    _ticksContainer.TryRemoveTicks(initializable);
+                    initializable.Release();
+                }
+                _runtimeList.Clear();
 
-            _ticksContainer.TryRelease();
+                _ticksContainer.TryRelease();
+            }
 
             _gameEventsContainer.OnApplicationQuitEvent -= GameEventsContainer_OnApplicationQuitEvent;
 
