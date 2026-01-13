@@ -62,7 +62,7 @@ namespace TapEmpire.Services.Analytics
 
         private void SendGeneralEvents(ResourceType resource, string reason)
         {
-            var level = _progressService.GetLevelProgress() + 1;
+            var level = _progressService.GetVisualProgress();
 
             _analyticsService.LogEvent(CoreAnalyticsStrings.TrashData, new Dictionary<string, object>{
                     { $"Level_{level}", new JObject(new JProperty(ResourcesAnalyticsStrings.Tag,
@@ -71,5 +71,4 @@ namespace TapEmpire.Services.Analytics
                 });
         }
     }
-
 }

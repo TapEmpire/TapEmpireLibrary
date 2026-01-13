@@ -7,5 +7,7 @@
         CompletedLevelCount = 2,
         CyclesCompleted = 3,
         TotalAdsWatched = 4,
+        VisualProgress = 5,
+        TotalLevels = 6,
     }
 }

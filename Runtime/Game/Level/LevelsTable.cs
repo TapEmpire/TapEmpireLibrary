@@ -9,7 +9,7 @@ namespace TapEmpire.Level
     public class LevelsTable : ScriptableObject
     {
         [SerializeField]
-        private List<LevelSettings> _levels;
+        protected List<LevelSettings> _levels;
 
         public List<LevelSettings> Levels => _levels;
 

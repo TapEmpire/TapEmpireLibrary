@@ -16,7 +16,7 @@ namespace TapEmpire.Services
     public class IapService : Initializable, IIapService
     {
         [field: SerializeField] public string AdjustPurchaseToken { get; private set; }
-        [SerializeField] private IapProductsSettings _iapProductsSettings;
+        [field: SerializeField] public IapProductsSettings Settings { get; private set; }
         [SerializeField] private IapShowSettings _iapShowSettings;
         [SerializeField] private UIView _noAdsPopupView;
         [SerializeField] private UIView _iapLoadingView;
@@ -28,13 +28,12 @@ namespace TapEmpire.Services
 
         private IPurchasingModule _purchasingModule;
         private IAdsService _adsService;
-        private IapAnalyticsModule _iapAnalyticsModule;
         private IProgressService _progressService;
         private IUIService _uiService;
         private DiContainer _diContainer;
 
         private ReactiveCommand<string> _onPurchaseSuccess = new();
-        private ReactiveCommand<Product> _onPurchaseSuccessDetailed = new();
+        private ReactiveCommand<(Product, string, string)> _onPurchaseSuccessDetailed = new();
         private ReactiveCommand<string> _onPurchaseRestored = new();
         private ReactiveCommand<PurchaseFailArgs> _onPurchaseFailed = new();
         private ReactiveCommand<IIapHandler> _onIapHandle = new();
@@ -43,13 +42,14 @@ namespace TapEmpire.Services
         private Dictionary<string, IapOffer> _storeOffers = new();
         private List<int> _iapShowProgress = new();
 
-        private CompositeDisposable _disposable = new CompositeDisposable();
-
         public Observable<string> OnPurchaseSuccess => _onPurchaseSuccess;
-        public Observable<Product> OnPurchaseSuccessDetailed => _onPurchaseSuccessDetailed;
+        public Observable<(Product, string, string)> OnPurchaseSuccessDetailed => _onPurchaseSuccessDetailed;
         public Observable<string> OnPurchaseRestored => _onPurchaseRestored;
         public Observable<PurchaseFailArgs> OnPurchaseFailed => _onPurchaseFailed;
         public Observable<IIapHandler> OnIapHandle => _onIapHandle;
+
+        private CompositeDisposable _disposables = new();
+        private string _placement = null;
 
         [Inject]
         private void Construct(DiContainer diContainer, IProgressService progressService, IAdsService adsService, IUIService uiService)
@@ -57,15 +57,36 @@ namespace TapEmpire.Services
             _adsService = adsService;
             _progressService = progressService;
             _uiService = uiService;
-            _purchasingModule = new UnityPurchasingModule(progressService);
-            _purchasingModule.OnPurchaseSuccess.Subscribe(OnProductPurchaseSuccess).AddTo(_disposable);
-            _purchasingModule.OnProductPurchaseFailed.Subscribe(OnProductPurchaseFailed).AddTo(_disposable);
-            _purchasingModule.OnPurchaseRestored.Subscribe(OnProductPurchaseRestored).AddTo(_disposable);
-            _purchasingModule.IsInitialized.Subscribe(OnPurchasingInitialized).AddTo(_disposable);
-
-            _purchasingModule.OnPurchaseInProgress.Subscribe(OnPurchaseInProgress).AddTo(_disposable);
-            _iapAnalyticsModule = new IapAnalyticsModule(diContainer);
             _diContainer = diContainer;
+        }
+
+        protected override UniTask OnInitializeAsync(CancellationToken cancellationToken)
+        {
+            _disposables = new();
+
+            _purchasingModule = new UnityPurchasingModule(_progressService);
+            _purchasingModule.OnPurchaseSuccess.Subscribe(OnProductPurchaseSuccess).AddTo(_disposables);
+            _purchasingModule.OnProductPurchaseFailed.Subscribe(OnProductPurchaseFailed).AddTo(_disposables);
+            _purchasingModule.OnPurchaseRestored.Subscribe(OnProductPurchaseRestored).AddTo(_disposables);
+            _purchasingModule.IsInitialized.Subscribe(OnPurchasingInitialized).AddTo(_disposables);
+
+            _purchasingModule.OnPurchaseInProgress.Subscribe(OnPurchaseInProgress).AddTo(_disposables);
+
+            var iapCollection = Settings.Products;
+            _storeOffers = iapCollection.ToDictionary(x => x.GetStoreID(), x => x);
+            _purchasingModule.Init(iapCollection, Settings.HasVerification);
+            Array.ForEach(_iapHandlers, handler => InitializeAndRegisterHandler(handler));
+
+            new IapAnalyticsModule(_diContainer).AddTo(_disposables);
+            new IapExtraModule(_diContainer).AddTo(_disposables);
+
+            _iapShowProgress = _progressService.GetIapShowProgress();
+            return base.OnInitializeAsync(cancellationToken);
+        }
+
+        protected override void OnRelease()
+        {
+            _disposables.Dispose();
         }
 
         public void RegisterHandler<T>(IIapHandler<T> handler) where T : IIapProduct
@@ -86,24 +107,26 @@ namespace TapEmpire.Services
 
         public void BuyProduct(IapOffer iapId)
         {
+            _placement = null;
             _purchasingModule.BuyProduct(iapId);
         }
 
-        public void BuyProduct(string key)
+        public void BuyProduct(string key, string placement = null)
         {
-            var offer = _iapProductsSettings.Products.FirstOrDefault(x => x.Key == key);
+            var offer = Settings.Products.FirstOrDefault(x => x.Key == key);
             if (offer == null)
             {
                 Debug.LogError($"can't find offer with key [{key}]!");
                 return;
             }
 
+            _placement = placement;
             _purchasingModule.BuyProduct(offer.GetStoreID());
         }
 
         public Product GetProductInfo(string key)
         {
-            var offer = _iapProductsSettings.Products.FirstOrDefault(x => x.Key == key);
+            var offer = Settings.Products.FirstOrDefault(x => x.Key == key);
             if (offer != null)
                 return _purchasingModule.GetProductDetail(offer.GetStoreID());
             Debug.LogError($"can't find offer with key [{key}]!");
@@ -129,16 +152,17 @@ namespace TapEmpire.Services
 
         public IapOffer GetOfferInfoByStoreId(string key)
         {
-            return _iapProductsSettings.Products.FirstOrDefault(x => x.GetStoreID() == key);
+            return Settings.Products.FirstOrDefault(x => x.GetStoreID() == key);
         }
 
         public IapOffer GetOfferInfoById(string key)
         {
-            return _iapProductsSettings.Products.FirstOrDefault(x => x.Key == key);
+            return Settings.Products.FirstOrDefault(x => x.Key == key);
         }
 
         public void RestoreProducts()
         {
+            _placement = null;
             _purchasingModule.RestorePurchases();
         }
 
@@ -187,24 +211,6 @@ namespace TapEmpire.Services
             }
         }
 
-        protected override UniTask OnInitializeAsync(CancellationToken cancellationToken)
-        {
-            var iapCollection = _iapProductsSettings.Products;
-            _storeOffers = iapCollection.ToDictionary(x => x.GetStoreID(), x => x);
-            _purchasingModule.Init(iapCollection, _iapProductsSettings.HasVerification);
-            Array.ForEach(_iapHandlers, handler => InitializeAndRegisterHandler(handler));
-
-            _iapAnalyticsModule.Initialize();
-
-            _iapShowProgress = _progressService.GetIapShowProgress();
-            return base.OnInitializeAsync(cancellationToken);
-        }
-
-        protected override void OnRelease()
-        {
-            _disposable.Dispose();
-        }
-
         protected void OnProductPurchaseSuccess(Product product)
         {
             var iapId = product.definition.id;
@@ -212,11 +218,13 @@ namespace TapEmpire.Services
             if (!_storeOffers.ContainsKey(iapId))
                 return;
 
+            var offer = _storeOffers[iapId];
+
             SetIsPayer(true);
-            ProcessPurchase(_storeOffers[iapId]).Forget();
+            ProcessPurchase(offer).Forget();
             _progressService.AddPurchase();
-            _onPurchaseSuccessDetailed.Execute(product);
-            _onPurchaseSuccess.Execute(_storeOffers[iapId].Key);
+            _onPurchaseSuccessDetailed.Execute((product, offer.Key, _placement));
+            _onPurchaseSuccess.Execute(offer.Key);
         }
 
         protected void OnProductPurchaseFailed(PurchaseFailArgs args)
@@ -245,7 +253,7 @@ namespace TapEmpire.Services
                 var productType = iapProduct.GetType();
                 if (_handlers.TryGetValue(productType, out var handler) && handler.CanHandle(iapProduct))
                 {
-                    await handler.Handle(iapProduct);
+                    await handler.Handle(iapProduct, _placement);
                     _onIapHandle.Execute(handler);
                 }
             }

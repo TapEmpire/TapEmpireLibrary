@@ -16,6 +16,7 @@ namespace TapEmpire.Services.Shop
         [SerializeField] private TMP_Text _priceText;
         [SerializeField] private Image _special;
         [SerializeField] private CustomButton _customButton;
+        [SerializeField] private string _placement;
 
         protected ProductData _data;
         private ShopSettings _shopSettings;
@@ -58,7 +59,7 @@ namespace TapEmpire.Services.Shop
             }
 
             _purchaseButton.enabled = HasAmount();
-            _customButton.SetActive(_purchaseButton.enabled);
+            _customButton?.SetActive(_purchaseButton.enabled);
 
             _resourcesService.GetResourceData(price.Resource).Amount.Subscribe(OnCoinsChanged).AddTo(_disposables);
         }
@@ -70,15 +71,15 @@ namespace TapEmpire.Services.Shop
                 var reward = _data.Reward.As<ProductReward<ResourceType>>();
                 var price = _data.Price.As<ProductReward<ResourceType>>();
                 var from = _icon.transform.position;
-                _resourcesService.Subtract(price.Resource, price.Amount, $"{ResourceUsageType.For}{price.Resource}");
-                AcquireResources(reward.Resource, reward.Amount, ResourceUsageType.ShopSoft, from, true);
+                _resourcesService.Subtract(price.Resource, price.Amount, $"{ResourceUsageType.For}{reward.Resource}{_placement}");
+                AcquireResources(reward.Resource, reward.Amount, $"{ResourceUsageType.For}{price.Resource}{_placement}", from, true);
             }
         }
 
         private void OnCoinsChanged(int _)
         {
             _purchaseButton.enabled = HasAmount();
-            _customButton.SetActive(_purchaseButton.enabled);
+            _customButton?.SetActive(_purchaseButton.enabled);
         }
 
         private bool HasAmount()

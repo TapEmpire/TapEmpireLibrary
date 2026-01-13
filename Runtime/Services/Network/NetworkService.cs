@@ -21,9 +21,6 @@ namespace TapEmpire.Services
         [SerializeField]
         private NoInternetUIView _noInternetUIViewPrefab;
 
-        [SerializeField]
-        private GameStartSettings _gameStartSettings;
-
         public bool HasConnection
         {
             get
@@ -31,17 +28,19 @@ namespace TapEmpire.Services
 #if UNITY_EDITOR
                 return true;
 #else
-                return _gameStartSettings.IgnoreConnection || Application.internetReachability != NetworkReachability.NotReachable;
+                return _systemService.CanPlayOffline || Application.internetReachability != NetworkReachability.NotReachable;
 #endif
             }
         }
 
         private IUIService _uiService;
+        private ISystemService _systemService;
         
         [Inject]
-        private void Construct(IUIService uiService)
+        private void Construct(IUIService uiService, ISystemService systemService)
         {
             _uiService = uiService;
+            _systemService = systemService;
         }
 
         protected override UniTask OnInitializeAsync(CancellationToken cancellationToken)

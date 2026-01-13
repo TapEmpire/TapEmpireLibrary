@@ -57,7 +57,10 @@ namespace TapEmpire.Services.Shop
                     visual.Resources[index2].Icon.sprite = _resourcesService.GetFlyingSprite(reward.ResourceType));
             });
 
-            UpdateTimer();
+            if (_timerText != null)
+            {
+                UpdateTimer();
+            }
         }
 
         private void OnPurchaseSuccess(string productId)

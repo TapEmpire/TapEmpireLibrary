@@ -27,6 +27,11 @@ namespace TapEmpire.UI
         {
             return UniTask.CompletedTask;
         }
+
+        // protected void OnDestroy() //TODO hotfix to editor errors due to subscriptions and composite disposables (CommonHudUIView)
+        // {
+        //     CloseAsync(CancellationToken.None).Forget();
+        // }
     }
 
     public abstract class UIView<T> : UIView

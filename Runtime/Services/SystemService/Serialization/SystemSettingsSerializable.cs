@@ -16,12 +16,25 @@ namespace TapEmpire.Services
         public class SystemSettingsRemoteModel
         {
             public float SessionInterval = 600.0f;
+            public bool PlayOfflineForPayers = true;
+            public bool IsPushServiceEnabled = true;
 
             public SystemSettingsRemoteModel() { }
 
             public SystemSettingsRemoteModel(SystemSettings settings)
             {
                 SessionInterval = settings.SessionInterval;
+                PlayOfflineForPayers = settings.PlayOfflineForPayers;
+                IsPushServiceEnabled = settings.IsPushServiceEnabled;
+            }
+
+            public void ToSettings(SystemSettings settings)
+            {
+                settings.SessionInterval = SessionInterval;
+                settings.PlayOfflineForPayers = PlayOfflineForPayers;
+                settings.IsPushServiceEnabled = IsPushServiceEnabled;
+
+                settings.BroadcastUpdate();
             }
         }
 
@@ -30,8 +43,7 @@ namespace TapEmpire.Services
         public void DeserializeJson(JToken token)
         {
             var model = token.ToObject<SystemSettingsRemoteModel>();
-
-            _settings.SessionInterval = model.SessionInterval;
+            model.ToSettings(_settings);
         }
 
         public string SerializeJson()

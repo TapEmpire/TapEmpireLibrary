@@ -18,9 +18,9 @@ namespace TapEmpire.Services.Localization
         public LocaleModel SelectedLocale { get; private set; }
         public ReadOnlyReactiveProperty<LocaleModel> Locale => _locale;
 
-        private IProgressService _progressService;
-        private List<LocaleModel> _localeModels = new();
-        private ReactiveProperty<LocaleModel> _locale = new();
+        protected IProgressService _progressService;
+        protected List<LocaleModel> _localeModels = new();
+        protected ReactiveProperty<LocaleModel> _locale = new();
 
         [Inject]
         private void Construct(IProgressService progressService)
@@ -38,15 +38,16 @@ namespace TapEmpire.Services.Localization
                 var name = locale.LocaleName.Split(' ')[0];
                 var model = new LocaleModel(name, locale);
                 _localeModels.Add(model);
-
-                if (name == savedLocale)
-                {
-                    SelectedLocale = model;
-                    UpdateFarsiState(model);
-                    LocalizationSettings.SelectedLocale = model.Locale;
-                    _locale.Value = model;
-                }
             }
+
+            var currentLocale = _localeModels.Find(model => model.ShortName == savedLocale) ??
+                _localeModels.Find(model => model.ShortName == LocalizationConstants.English);
+
+            SelectedLocale = currentLocale;
+            UpdateFarsiState(currentLocale);
+            LocalizationSettings.SelectedLocale = currentLocale.Locale;
+            _locale.Value = currentLocale;
+            _progressService.SetLocale(currentLocale.ShortName);
 
             return base.OnInitializeAsync(cancellationToken);
         }
@@ -83,10 +84,9 @@ namespace TapEmpire.Services.Localization
 
         private void UpdateFarsiState(LocaleModel model)
         {
-#if TEL_RTL
+#if TEL_RTL 
             TextUtils.IsFarsi = model.ShortName == "Persian";
-            Debug.Log($"TTT {TextUtils.IsFarsi}");
 #endif
         }
-        }
     }
+}
