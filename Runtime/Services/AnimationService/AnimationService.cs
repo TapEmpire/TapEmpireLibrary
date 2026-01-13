@@ -28,7 +28,7 @@ namespace TapEmpire.Services
         private Transform _parent;
         private const int MaxResourceAmount = 40;
         private CompositeDisposable _disposables = new();
-        
+
         [Inject]
         private void Construct(IUIService uiService, IResourcesService<ResourceType> resourceService, IAudioService audioService)
         {
@@ -63,82 +63,110 @@ namespace TapEmpire.Services
             if (target == null)
             {
                 if (shouldAddResource)
-                {
                     _resourcesService.Add(resourceType, amount);
-                }
                 return DOTween.Sequence();
             }
 
-            var points = AnimationFragment.GetRadialSpreadPoints(start, newAmount, _settings.ScatterRadius, _settings.ScatterRandomness);
+            return PlayFlyingAnimation(
+                newAmount,
+                start,
+                target,
+                _settings.ScatterRadius,
+                _settings.ScatterRandomness,
+                sprite,
+                configureRenderer: image =>
+                {
+                    image.raycastTarget = true;
+                },
+                onItemComplete: i =>
+                {
+                    if (!shouldAddResource)
+                        return;
+
+                    var flyAmount = i == 1 ? firstResourceAmount : resourceAmount;
+                    _resourcesService.Add(resourceType, flyAmount);
+                });
+        }
+
+        public Sequence CollectVirtualResource(
+            int amount,
+            Vector3 start,
+            Transform target,
+            float scatterRadius,
+            float scatterRandomness,
+            Vector2 sizeDelta,
+            Sprite sprite,
+            Action onComplete)
+        {
+            var newAmount = Mathf.Clamp(amount, 0, MaxResourceAmount);
+            
+            return PlayFlyingAnimation(
+                newAmount,
+                start,
+                target,
+                scatterRadius,
+                scatterRandomness,
+                sprite,
+                configureRenderer: image =>
+                {
+                    image.transform.localScale = Vector3.one;
+                    image.rectTransform.sizeDelta = sizeDelta;
+                    image.raycastTarget = false;
+                },
+                onItemComplete: _ =>
+                {
+                    onComplete?.Invoke();
+                });
+        }
+
+        private Sequence PlayFlyingAnimation(
+            int count,
+            Vector3 start,
+            Transform target,
+            float scatterRadius,
+            float scatterRandomness,
+            Sprite sprite,
+            Action<Image> configureRenderer,
+            Action<int> onItemComplete)
+        {
+            var newCount = Mathf.Clamp(count, 0, MaxResourceAmount);
+            var points = AnimationFragment.GetRadialSpreadPoints(start, newCount, scatterRadius, scatterRandomness);
             var animation = DOTween.Sequence();
             var end = target.position;
             var index = 0;
 
             foreach (var point in points)
             {
-                var flyAmount = index++ > 0 ? resourceAmount : firstResourceAmount;
                 var resourceRenderer = _flyingResources.Get();
-                var resource = resourceRenderer.transform;
-                resourceRenderer.sprite = sprite;
+                
+                resourceRenderer.sprite = sprite;  
+                
+                configureRenderer?.Invoke(resourceRenderer);
 
+                var resource = resourceRenderer.transform;
                 resource.position = start;
-                resource.parent = target.transform;
+                resource.parent = target;
 
                 var sequence = DOTween.Sequence();
                 resource.DOMove(point, 0.3f).AppendTo(sequence);
-                resource.DOMove(end, 0.5f).SetDelay(Random.Range(0.05f, 0.2f)).SetEase(Ease.InBack).AppendTo(sequence);
+                resource.DOMove(end, 0.5f)
+                    .SetDelay(Random.Range(0.05f, 0.2f))
+                    .SetEase(Ease.InBack)
+                    .AppendTo(sequence);
+
+                var flyAmount = ++index;
+
                 sequence.AppendCallback(() =>
                 {
-                    if (shouldAddResource)
-                    {
-                        _resourcesService.Add(resourceType, flyAmount);
-                    }
+                    onItemComplete?.Invoke(flyAmount);
                     _flyingResources.Release(resourceRenderer);
                     resourceRenderer.transform.parent = _parent;
                 });
+
                 animation.Join(sequence);
             }
 
             animation.SetLink(target.gameObject);
-
-            return animation;
-        }
-        
-        public Sequence CollectVirtualResource(int amount, Vector3 start, Transform target, float scatterRadius, float scatterRandomness, Vector2 sizeDelta, Sprite sprite, Action onComplete)
-        {
-            var newAmount = Mathf.Clamp(amount, 0, MaxResourceAmount);
-            
-            var points = AnimationFragment.GetRadialSpreadPoints(start, newAmount, scatterRadius, scatterRandomness);
-            var animation = DOTween.Sequence();
-            var end = target.position;
-
-            foreach (var point in points)
-            {
-                var resourceRenderer = _flyingResources.Get();
-                resourceRenderer.transform.localScale = Vector3.one;
-                resourceRenderer.rectTransform.sizeDelta = sizeDelta;
-                resourceRenderer.raycastTarget = false;
-                var resource = resourceRenderer.transform;
-                resourceRenderer.sprite = sprite;
-
-                resource.position = start;
-                resource.parent = target.transform;
-
-                var sequence = DOTween.Sequence();
-                resource.DOMove(point, 0.3f).AppendTo(sequence);
-                resource.DOMove(end, 0.5f).SetDelay(Random.Range(0.05f, 0.2f)).SetEase(Ease.InBack).AppendTo(sequence);
-                sequence.AppendCallback(() =>
-                {
-                    onComplete?.Invoke();
-
-                    _flyingResources.Release(resourceRenderer);
-                    resourceRenderer.transform.parent = _parent;
-                });
-                animation.Join(sequence);
-            }
-
-            animation.SetLink(target.gameObject);
-
             return animation;
         }
 
