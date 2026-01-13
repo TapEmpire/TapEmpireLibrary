@@ -120,7 +120,9 @@ namespace TapEmpire.Services.Notifications
                 Serializer = new PendingNotificationSerializer(Path.Combine(Application.persistentDataPath, DefaultFilename));
             }
 
+#if !UNITY_EDITOR
             await Platform.RequestNotificationPermission();
+#endif
 
             OnForegrounding();
             
