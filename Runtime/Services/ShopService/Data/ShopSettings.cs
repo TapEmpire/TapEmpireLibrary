@@ -9,7 +9,7 @@ namespace TapEmpire.Services.Shop
     [CreateAssetMenu(menuName = "TapEmpire/Settings/ShopSettings", fileName = "ShopSettings")]
     public class ShopSettings : ScriptableObject
     {
-        public OfferData Offer;
+        public ShopUIView ShopView;
         public SerializableDictionary<InfoType, Sprite> InfoIcons;
         [SerializeReference] public List<SectionData> Sections;
     }

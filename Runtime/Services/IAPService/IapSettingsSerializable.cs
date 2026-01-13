@@ -5,7 +5,6 @@ using Newtonsoft.Json.Linq;
 using Sirenix.OdinInspector;
 using TapEmpire.Utility;
 using UnityEngine;
-using UnityEngine.Serialization;
 
 namespace TapEmpire.Services
 {
@@ -16,13 +15,33 @@ namespace TapEmpire.Services
         public class IapRemoteModel
         {
             public bool HasVerification = true;
+            public bool DisableAdsForPayers = true;
             public List<IapOffer> Offers = new();
             public IapRemoteModel() { }
 
             public IapRemoteModel(IapProductsSettings settings)
             {
                 HasVerification = settings.HasVerification;
+                DisableAdsForPayers = settings.DisableAdsForPayers;
                 Offers = settings.Products;
+            }
+
+            public void ToSettings(IapProductsSettings settings)
+            {
+                settings.HasVerification = HasVerification;
+                settings.DisableAdsForPayers = DisableAdsForPayers;
+
+                if (Offers.Count > 0)
+                {
+                    var existingOffers = settings.Products.ToDictionary(offer => offer.Key);
+                    foreach (var offer in Offers)
+                    {
+                        if (existingOffers.TryGetValue(offer.Key, out var existingOffer))
+                        {
+                            existingOffer.CopyIncludedProducts(offer);
+                        }
+                    }
+                }
             }
         }
 
@@ -32,7 +51,7 @@ namespace TapEmpire.Services
         {
             var settings = GetJsonSettings();
             var model = token.ToObject<IapRemoteModel>(JsonSerializer.Create(settings));
-            InsertModel(model);
+            model.ToSettings(_iapProductsSettings);
         }
 
         public string SerializeJson()
@@ -62,22 +81,7 @@ namespace TapEmpire.Services
         {
             var settings = GetJsonSettings();
             var model = JsonConvert.DeserializeObject<IapRemoteModel>(jsonString, settings);
-            InsertModel(model);
-        }
-
-        private void InsertModel(IapRemoteModel model)
-        {
-            _iapProductsSettings.HasVerification = model.HasVerification;
-
-            var existingOffers = _iapProductsSettings.Products.ToDictionary(offer => offer.Key);
-            foreach (var offer in model.Offers)
-            {
-                if (existingOffers.TryGetValue(offer.Key, out var existingOffer))
-                {
-                    existingOffer.CopyIncludedProducts(offer);
-                }
-            }
-            // _iapProductsSettings.Products = model.Offers;
+            model.ToSettings(_iapProductsSettings);
         }
 
         private JsonSerializerSettings GetJsonSettings()

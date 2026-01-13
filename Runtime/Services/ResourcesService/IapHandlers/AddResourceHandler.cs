@@ -15,10 +15,10 @@ namespace TapEmpire.Services
             _resourcesService = diContainer.Resolve<IResourcesService<ResourceType>>();
         }
 
-        public override UniTask Handle(AddResourceProduct<ResourceType> product)
+        public override UniTask Handle(AddResourceProduct<ResourceType> product, string placement)
         {
             Debug.Log($"IAP AddHintsHandler Handle: {product.ProductId}");
-            _resourcesService.Add(product.ResourceType, product.Amount, Shop.ResourceUsageType.ShopPaid.ToString());
+            _resourcesService.Add(product.ResourceType, product.Amount, placement ?? Shop.ResourceUsageType.ShopPaid.ToString());
             return UniTask.CompletedTask;
         }
     }

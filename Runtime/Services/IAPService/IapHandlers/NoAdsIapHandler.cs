@@ -15,7 +15,7 @@ namespace TapEmpire.Services
             _adsService = diContainer.Resolve<IAdsService>();
         }
 
-        public override UniTask Handle(DisableAdsProduct product)
+        public override UniTask Handle(DisableAdsProduct product, string placement)
         {
             Debug.Log($"IAP NoAdsIapHandler Handle. iapSettings.DisableAd: {product.ProductId}");
             _adsService.DisableAds(true);

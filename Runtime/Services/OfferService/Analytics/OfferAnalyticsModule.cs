@@ -10,7 +10,6 @@ namespace TapEmpire.Services.Offer
 {
     public class OfferAnalyticsModule : IDisposable
     {
-        private readonly DiContainer _diContainer;
         private readonly IAnalyticsService _analyticsService;
         private readonly IOfferService _offerService;
         private readonly IProgressService _progressService;
@@ -19,10 +18,9 @@ namespace TapEmpire.Services.Offer
 
         public OfferAnalyticsModule(DiContainer diContainer)
         {
-            _diContainer = diContainer;
-            _analyticsService = _diContainer.Resolve<IAnalyticsService>();
-            _offerService = _diContainer.Resolve<IOfferService>();
-            _progressService = _diContainer.Resolve<IProgressService>();
+            _analyticsService = diContainer.Resolve<IAnalyticsService>();
+            _offerService = diContainer.Resolve<IOfferService>();
+            _progressService = diContainer.Resolve<IProgressService>();
 
             _offerService.OnOfferShown.Subscribe(OnOfferShown).AddTo(_disposables);
         }

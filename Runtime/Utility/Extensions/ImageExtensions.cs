@@ -16,5 +16,12 @@ namespace TapEmpire.Utility
         {
             return self.color.a;
         }
+
+        public static void SetAlpha(this Graphic self, float alpha)
+        {
+            var color = self.color;
+            color.a = alpha;
+            self.color = color;
+        }
     }
 }

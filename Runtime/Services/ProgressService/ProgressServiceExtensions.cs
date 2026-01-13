@@ -47,6 +47,36 @@ namespace TapEmpire.Services
             return nextValue;
         }
 
+        public static int GetInt(this IProgressService self, string key)
+        {
+            return self.IntValuesDictionary.TryGetValue(key, out var value) ? value : default;
+        }
+
+        public static void SetInt(this IProgressService self, string key, int value)
+        {
+            self.IntValuesDictionary.SetValue(key, value);
+        }
+
+        public static bool GetBool(this IProgressService self, string key)
+        {
+            return self.BoolValuesDictionary.TryGetValue(key, out var value) ? value : default;
+        }
+
+        public static void SetBool(this IProgressService self, string key, bool value)
+        {
+            self.BoolValuesDictionary.SetValue(key, value);
+        }
+
+        public static string GetString(this IProgressService self, string key)
+        {
+            return self.StringValuesDictionary.TryGetValue(key, out var value) ? value : default;
+        }
+
+        public static void SetString(this IProgressService self, string key, string value)
+        {
+            self.StringValuesDictionary.SetValue(key, value);
+        }
+
         public static void SetCurrentTimeStamp(this IProgressService self, string key)
         {
             self.StringValuesDictionary.SetValue(key, System.DateTime.UtcNow.ToString());
@@ -73,14 +103,14 @@ namespace TapEmpire.Services
             return System.DateTime.TryParse(dateString, out var date) ? date : defaultValue;
         }
 
-        public static T GetSerializableObject<T>(this IProgressService self, string key) where T : new()
+        public static T GetSerializableObject<T>(this IProgressService self, string key, bool createNew = false) where T : new()
         {
             if (self.StringValuesDictionary.TryGetValue(key, out var value, canUseDefault: false))
             {
                 return JsonConvert.DeserializeObject<T>(value);
             }
 
-            return new();
+            return createNew ? new() : default(T);
         }
 
         public static void SetSerializableObject<T>(this IProgressService self, string key, T data)
@@ -139,6 +169,16 @@ namespace TapEmpire.Services
         {
             var key = $"{ProgressIntProp.CompletedLevelCount}";
             self.IntValuesDictionary.SetValue(key, value);
+        }
+
+        public static int GetTotalLevels(this IProgressService self)
+        {
+            return self.IntValuesDictionary.TryGetValue(nameof(ProgressIntProp.TotalLevels), out var value) ? value : default;
+        }
+
+        public static void SetTotalLevels(this IProgressService self, int value)
+        {
+            self.IntValuesDictionary.SetValue(nameof(ProgressIntProp.TotalLevels), value);
         }
         
         public static string GetVisualProgress(this IProgressService self)

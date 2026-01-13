@@ -6,7 +6,7 @@ using TapEmpire.UI;
 using TapEmpire.Utility;
 using UnityEngine;
 using UnityEngine.UI;
-using WordGame.Fragments;
+using TapEmpire.Fragments;
 using Zenject;
 using R3;
 using Object = UnityEngine.Object;
@@ -47,7 +47,7 @@ namespace TapEmpire.Services
 
         protected override void OnRelease()
         {
-            _flyingResources.Clear();
+            _flyingResources?.Clear();
             base.OnRelease();
         }
 

@@ -1,6 +1,8 @@
+using System;
+
 namespace TapEmpire.Modules
 {
-    public interface IServiceModule
+    public interface IServiceModule : IDisposable
     {
     }
 }
