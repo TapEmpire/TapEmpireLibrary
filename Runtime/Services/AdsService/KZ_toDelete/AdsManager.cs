@@ -77,6 +77,8 @@ public class AdsManager : MonoBehaviour
     bool BannerWasActive = false;
     bool MrecWasActive = false;
 
+    public ReactiveProperty<Rect> BannerLayout { get; } = new ReactiveProperty<Rect>();
+
     #endregion
 
     #region Properties
