@@ -4,7 +4,7 @@ using System.Threading;
 using R3;
 using TapEmpire.UI;
 using UnityEngine;
-using WordGame.CoreSystems;
+using TapEmpire.CoreSystems;
 using Zenject;
 
 namespace TapEmpire.Services
