@@ -1702,7 +1702,7 @@ static ALUnityBackgroundCallback backgroundCallback;
         // All positions have constant height
         NSMutableArray<NSLayoutConstraint *> *constraints = [NSMutableArray arrayWithObject: [adView.heightAnchor constraintEqualToConstant: adViewSize.height]];
         
-        UILayoutGuide *layoutGuide = superview.safeAreaLayoutGuide;
+        UILayoutGuide *layoutGuide = superview.window ? superview.window.safeAreaLayoutGuide : superview.safeAreaLayoutGuide;
         BOOL shouldIgnoreSafeArea = [self shouldIgnoreSafeAreaForAdUnitIdentifier: adUnitIdentifier];
         NSLayoutAnchor *topAnchor = shouldIgnoreSafeArea ? superview.topAnchor : layoutGuide.topAnchor;
         

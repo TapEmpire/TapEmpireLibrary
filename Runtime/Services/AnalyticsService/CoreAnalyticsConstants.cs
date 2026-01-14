@@ -36,6 +36,5 @@ namespace TapEmpire.Services.Analytics
         public const string TrashData = "TrashData";
         public const string CommonData = "CommonData";
         public const string Tutorial = "Tutorial";
-        public const string TrashData = "TrashData";
     }
 }
