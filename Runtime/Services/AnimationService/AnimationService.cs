@@ -63,7 +63,9 @@ namespace TapEmpire.Services
             if (target == null)
             {
                 if (shouldAddResource)
+                {
                     _resourcesService.Add(resourceType, amount);
+                }
                 return DOTween.Sequence();
             }
 
@@ -74,17 +76,14 @@ namespace TapEmpire.Services
                 _settings.ScatterRadius,
                 _settings.ScatterRandomness,
                 sprite,
-                configureRenderer: image =>
-                {
-                    image.raycastTarget = true;
-                },
+                configureRenderer: null,
                 onItemComplete: i =>
                 {
-                    if (!shouldAddResource)
-                        return;
-
-                    var flyAmount = i == 1 ? firstResourceAmount : resourceAmount;
-                    _resourcesService.Add(resourceType, flyAmount);
+                    if (shouldAddResource)
+                    {
+                        var flyAmount = i == 1 ? firstResourceAmount : resourceAmount;
+                        _resourcesService.Add(resourceType, flyAmount);
+                    }
                 });
         }
 
