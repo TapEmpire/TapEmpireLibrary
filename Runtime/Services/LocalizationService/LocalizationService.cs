@@ -6,6 +6,8 @@ using UnityEngine;
 using UnityEngine.Localization;
 using UnityEngine.Localization.Settings;
 using Zenject;
+using TapEmpire.Utility;
+using System.Linq;
 
 #if TEL_RTL
 using RTLTMPro;
@@ -15,6 +17,8 @@ namespace TapEmpire.Services.Localization
 {
     public class LocalizationService : Initializable, ILocalizationService
     {
+        [SerializeField] private List<string> _languageSortingOrder = null;
+
         public LocaleModel SelectedLocale { get; private set; }
         public ReadOnlyReactiveProperty<LocaleModel> Locale => _locale;
 
@@ -39,6 +43,8 @@ namespace TapEmpire.Services.Localization
                 var model = new LocaleModel(name, locale);
                 _localeModels.Add(model);
             }
+
+            _localeModels = _localeModels.SortByOrder(_languageSortingOrder, locale => locale.ShortName).ToList();
 
             var currentLocale = _localeModels.Find(model => model.ShortName == savedLocale) ??
                 _localeModels.Find(model => model.ShortName == LocalizationConstants.English);

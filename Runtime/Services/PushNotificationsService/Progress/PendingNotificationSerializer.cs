@@ -1,3 +1,5 @@
+#if TEL_NOTIFICATIONS
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -145,3 +147,5 @@ namespace TapEmpire.Services.Notifications
         }
     }
 }
+
+#endif
