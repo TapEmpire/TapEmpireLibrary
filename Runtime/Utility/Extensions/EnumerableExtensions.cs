@@ -58,6 +58,20 @@ namespace TapEmpire.Utility
             return (firstPart, secondPart);
         }
 
+        public static IEnumerable<TSource> SortByOrder<TSource, TValue>(this IEnumerable<TSource> source, IEnumerable<TValue> order,
+            Func<TSource, TValue> converter)
+        {
+            var dictionary = order
+                .Select((value, index) => (value, index))
+                .ToDictionary(pair => pair.value, pair => pair.index);
+
+            var offset = dictionary.Count;
+
+            source.ForEach((value, index) => dictionary.TryAdd(converter.Invoke(value), index + offset));
+
+            return source.OrderBy(value => dictionary[converter(value)]);
+        }
+
         public static void ForEachIndexed<TSource>(this IEnumerable<TSource> source, System.Action<TSource, int> action)
         {
             int index = 0;
