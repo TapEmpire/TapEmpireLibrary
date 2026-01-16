@@ -115,7 +115,10 @@ public class AdNetworkAdmob : AdNetworkBase
 
         BannerStatus = true;
         if (bannerView != null)
+        {
             bannerView.Show();
+            UpdateBannerLayout("ShowBanner");
+        }
         else
             RequestBanner();
     }
@@ -147,6 +150,7 @@ public class AdNetworkAdmob : AdNetworkBase
     {
         ThreadDispatcher.Enqueue(() =>
         {
+            UpdateBannerLayout("OnAdLoaded");
             if (!BannerStatus)
                 HideBanner();
         });
@@ -184,6 +188,19 @@ public class AdNetworkAdmob : AdNetworkBase
             bannerView = null;
         }
         BannerStatus = false;
+    }
+
+    private void UpdateBannerLayout(string context)
+    {
+        if (!isInitialized || bannerView == null)
+            return;
+
+        float width = bannerView.GetWidthInPixels();
+        float height = bannerView.GetHeightInPixels();
+        var size = new Vector2(width, height);
+
+        Debug.Log($"[Admob Banner] {context} - Size: {width}x{height}");
+        AdsManager.Instance.BannerLayout.Value = size;
     }
 
     #endregion
