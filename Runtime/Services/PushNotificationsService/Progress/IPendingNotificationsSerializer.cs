@@ -1,3 +1,5 @@
+#if TEL_NOTIFICATIONS
+
 using System.Collections.Generic;
 
 namespace TapEmpire.Services.Notifications
@@ -22,3 +24,5 @@ namespace TapEmpire.Services.Notifications
         IList<PendingNotification> Deserialize(GameNotificationsPlatform platform);
     }
 }
+
+#endif

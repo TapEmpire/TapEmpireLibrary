@@ -1,3 +1,5 @@
+#if TEL_NOTIFICATIONS
+
 using System;
 using R3;
 
@@ -18,3 +20,5 @@ namespace TapEmpire.Services.Notifications
         public GameNotification GetLastNotification();
     }
 }
+
+#endif

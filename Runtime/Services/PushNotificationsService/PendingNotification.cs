@@ -1,3 +1,5 @@
+#if TEL_NOTIFICATIONS
+
 using System;
 
 namespace TapEmpire.Services.Notifications
@@ -51,3 +53,5 @@ namespace TapEmpire.Services.Notifications
         }
     }
 }
+
+#endif

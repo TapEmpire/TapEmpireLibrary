@@ -1,3 +1,5 @@
+#if TEL_NOTIFICATIONS
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -120,7 +122,9 @@ namespace TapEmpire.Services.Notifications
                 Serializer = new PendingNotificationSerializer(Path.Combine(Application.persistentDataPath, DefaultFilename));
             }
 
+#if !UNITY_EDITOR
             await Platform.RequestNotificationPermission();
+#endif
 
             OnForegrounding();
             
@@ -521,3 +525,5 @@ namespace TapEmpire.Services.Notifications
         }
     }
 }
+
+#endif
