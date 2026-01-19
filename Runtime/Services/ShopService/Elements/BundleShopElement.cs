@@ -84,8 +84,9 @@ namespace TapEmpire.Services.Shop
 
             _timer?.Dispose();
             _timer = UniTaskTimer.Create(_timerTotal, _timerInterval, elapsed.RoundedSeconds());
-            _timer.OnTimeLeft.Subscribe(OnTimeLeft);
-            _timer.OnTimerDone.Subscribe(OnTimerDone);
+            _timer.OnTimeLeft.Subscribe(OnTimeLeft).AddTo(_disposables);
+            _timer.OnTimerDone.Subscribe(OnTimerDone).AddTo(_disposables);
+            _timer.AddTo(_disposables);
         }
 
         private void OnTimeLeft(float value)
