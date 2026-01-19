@@ -3,9 +3,8 @@ using Zenject;
 using R3;
 using System.Linq;
 using Firebase.Analytics;
-using System.Collections.Generic;
 using TapEmpire.Utility;
-using UnityEngine.Purchasing;
+using System.Collections.Generic;
 
 namespace TapEmpire.Services
 {
@@ -14,10 +13,8 @@ namespace TapEmpire.Services
         private IProgressService _progressService;
         private AdsSettings _settings = null;
 
-        private bool _isRevenueEnough = false;
-        private float _currentRevenue = 0.0f;
-        private double _batchedRevenue = 0.0f;
         private BatchedData[] _batchedData = null;
+        private LayeredData[] _layeredData = null;
         private CompositeDisposable _disposables = new();
 
         public AdsSignalsModule(DiContainer diContainer)
@@ -25,10 +22,8 @@ namespace TapEmpire.Services
             _progressService = diContainer.Resolve<IProgressService>();
             _settings = diContainer.Resolve<IAdsService>().Settings;
 
-            _currentRevenue = _progressService.GetAdRevenue();
-            CheckIsRevenueEnough();
-
-            _batchedData = InitializedBatchedData();
+            _batchedData = InitializeBatchedData();
+            _layeredData = InitializeLayeredData();
 
             AnalyticsManager.OnAdPayed += OnAdPayed;
 
@@ -57,12 +52,12 @@ namespace TapEmpire.Services
             {
                 if (_settings.AdsAnalyticsSettings.AddMetaIapBatched)
                 {
-                    OnBatchedRevenue((double)price, _batchedData[(int)BatchAnalyticsType.Facebook]);
+                    OnBatchedRevenue((double)price, _batchedData[(int)AdsAnalyticsType.Facebook]);
                 }
 
                 if (_settings.AdsAnalyticsSettings.AddMetaIapLayered)
                 {
-                    OnAdRevenue((double)price);
+                    OnAdRevenue((double)price, _layeredData[(int)AdsAnalyticsType.Facebook]);
                 }
             }
         }
@@ -73,55 +68,64 @@ namespace TapEmpire.Services
         {
             if (currencyCode == "USD")
             {
-                OnBatchedRevenue(price, _batchedData[(int)BatchAnalyticsType.Firebase]);
+                OnBatchedRevenue(price, _batchedData[(int)AdsAnalyticsType.Firebase]);
+                OnAdRevenue(price, _layeredData[(int)AdsAnalyticsType.Firebase]);
 
 #if TEL_META
                 if (_settings.AdsAnalyticsSettings.EnableMeta)
                 {
-                    OnBatchedRevenue(price, _batchedData[(int)BatchAnalyticsType.Facebook]);
-                    OnAdRevenue(price);
+                    OnBatchedRevenue(price, _batchedData[(int)AdsAnalyticsType.Facebook]);
+                    OnAdRevenue(price, _layeredData[(int)AdsAnalyticsType.Facebook]);
                 }
 #endif
             }
         }
 
-#if TEL_META
-        private void OnAdRevenue(double price)
+        private void OnAdRevenue(double price, LayeredData data)
         {
-            if (_isRevenueEnough)
+            if (data.IsRevenueEnough)
             {
                 return;
             }
 
-            var newRevenue = _progressService.UpdateAdRevenue(price);
+            var newRevenue = _progressService.UpdateAdRevenueLayered(price, data.Postfix);
 
-            foreach (var layer in _settings.RevenueLayers)
+            foreach (var layer in data.RevenueLayers)
             {
                 if (layer.Value > newRevenue)
                     break;
 
-                if (layer.Value > _currentRevenue)
+                if (layer.Value > data.CurrentRevenue)
                 {
-                    Facebook.Unity.FB.LogAppEvent(layer.Name, valueToSum: (float)newRevenue,
+                    data.Callback(layer.Name, newRevenue);
+                }
+            }
+
+            data.CurrentRevenue = newRevenue;
+            data.CheckIsRevenueEnough();
+        }
+
+        private void LogLayeredFirebase(string name, double revenue)
+        {
+            if (TapEmpire.Services.FirebaseService.IsInitializedDeprecated)
+            {
+                FirebaseAnalytics.LogEvent(name);
+            }
+        }
+
+#if TEL_META
+        private void LogLayeredFacebook(string name, double revenue)
+        {
+            if (_settings.AdsAnalyticsSettings.EnableMeta)
+            {
+                Facebook.Unity.FB.LogAppEvent(layer.Name, valueToSum: (float)revenue,
                     parameters: new Dictionary<string, object>
                     {
                         { "fb_currency", "USD" }
                     });
-                }
             }
-
-            _currentRevenue = newRevenue;
-            CheckIsRevenueEnough();
         }
 #endif
-
-        private void CheckIsRevenueEnough()
-        {
-            if (_currentRevenue >= _settings.RevenueLayers.Last().Value)
-            {
-                _isRevenueEnough = true;
-            }
-        }
 
         private void OnBatchedRevenue(double price, BatchedData batchedData)
         {
@@ -156,7 +160,7 @@ namespace TapEmpire.Services
             }
             else
             {
-                _progressService.SetAdRevenueBatched(_batchedRevenue, batchedData.Postfix);
+                _progressService.SetAdRevenueBatched(batchedData.Revenue, batchedData.Postfix);
                 return false;
             }
         }
@@ -184,7 +188,7 @@ namespace TapEmpire.Services
         }
 #endif
 
-        private BatchedData[] InitializedBatchedData()
+        private BatchedData[] InitializeBatchedData()
         {
             var batchedData = new BatchedData[] {
                 new BatchedData() {
@@ -207,9 +211,34 @@ namespace TapEmpire.Services
 
             return batchedData;
         }
+
+        private LayeredData[] InitializeLayeredData()
+        {
+            var layeredData = new LayeredData[]
+            {
+                new LayeredData()
+                {
+                    RevenueLayers = _settings.AdsAnalyticsSettings.RevenueLayers,
+                    Postfix = "",
+                    Callback = this.LogLayeredFirebase,
+                },
+#if TEL_META
+                new LayeredData()
+                {
+                    RevenueLayers = _settings.AdsAnalyticsSettings.MetaRevenueLayers,
+                    Postfix = "Meta",
+                    Callback = this.LogLayeredFacebook,
+                }
+#endif
+            };
+
+            layeredData.ForEach(data => data.Initialize(_progressService));
+
+            return layeredData;
+        }
     }
 
-    public enum BatchAnalyticsType
+    public enum AdsAnalyticsType
     {
         Firebase,
         Facebook,
@@ -228,6 +257,29 @@ namespace TapEmpire.Services
         {
             Revenue = progressService.GetAdRevenueBatched(Postfix);
             IsBatchedOnce = BatchType == BatchType.Once && progressService.GetOnceBatched(Postfix);
+        }
+    }
+
+    public class LayeredData
+    {
+        public bool IsRevenueEnough = false;
+        public float CurrentRevenue = 0.0f;
+        public List<RevenueLayer> RevenueLayers;
+        public string Postfix;
+        public System.Action<string, double> Callback;
+
+        public void Initialize(IProgressService progressService)
+        {
+            CurrentRevenue = progressService.GetAdRevenueLayered(Postfix);
+            CheckIsRevenueEnough();
+        }
+
+        public void CheckIsRevenueEnough()
+        {
+            if (CurrentRevenue >= RevenueLayers.LastOrDefault().Value)
+            {
+                IsRevenueEnough = true;
+            }
         }
     }
 }

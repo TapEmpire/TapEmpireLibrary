@@ -32,7 +32,6 @@ namespace TapEmpire.Services
         public List<SceneSettings> SceneSettings = new();
 
         [Header("Analytics settings")]
-        public List<RevenueLayer> RevenueLayers = new();
         public AdsAnalyticsSettings AdsAnalyticsSettings = null;
 
         [Button]
@@ -70,12 +69,5 @@ namespace TapEmpire.Services
     {
         public SceneName SceneName;
         public bool IsBannerEnabled;
-    }
-
-    [System.Serializable]
-    public struct RevenueLayer
-    {
-        public string Name;
-        public float Value;
     }
 }
