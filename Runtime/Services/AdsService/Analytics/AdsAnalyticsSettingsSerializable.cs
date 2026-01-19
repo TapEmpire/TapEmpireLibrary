@@ -24,6 +24,8 @@ namespace TapEmpire.Services
             public bool EnableMetaPurchases = false;
             public bool AddMetaIapBatched = false;
             public bool AddMetaIapLayered = false;
+            public List<RevenueLayer> RevenueLayers = null;
+            public List<RevenueLayer> MetaRevenueLayers = null;
 
             public AdsAnalyticsRemoteModel() { }
 
@@ -37,6 +39,8 @@ namespace TapEmpire.Services
                 EnableMetaPurchases = settings.EnableMetaPurchases;
                 AddMetaIapBatched = settings.AddMetaIapBatched;
                 AddMetaIapLayered = settings.AddMetaIapLayered;
+                RevenueLayers = settings.RevenueLayers;
+                MetaRevenueLayers = settings.MetaRevenueLayers;
             }
 
             public void ToSettings(AdsAnalyticsSettings settings)
@@ -49,6 +53,16 @@ namespace TapEmpire.Services
                 settings.EnableMetaPurchases = EnableMetaPurchases;
                 settings.AddMetaIapBatched = AddMetaIapBatched;
                 settings.AddMetaIapLayered = AddMetaIapLayered;
+
+                if (RevenueLayers != null)
+                {
+                    settings.RevenueLayers = RevenueLayers.ToList();
+                }
+
+                if (MetaRevenueLayers != null)
+                {
+                    settings.MetaRevenueLayers = MetaRevenueLayers.ToList();
+                }
             }
         }
 
