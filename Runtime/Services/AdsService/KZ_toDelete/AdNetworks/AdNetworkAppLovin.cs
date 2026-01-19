@@ -140,6 +140,18 @@ public class AdNetworkAppLovin : AdNetworkBase
     public void ShowBanner()
     {
         MaxSdk.ShowBanner(BannerID);
+        UpdateBannerLayout("ShowBanner");
+    }
+
+    private void UpdateBannerLayout(string context)
+    {
+        if (isInitialized && BannerCreated)
+        {
+            var layout = MaxSdk.GetBannerLayout(BannerID);
+            var size = new Vector2(layout.width, layout.height);
+            Debug.Log($"[Banner] {context} - Size: {size.x}x{size.y}");
+            AdsManager.Instance.BannerLayout.Value = size;
+        }
     }
 
     public void HideBanner()
@@ -170,6 +182,7 @@ public class AdNetworkAppLovin : AdNetworkBase
         ThreadDispatcher.Enqueue(() =>
         {
             BannerLoaded = true;
+            UpdateBannerLayout("OnAdLoaded");
             AdsManager.Instance.OnMaxBannerLoaded?.Invoke();
         });
     }

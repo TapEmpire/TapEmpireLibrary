@@ -43,6 +43,9 @@ namespace TapEmpire.Build
                 rootDict.SetString(trackingKey, trackingMessage);
             }
 
+            const string encryptionKey = "ITSAppUsesNonExemptEncryption";
+            rootDict.SetBoolean(encryptionKey, false);
+
             plist.WriteToFile(plistPath);
         }
     }
