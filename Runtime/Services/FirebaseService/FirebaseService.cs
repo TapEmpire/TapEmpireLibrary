@@ -73,6 +73,22 @@ namespace TapEmpire.Services
 
         public FirebaseRemoteConfig GetNativeConfig() => FirebaseRemoteConfig.DefaultInstance;
 
+        public static void LogEvent(string name)
+        {
+            if (IsInitializedDeprecated)
+            {
+                FirebaseAnalytics.LogEvent(name);
+            }
+        }
+
+        public static void LogEvent(string name, params Parameter[] parameters)
+        {
+            if (IsInitializedDeprecated)
+            {
+                FirebaseAnalytics.LogEvent(name, parameters);
+            }
+        }
+
         public void Crash()
         {
             throw new System.Exception("Crashlytics test exception");

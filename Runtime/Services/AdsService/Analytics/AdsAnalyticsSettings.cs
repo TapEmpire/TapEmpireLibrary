@@ -9,6 +9,9 @@ namespace TapEmpire.Services
         public BatchType BatchType;
         public double Threshold;
 
+        public int CounterThreshold = 20;
+        public bool AddBanners = false;
+
         public bool EnableMeta = false;
         public BatchType BatchTypeMeta;
         public double ThresholdMeta;

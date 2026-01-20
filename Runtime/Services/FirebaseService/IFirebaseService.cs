@@ -1,3 +1,4 @@
+using Firebase.Analytics;
 using Firebase.RemoteConfig;
 using R3;
 

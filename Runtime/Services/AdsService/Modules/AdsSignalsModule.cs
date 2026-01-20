@@ -5,6 +5,7 @@ using System.Linq;
 using Firebase.Analytics;
 using TapEmpire.Utility;
 using System.Collections.Generic;
+using Unity.Collections;
 
 namespace TapEmpire.Services
 {
@@ -79,6 +80,8 @@ namespace TapEmpire.Services
                 }
 #endif
             }
+
+            OnCounterUpdate(format);
         }
 
         private void OnAdRevenue(double price, LayeredData data)
@@ -105,13 +108,7 @@ namespace TapEmpire.Services
             data.CheckIsRevenueEnough();
         }
 
-        private void LogLayeredFirebase(string name, double revenue)
-        {
-            if (TapEmpire.Services.FirebaseService.IsInitializedDeprecated)
-            {
-                FirebaseAnalytics.LogEvent(name);
-            }
-        }
+        private void LogLayeredFirebase(string name, double revenue) => FirebaseService.LogEvent(name);
 
 #if TEL_META
         private void LogLayeredFacebook(string name, double revenue)
@@ -171,7 +168,7 @@ namespace TapEmpire.Services
                 new Parameter(FirebaseAnalytics.ParameterValue, revenue),
                 new Parameter(FirebaseAnalytics.ParameterCurrency, "USD"),
             };
-            FirebaseAnalytics.LogEvent("ad_revenue_batched", impressionParameters);
+            FirebaseService.LogEvent("ad_revenue_batched", impressionParameters);
         }
 
 #if TEL_META
@@ -235,6 +232,26 @@ namespace TapEmpire.Services
             layeredData.ForEach(data => data.Initialize(_progressService));
 
             return layeredData;
+        }
+
+        private void OnCounterUpdate(AdFormat format)
+        {
+            if (_settings.AdsAnalyticsSettings.AddBanners || AdConstants.IsRewardedOrInterstitial(format))
+            {
+                var counter = _progressService.GetAdCounter() + 1;
+
+                if (counter >= _settings.AdsAnalyticsSettings.CounterThreshold)
+                {
+                    var parameters = new[] {
+                        new Parameter(FirebaseAnalytics.ParameterValue, counter),
+                    };
+                    FirebaseService.LogEvent("ad_counter", parameters);
+
+                    counter = 0;
+                }
+
+                _progressService.SetAdCounter(counter);
+            }
         }
     }
 

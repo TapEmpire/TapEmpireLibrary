@@ -34,4 +34,7 @@ public static class AdConstants
         return "unexpected_platform";
 #endif
     }
+
+    public static bool IsRewardedOrInterstitial(AdFormat format)
+        => format == AdFormat.Rewarded || format == AdFormat.RewardedInt || format == AdFormat.Interstitial;
 }

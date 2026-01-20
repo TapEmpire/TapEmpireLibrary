@@ -4,6 +4,7 @@ namespace TapEmpire.Services
 {
     public static partial class ProgressServiceExtensions
     {
+        private const string AdCounterKey = "AdCounter";
         private const string AdRevenueKey = "AdRevenue";
         private const string AdRevenueBatchedKey = "AdRevenueBatched";
         private const string AdOnceKey = "AdOnce";
@@ -70,5 +71,9 @@ namespace TapEmpire.Services
         private static string GetAdRevenueBatchedKey(string postfix) => $"{AdRevenueBatchedKey}{postfix}";
         private static string GetAdRevenueLayeredKey(string postfix) => $"{AdRevenueKey}{postfix}";
         private static string GetAdOnceKey(string postfix) => $"{AdOnceKey}{postfix}";
+
+        public static int GetAdCounter(this IProgressService self) => self.GetInt(AdCounterKey);
+        public static void SetAdCounter(this IProgressService self, int value) => self.SetInt(AdCounterKey, value);
+        public static int UpdateAdCounter(this IProgressService self) => self.UpdateInt(AdCounterKey);
     }
 }
