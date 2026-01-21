@@ -14,6 +14,7 @@ namespace TapEmpire.Services
         public bool EnableMetica = true;
         public bool EnableAppOpen = true;
         public bool EnableBanners = true;
+        public bool EnableMrec = true;
         public bool DisableAdsForPayers = true;
         public bool ShouldWaitAppOpen = false;
         public float AppOpenWaitTime = 10.0f;

@@ -29,7 +29,8 @@ namespace TapEmpire.Services
         void ShowRewarded(string placement, System.Action action);
 
         bool ShowBanners(bool shouldShow); // returns whether they were shown right now
-
+        bool ShowMrec(bool shouldShow);
+        bool ShowMrec(bool shouldShow, int x, int y);
         bool AdsDisabled { get; }
         bool AdsDisabledDebug { get; set; }
         float MaxWaitingTime { get; }
