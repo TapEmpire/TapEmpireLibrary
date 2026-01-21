@@ -18,12 +18,16 @@ namespace TapEmpire.Services
         {
             public BatchType BatchType;
             public double Threshold;
+            public int CounterThreshold = 20;
+            public bool AddBanners = false;
             public bool EnableMeta = false;
             public BatchType BatchTypeMeta;
             public double ThresholdMeta;
             public bool EnableMetaPurchases = false;
             public bool AddMetaIapBatched = false;
             public bool AddMetaIapLayered = false;
+            public List<RevenueLayer> RevenueLayers = null;
+            public List<RevenueLayer> MetaRevenueLayers = null;
 
             public AdsAnalyticsRemoteModel() { }
 
@@ -31,24 +35,40 @@ namespace TapEmpire.Services
             {
                 BatchType = settings.BatchType;
                 Threshold = settings.Threshold;
+                CounterThreshold = settings.CounterThreshold;
+                AddBanners = settings.AddBanners;
                 EnableMeta = settings.EnableMeta;
                 BatchTypeMeta = settings.BatchTypeMeta;
                 ThresholdMeta = settings.ThresholdMeta;
                 EnableMetaPurchases = settings.EnableMetaPurchases;
                 AddMetaIapBatched = settings.AddMetaIapBatched;
                 AddMetaIapLayered = settings.AddMetaIapLayered;
+                RevenueLayers = settings.RevenueLayers;
+                MetaRevenueLayers = settings.MetaRevenueLayers;
             }
 
             public void ToSettings(AdsAnalyticsSettings settings)
             {
                 settings.BatchType = BatchType;
                 settings.Threshold = Threshold;
+                settings.CounterThreshold = CounterThreshold;
+                settings.AddBanners = AddBanners;
                 settings.EnableMeta = EnableMeta;
                 settings.BatchTypeMeta = BatchTypeMeta;
                 settings.ThresholdMeta = ThresholdMeta;
                 settings.EnableMetaPurchases = EnableMetaPurchases;
                 settings.AddMetaIapBatched = AddMetaIapBatched;
                 settings.AddMetaIapLayered = AddMetaIapLayered;
+
+                if (RevenueLayers != null)
+                {
+                    settings.RevenueLayers = RevenueLayers.ToList();
+                }
+
+                if (MetaRevenueLayers != null)
+                {
+                    settings.MetaRevenueLayers = MetaRevenueLayers.ToList();
+                }
             }
         }
 

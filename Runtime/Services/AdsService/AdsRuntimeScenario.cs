@@ -9,6 +9,7 @@ namespace TapEmpire.Services
         public bool ShouldWaitAppOpen;
         public List<int> InterstitialAfterLevels;
         public bool ShowBanner;
+        public bool ShowMrec;
         public int FromLevel;
     }
 }

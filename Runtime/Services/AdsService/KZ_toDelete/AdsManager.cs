@@ -60,6 +60,7 @@ public class AdsManager : MonoBehaviour
     [Header("AppLovin IDs")]
     public string MaxSDKKey;
     public string MaxBanner;
+    public string MaxMrec;
     public string MaxInterstitial;
     public string MaxRewarded;
 
@@ -67,6 +68,11 @@ public class AdsManager : MonoBehaviour
     public BannerWidth BannerSize = BannerWidth.Full;
     public AdPosition BannerPos = AdPosition.Bottom;
     public AdPosition MrecPos = AdPosition.BottomLeft;
+
+    [Header("Custom MREC Position (pixels)")]
+    [HideInInspector] public bool UseCustomMrecPosition = false;
+    [HideInInspector] public int MrecCustomX = 0;
+    [HideInInspector] public int MrecCustomY = 0;
 
     [Header("Links")]
     [SerializeField] string PrivacyPolicy;
@@ -92,6 +98,8 @@ public class AdsManager : MonoBehaviour
     public AdFormat InterstitialType => (OnRewardComplete != null) ? AdFormat.RewardedInt : AdFormat.Interstitial;
     public Action OnMaxBannerLoaded { get; private set; }
     public Action OnMaxBannerFailed { get; private set; }
+    public Action OnMaxMrecLoaded { get; private set; }
+    public Action OnMaxMrecFailed { get; private set; }
     public Action<bool> OnConsentObtained = null;
 
     public static bool IsAdmobInitSuccess { get; private set; }
@@ -202,6 +210,7 @@ public class AdsManager : MonoBehaviour
         await UniTask.WaitUntil(() => IsApplovinInitSuccess);
 
         SubscribeToMaxBanners();
+        SubscribeToMaxMrec();
 
         OnInitialized.OnNext(Unit.Default);
     }
@@ -256,6 +265,32 @@ public class AdsManager : MonoBehaviour
                 Admob.ShowBanner();
             else
                 Admob.HideBanner();
+        };
+    }
+
+    private void SubscribeToMaxMrec()
+    {
+        OnMaxMrecLoaded = delegate
+        {
+            Admob.HideMREC();
+            if (MrecStatus)
+                Applovin.ShowMREC();
+            else
+                Applovin.HideMREC();
+        };
+
+        OnMaxMrecFailed = delegate
+        {
+            Applovin.HideMREC();
+            if (MrecStatus)
+            {
+                if (UseCustomMrecPosition)
+                    Admob.ShowMREC(MrecCustomX, MrecCustomY);
+                else
+                    Admob.ShowMREC();
+            }
+            else
+                Admob.HideMREC();
         };
     }
 
@@ -320,19 +355,40 @@ public class AdsManager : MonoBehaviour
         if (!AreAdsRemoved)
         {
             MrecStatus = true;
-            Admob.ShowMREC();
+            UseCustomMrecPosition = false;
+            if (Applovin.HasMrec())
+                Applovin.ShowMREC();
+            else
+                Admob.ShowMREC();
+        }
+    }
+    
+    public void ShowMREC(int x, int y)
+    {
+        if (!AreAdsRemoved)
+        {
+            MrecStatus = true;
+            UseCustomMrecPosition = true;
+            MrecCustomX = x;
+            MrecCustomY = y;
+            if (Applovin.HasMrec())
+                Applovin.ShowMREC(x, y);
+            else
+                Admob.ShowMREC(x, y);
         }
     }
 
     public void HideMREC()
     {
         MrecStatus = false;
+        Applovin.HideMREC();
         Admob.HideMREC();
     }
 
     public void DestroyMREC()
     {
         MrecStatus = false;
+        Applovin.DestroyMREC();
         Admob.DestroyMREC();
     }
 

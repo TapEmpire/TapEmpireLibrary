@@ -216,6 +216,16 @@ public class AdNetworkAdmob : AdNetworkBase
         else
             RequestMREC();
     }
+    
+    public void ShowMREC(int x, int y)
+    {
+        if (!isInitialized) return;
+
+        if (mrecView != null)
+            mrecView.Show();
+        else
+            RequestMREC(x, y);
+    }
 
     void RequestMREC()
     {
@@ -228,6 +238,23 @@ public class AdNetworkAdmob : AdNetworkBase
         mrecImp = new AdImpressionData(adUnitId, AdFormat.MREC);
         mrecView = new BannerView(adUnitId, new AdSize(300, 250), AdsManager.Instance.MrecPos);
         // GameAnalyticsILRD.SubscribeAdMobImpressions(adUnitId, mrecView);
+
+        mrecView.OnBannerAdLoadFailed += MrecView_OnBannerAdLoadFailed;
+        mrecView.OnBannerAdLoaded += MrecView_OnBannerAdLoaded;
+        mrecView.OnAdPaid += MrecView_OnAdPaid;
+        mrecView.LoadAd(CreateAdRequest());
+    }
+    
+    void RequestMREC(int x, int y)
+    {
+        string adUnitId = AdsManager.Instance.TestAds ? AdConstants.GetAdmobTestID(AdFormat.Banner) : AdsManager.Instance.MrecID;
+        if (string.IsNullOrEmpty(adUnitId)) return;
+
+        if (mrecView != null)
+            mrecView.Destroy();
+
+        mrecImp = new AdImpressionData(adUnitId, AdFormat.MREC);
+        mrecView = new BannerView(adUnitId, new AdSize(300, 250), x, y);
 
         mrecView.OnBannerAdLoadFailed += MrecView_OnBannerAdLoadFailed;
         mrecView.OnBannerAdLoaded += MrecView_OnBannerAdLoaded;

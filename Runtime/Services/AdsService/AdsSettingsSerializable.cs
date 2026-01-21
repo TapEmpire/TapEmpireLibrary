@@ -22,6 +22,7 @@ namespace TapEmpire.Services
             public bool EnableMeta = true;
             public bool EnableAppOpen = false;
             public bool EnableBanners = true;
+            public bool EnableMrec = true;
             public bool ShouldWaitAppOpen = false;
             public float AppOpenWaitTime = 10.0f;
             public List<int> InterstitialAfterLevels = new();
@@ -37,6 +38,7 @@ namespace TapEmpire.Services
                 EnableMetica = settings.EnableMetica;
                 EnableAppOpen = settings.EnableAppOpen;
                 EnableBanners = settings.EnableBanners;
+                EnableMrec = settings.EnableMrec;
                 ShouldWaitAppOpen = settings.ShouldWaitAppOpen;
                 AppOpenWaitTime = settings.AppOpenWaitTime;
                 InterstitialAfterLevels = settings.InterstitialAfterLevels.ToList();
@@ -55,6 +57,7 @@ namespace TapEmpire.Services
             _adsSettings.EnableMetica = model.EnableMetica;
             _adsSettings.EnableAppOpen = model.EnableAppOpen;
             _adsSettings.EnableBanners = model.EnableBanners;
+            _adsSettings.EnableMrec = model.EnableMrec;
             _adsSettings.ShouldWaitAppOpen = model.ShouldWaitAppOpen;
             _adsSettings.AppOpenWaitTime = model.AppOpenWaitTime;
             _adsSettings.InterstitialAfterLevels = model.InterstitialAfterLevels;

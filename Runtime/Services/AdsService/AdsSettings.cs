@@ -14,6 +14,7 @@ namespace TapEmpire.Services
         public bool EnableMetica = true;
         public bool EnableAppOpen = true;
         public bool EnableBanners = true;
+        public bool EnableMrec = true;
         public bool DisableAdsForPayers = true;
         public bool ShouldWaitAppOpen = false;
         public float AppOpenWaitTime = 10.0f;
@@ -32,7 +33,6 @@ namespace TapEmpire.Services
         public List<SceneSettings> SceneSettings = new();
 
         [Header("Analytics settings")]
-        public List<RevenueLayer> RevenueLayers = new();
         public AdsAnalyticsSettings AdsAnalyticsSettings = null;
 
         [Button]
@@ -70,12 +70,5 @@ namespace TapEmpire.Services
     {
         public SceneName SceneName;
         public bool IsBannerEnabled;
-    }
-
-    [System.Serializable]
-    public struct RevenueLayer
-    {
-        public string Name;
-        public float Value;
     }
 }

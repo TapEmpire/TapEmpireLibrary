@@ -4,6 +4,7 @@ namespace TapEmpire.Services
 {
     public static partial class ProgressServiceExtensions
     {
+        private const string AdCounterKey = "AdCounter";
         private const string AdRevenueKey = "AdRevenue";
         private const string AdRevenueBatchedKey = "AdRevenueBatched";
         private const string AdOnceKey = "AdOnce";
@@ -20,15 +21,23 @@ namespace TapEmpire.Services
             return self.GetIntAdRevenue() / MillionFloat;
         }
 
-        public static float UpdateAdRevenue(this IProgressService self, double revenue)
+        private static int GetIntAdRevenueLayered(this IProgressService self, string postfix)
+            => self.GetInt(GetAdRevenueLayeredKey(postfix));
+
+        public static float GetAdRevenueLayered(this IProgressService self, string postfix)
+        {
+            return self.GetIntAdRevenueLayered(postfix) / MillionFloat;
+        }
+
+        public static float UpdateAdRevenueLayered(this IProgressService self, double revenue, string postfix = "")
         {
             var total = self.GetIntAdRevenue();
             total += (int)Math.Floor(revenue * MillionFloat);
-            self.IntValuesDictionary.SetValue(AdRevenueKey, total);
+            self.SetInt(GetAdRevenueLayeredKey(postfix), total);
             return total / MillionFloat;
         }
 
-        private static int GetIntAdRevenueBatched(this IProgressService self, string prefix, string postfix = "")
+        private static int GetIntAdRevenueBatched(this IProgressService self, string postfix = "")
         {
             return self.IntValuesDictionary.TryGetValue(GetAdRevenueBatchedKey(postfix), out var value, canUseDefault: false) ? value : 0;
         }
@@ -60,6 +69,11 @@ namespace TapEmpire.Services
         }
 
         private static string GetAdRevenueBatchedKey(string postfix) => $"{AdRevenueBatchedKey}{postfix}";
+        private static string GetAdRevenueLayeredKey(string postfix) => $"{AdRevenueKey}{postfix}";
         private static string GetAdOnceKey(string postfix) => $"{AdOnceKey}{postfix}";
+
+        public static int GetAdCounter(this IProgressService self) => self.GetInt(AdCounterKey);
+        public static void SetAdCounter(this IProgressService self, int value) => self.SetInt(AdCounterKey, value);
+        public static int UpdateAdCounter(this IProgressService self) => self.UpdateInt(AdCounterKey);
     }
 }

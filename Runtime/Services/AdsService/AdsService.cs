@@ -92,6 +92,7 @@ namespace TapEmpire.Services
                 _adsRuntimeScenario.ShouldWaitAppOpen = false;
                 _adsRuntimeScenario.InterstitialAfterLevels = new List<int>();
                 _adsRuntimeScenario.ShowBanner = false;
+                _adsRuntimeScenario.ShowMrec = false;
                 _adsRuntimeScenario.FromLevel = 0;
             }
             else
@@ -101,6 +102,7 @@ namespace TapEmpire.Services
                 _adsRuntimeScenario.ShouldWaitAppOpen = _adsSettings.ShouldWaitAppOpen;
                 _adsRuntimeScenario.InterstitialAfterLevels = _adsSettings.InterstitialAfterLevels;
                 _adsRuntimeScenario.ShowBanner = _adsSettings.EnableBanners && !AdsDisabledDebug;
+                _adsRuntimeScenario.ShowMrec = _adsSettings.EnableMrec && !AdsDisabledDebug;
                 _adsRuntimeScenario.FromLevel = _adsSettings.FromLevel;
             }
 
@@ -277,12 +279,40 @@ namespace TapEmpire.Services
             {
                 var hasBanners = _adsRuntimeScenario.ShowBanner;
                 _adsRuntimeScenario.ShowBanner = shouldShow;
-                System.Action action = shouldShow ? AdsManager.Instance.ShowBanner : AdsManager.Instance.HideBanner;
+                System.Action action = shouldShow ? AdsManager.Instance.ResumeAllBanners : AdsManager.Instance.HideAllBanners;
                 action.Invoke();
                 return hasBanners;
             }
 
             return false;
+        }
+
+        public bool ShowMrec(bool shouldShow)
+        {
+            if (!_adsRuntimeScenario.IsEnabled || !_adsSettings.EnableMrec)
+                return false;
+
+            _adsRuntimeScenario.ShowMrec = shouldShow;
+            if (shouldShow)
+                AdsManager.Instance.ShowMREC();
+            else
+                AdsManager.Instance.DestroyMREC();
+
+            return true;
+        }
+
+        public bool ShowMrec(bool shouldShow, int x, int y)
+        {
+            if (!_adsRuntimeScenario.IsEnabled || !_adsSettings.EnableMrec)
+                return false;
+
+            _adsRuntimeScenario.ShowMrec = shouldShow;
+            if (shouldShow)
+                AdsManager.Instance.ShowMREC(x, y);
+            else
+                AdsManager.Instance.DestroyMREC();
+
+            return true;
         }
 
         public void DisableAds(bool shouldDisable)
@@ -294,10 +324,12 @@ namespace TapEmpire.Services
             _adsRuntimeScenario.ShouldWaitAppOpen = false;
             _adsRuntimeScenario.InterstitialAfterLevels = new List<int>();
             _adsRuntimeScenario.ShowBanner = false;
+            _adsRuntimeScenario.ShowMrec = false;
             _adsRuntimeScenario.FromLevel = 0;
             if (_adsDisabled && AdsManager.Instance != null)
             {
                 AdsManager.Instance.DestroyBanner();
+                AdsManager.Instance.DestroyMREC();
                 AdsManager.Instance.SetAppOpenAutoShow(false);
             }
 
