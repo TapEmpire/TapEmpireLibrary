@@ -277,7 +277,7 @@ namespace TapEmpire.Services
             {
                 var hasBanners = _adsRuntimeScenario.ShowBanner;
                 _adsRuntimeScenario.ShowBanner = shouldShow;
-                System.Action action = shouldShow ? AdsManager.Instance.ShowBanner : AdsManager.Instance.HideBanner;
+                System.Action action = shouldShow ? AdsManager.Instance.ResumeAllBanners : AdsManager.Instance.HideAllBanners;
                 action.Invoke();
                 return hasBanners;
             }

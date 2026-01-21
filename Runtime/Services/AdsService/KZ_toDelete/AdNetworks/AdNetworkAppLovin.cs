@@ -8,10 +8,13 @@ using Cysharp.Threading.Tasks;
 //GAID Example = 93e4a8ed-f879-4e6d-9ba3-3d83531b8e8b
 public class AdNetworkAppLovin : AdNetworkBase
 {
-    string BannerID, InterstitialID, RewardedID;
+    string BannerID, MrecID, InterstitialID, RewardedID;
 
     bool BannerCreated;
     bool BannerLoaded;
+
+    bool MrecCreated;
+    bool MrecLoaded;
 
     int interstitialRetryAttempt, rewardedRetryAttempt;
 
@@ -93,6 +96,7 @@ public class AdNetworkAppLovin : AdNetworkBase
         InterstitialID = AdsManager.Instance.MaxInterstitial;
         RewardedID = AdsManager.Instance.MaxRewarded;
         BannerID = AdsManager.Instance.MaxBanner;
+        MrecID = AdsManager.Instance.MaxMrec;
     }
 
     #endregion
@@ -201,6 +205,127 @@ public class AdNetworkAppLovin : AdNetworkBase
         ThreadDispatcher.Enqueue(() =>
         {
             AnalyticsManager.ReportRevenue_Applovin(adInfo, AdFormat.Banner);
+        });
+    }
+
+    #endregion
+
+    #region MREC Ad
+
+    public void InitializeMrecAds()
+    {
+        if (string.IsNullOrEmpty(MrecID)) return;
+
+        if (!MrecCreated)
+        {
+            MaxSdk.CreateMRec(MrecID, MaxSdkBase.AdViewPosition.BottomLeft);
+
+            MaxSdkCallbacks.MRec.OnAdLoadFailedEvent += Mrec_OnAdLoadFailedEvent;
+            MaxSdkCallbacks.MRec.OnAdLoadedEvent += Mrec_OnAdLoadedEvent;
+            MaxSdkCallbacks.MRec.OnAdRevenuePaidEvent += OnMrecAdRevenuePaidEvent;
+
+            MrecCreated = true;
+        }
+    }
+
+    public void InitializeMrecAds(int x, int y)
+    {
+        if (string.IsNullOrEmpty(MrecID)) return;
+
+        if (!MrecCreated)
+        {
+            MaxSdk.CreateMRec(MrecID, x, y);
+
+            MaxSdkCallbacks.MRec.OnAdLoadFailedEvent += Mrec_OnAdLoadFailedEvent;
+            MaxSdkCallbacks.MRec.OnAdLoadedEvent += Mrec_OnAdLoadedEvent;
+            MaxSdkCallbacks.MRec.OnAdRevenuePaidEvent += OnMrecAdRevenuePaidEvent;
+
+            MrecCreated = true;
+        }
+    }
+
+    public bool HasMrec()
+    {
+        if (string.IsNullOrEmpty(MrecID)) return false;
+
+        if (MrecCreated)
+            return MrecLoaded;
+        else
+        {
+            if (isInitialized)
+                InitializeMrecAds();
+            return false;
+        }
+    }
+
+    public void ShowMREC()
+    {
+        if (string.IsNullOrEmpty(MrecID)) return;
+
+        if (!MrecCreated)
+            InitializeMrecAds();
+
+        MaxSdk.ShowMRec(MrecID);
+    }
+
+    public void ShowMREC(int x, int y)
+    {
+        if (string.IsNullOrEmpty(MrecID)) return;
+
+        if (!MrecCreated)
+            InitializeMrecAds(x, y);
+        else
+            MaxSdk.UpdateMRecPosition(MrecID, x, y);
+
+        MaxSdk.ShowMRec(MrecID);
+    }
+
+    public void HideMREC()
+    {
+        if (isInitialized && MrecCreated)
+            MaxSdk.HideMRec(MrecID);
+    }
+
+    public void DestroyMREC()
+    {
+        if (!isInitialized) return;
+
+        MrecLoaded = false;
+
+        if (MrecCreated)
+        {
+            MrecCreated = false;
+            MaxSdkCallbacks.MRec.OnAdLoadFailedEvent -= Mrec_OnAdLoadFailedEvent;
+            MaxSdkCallbacks.MRec.OnAdLoadedEvent -= Mrec_OnAdLoadedEvent;
+            MaxSdkCallbacks.MRec.OnAdRevenuePaidEvent -= OnMrecAdRevenuePaidEvent;
+
+            MaxSdk.DestroyMRec(MrecID);
+        }
+    }
+
+    private void Mrec_OnAdLoadedEvent(string arg1, MaxSdkBase.AdInfo arg2)
+    {
+        ThreadDispatcher.Enqueue(() =>
+        {
+            MrecLoaded = true;
+            AdsManager.Instance.OnMaxMrecLoaded?.Invoke();
+        });
+    }
+
+    private void Mrec_OnAdLoadFailedEvent(string arg1, MaxSdkBase.ErrorInfo arg2)
+    {
+        ThreadDispatcher.Enqueue(() =>
+        {
+            MrecLoaded = false;
+            AdsManager.Instance.OnMaxMrecFailed?.Invoke();
+        });
+    }
+
+    private void OnMrecAdRevenuePaidEvent(string adUnitId, MaxSdkBase.AdInfo adInfo)
+    {
+        ThreadDispatcher.Enqueue(() =>
+        {
+            AnalyticsManager.ReportRevenue_Applovin(adInfo, AdFormat.MREC);
         });
     }
 

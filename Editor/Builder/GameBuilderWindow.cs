@@ -139,6 +139,7 @@ namespace TapEmpire.Build
 
             adsManager.MaxSDKKey = platformData.ApplovinAds.AppKey;
             adsManager.MaxBanner = platformData.ApplovinAds.BannerId;
+            adsManager.MaxMrec = platformData.ApplovinAds.MrecId;
             adsManager.MaxInterstitial = platformData.ApplovinAds.InterstitialId;
             adsManager.MaxRewarded = platformData.ApplovinAds.RewardedId;
 
