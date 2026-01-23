@@ -274,7 +274,12 @@ public class AdsManager : MonoBehaviour
         {
             Admob.HideMREC();
             if (MrecStatus)
-                Applovin.ShowMREC();
+            {
+                if (UseCustomMrecPosition)
+                    Applovin.ShowMREC(MrecCustomX, MrecCustomY);
+                else
+                    Applovin.ShowMREC();
+            }
             else
                 Applovin.HideMREC();
         };
