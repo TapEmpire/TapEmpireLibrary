@@ -310,7 +310,7 @@ namespace TapEmpire.Services.Notifications
         public PendingNotification SendNotification(string title, string body, DateTime deliveryTime, int? badgeNumber = null,
             bool reschedule = false)
         {
-            if (Platform == null)
+            if (Platform == null || Application.isEditor)
             {
                 return null;
             }
