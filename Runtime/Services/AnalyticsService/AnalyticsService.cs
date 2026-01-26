@@ -59,6 +59,7 @@ namespace TapEmpire.Services
 
         protected override UniTask OnInitializeAsync(CancellationToken cancellationToken)
         {
+            _globalParameters = new();
             _innerService = CreateAnalyticsInternalService(_analyticsType);
 
             _innerService.InitializeAsync(cancellationToken);
@@ -75,6 +76,7 @@ namespace TapEmpire.Services
         protected override void OnRelease()
         {
             _isInitialized = false;
+            _globalParameters.Clear();
 
             _focusDisposable?.Dispose();
             

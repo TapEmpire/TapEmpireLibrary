@@ -7,7 +7,17 @@ namespace TapEmpire.Services
     public class AudioData
     {
         public AudioClip Clip;
-        public float Volume = 1;
-        public float Pitch = 1;
+        public float Pitch = 1f;
+        public float Volume = 1f;
+
+        public AudioData Clone()
+        {
+            return new AudioData
+            {
+                Clip = Clip,
+                Pitch = Pitch,
+                Volume = Volume
+            };
+        }
     }
 }
