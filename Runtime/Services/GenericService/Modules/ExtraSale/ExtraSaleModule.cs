@@ -15,7 +15,7 @@ namespace TapEmpire.Modules
     [Serializable]
     public class ExtraSaleModule : IGenericServiceModule
     {
-        [SerializeField] private ExtraSaleSettings _settings;
+        [field: SerializeField] public ExtraSaleSettings Settings { get; private set; }
 
         private ShopSettings _shopSettings;
         private DiContainer _diContainer;
@@ -42,7 +42,7 @@ namespace TapEmpire.Modules
 
         public List<Transform> CreateExtraSales()
         {
-            return _settings.SaleList.Select(element => CreateExtraSale(element)).ToList();
+            return Settings.SaleList.Select(element => CreateExtraSale(element)).ToList();
         }
 
         private void OnPurchase(string purchaseId)
@@ -62,9 +62,9 @@ namespace TapEmpire.Modules
         {
             switch (name)
             {
-                case "packs": return CreatePacks(_settings.Packs);
-                case "packs_flex": return CreatePacks(_settings.FlexPacks[_coinsIndex].Iaps);
-                case "bundle_flex": return CreateBundle(_settings.Bundles[_progressService.GetRarity()]);
+                case "packs": return CreatePacks(Settings.Packs);
+                case "packs_flex": return CreatePacks(Settings.FlexPacks[_coinsIndex].Iaps);
+                case "bundle_flex": return CreateBundle(Settings.Bundles[_progressService.GetRarity()]);
                 case string bundle when bundle.StartsWith("bundle"): return CreateBundle(name);
                 default: return null;
             }
@@ -75,7 +75,7 @@ namespace TapEmpire.Modules
             var products = GetProducts(packs);
             var labels = GetLabels();
 
-            var packsElement = GameObject.Instantiate(_settings.Visuals["packs"]);
+            var packsElement = GameObject.Instantiate(Settings.Visuals["packs"]);
             _diContainer.InjectGameObject(packsElement.gameObject);
             packsElement.GetComponent<PacksElement>().Initialize(products, labels);
 
@@ -85,7 +85,7 @@ namespace TapEmpire.Modules
         private Transform CreateBundle(string bundleId)
         {
             var bundleData = GetBundleData(bundleId);
-            var bundleElement = GameObject.Instantiate(_settings.Visuals[bundleId]);
+            var bundleElement = GameObject.Instantiate(Settings.Visuals[bundleId]);
             _diContainer.InjectGameObject(bundleElement.gameObject);
             bundleElement.GetComponent<BundleShopElement>().Initialize(bundleData);
 
@@ -114,7 +114,7 @@ namespace TapEmpire.Modules
         public List<Sprite> GetLabels()
         {
             var icons = _shopSettings.InfoIcons;
-            return _settings.Labels.Select(label => icons[label]).ToList();
+            return Settings.Labels.Select(label => icons[label]).ToList();
         }
     }
 }

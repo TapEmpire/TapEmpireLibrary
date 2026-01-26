@@ -18,6 +18,8 @@ namespace TapEmpire.Modules
         public InfoType[] Labels;
         public SerializableDictionary<string, Transform> Visuals;
         public SerializableDictionary<Rarity, string> Bundles;
+        public float ScrollDelay = 3.0f;
+        public float WaitDelay = 3.0f;
 
         public string[][] GetFlexPacks() => FlexPacks.Select(data => data.Iaps).ToArray();
         public void SetFlexPacks(string[][] flexibleIaps) =>
