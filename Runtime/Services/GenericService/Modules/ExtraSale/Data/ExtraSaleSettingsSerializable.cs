@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -10,28 +11,41 @@ using UnityEngine;
 namespace TapEmpire.Modules
 {
     [Serializable]
-    public class GenericSettingsSerializable : IRemoteSerializable
+    public class ExtraSaleSettingsSerializable : IRemoteSerializable
     {
         [SerializeField] private ExtraSaleSettings _settings;
 
         public class ExtraSaleSettingsRemoteModel
         {
+            public string[] SaleList = null;
             public string[] Packs = null;
             public string[][] FlexPacks = null;
             public InfoType[] Labels = null;
+            public float ScrollDelay = 3.0f;
+            public float WaitDelay = 3.0f;
 
             public ExtraSaleSettingsRemoteModel() { }
 
             public ExtraSaleSettingsRemoteModel(ExtraSaleSettings settings)
             {
+                SaleList = settings.SaleList;
                 Packs = settings.Packs;
                 FlexPacks = settings.GetFlexPacks();
                 Labels = settings.Labels;
+                ScrollDelay = settings.ScrollDelay;
+                WaitDelay = settings.WaitDelay;
             }
 
             public void ToSettings(ExtraSaleSettings settings)
             {
+                settings.ScrollDelay = ScrollDelay;
+                settings.WaitDelay = WaitDelay;
                 settings.SetFlexPacks(FlexPacks ?? Array.Empty<string[]>());
+
+                if (SaleList != null)
+                {
+                    settings.SaleList = SaleList.ToArray();
+                }
 
                 if (Packs != null)
                 {

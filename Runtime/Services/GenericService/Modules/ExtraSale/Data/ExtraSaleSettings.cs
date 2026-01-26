@@ -12,7 +12,7 @@ namespace TapEmpire.Modules
     [CreateAssetMenu(menuName = "TapEmpire/Modules/ExtraSaleSettings", fileName = "ExtraSaleSettings")]
     public class ExtraSaleSettings : ScriptableObject
     {
-        public List<string> SaleList;
+        public string[] SaleList;
         public string[] Packs;
         public FlexPacks[] FlexPacks;
         public InfoType[] Labels;

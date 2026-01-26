@@ -33,8 +33,9 @@ namespace TapEmpire.UI
 
         private void Initialize(int page)
         {
+            var hasManyPages = _scrollSnap.Pages > 1;
             _scrollSnap.onPageChange -= Initialize;
-            _dots.ForEach((dot, index) => dot.gameObject.SetActive(index < _scrollSnap.Pages));
+            _dots.ForEach((dot, index) => dot.gameObject.SetActive(index < _scrollSnap.Pages && hasManyPages));
         }
     }
 }

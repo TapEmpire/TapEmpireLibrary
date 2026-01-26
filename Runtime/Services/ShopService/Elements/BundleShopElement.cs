@@ -16,6 +16,7 @@ namespace TapEmpire.Services.Shop
         [SerializeField] private List<ShopChoiceData> _offerChoices;
         [SerializeField] private TMP_Text _timerText;
         [SerializeField] private Image _timerProgress;
+        [SerializeField] private string _placement = nameof(ResourceUsageType.ShopPaid);
 
         private IShopService _shopService;
 
@@ -45,7 +46,7 @@ namespace TapEmpire.Services.Shop
             _offerChoices.ForEach((visual, index) =>
             {
                 var product = data.Products[index];
-                visual.Button.onClick.Subscribe(() => _iapService.BuyProduct(product)).AddTo(_disposables);
+                visual.Button.onClick.Subscribe(() => _iapService.BuyProduct(product, _placement)).AddTo(_disposables);
 
                 var price = GetPrice(product);
                 visual.Price.text = price;
