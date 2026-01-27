@@ -38,5 +38,6 @@ namespace TapEmpire.Services
         ReadOnlyReactiveProperty<bool> ShouldWaitAppOpen { get; }
 
         AdsSettings Settings { get; }
+        void SetBannerSettings(BannerWidth bannerSize, GoogleMobileAds.Api.AdPosition bannerPos);
     }
 }
