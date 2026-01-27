@@ -6,6 +6,7 @@ using Firebase.Analytics;
 using TapEmpire.Utility;
 using System.Collections.Generic;
 using Unity.Collections;
+using UnityEngine.Purchasing;
 
 namespace TapEmpire.Services
 {
@@ -115,7 +116,7 @@ namespace TapEmpire.Services
         {
             if (_settings.AdsAnalyticsSettings.EnableMeta)
             {
-                Facebook.Unity.FB.LogAppEvent(layer.Name, valueToSum: (float)revenue,
+                Facebook.Unity.FB.LogAppEvent(name, valueToSum: (float)revenue,
                     parameters: new Dictionary<string, object>
                     {
                         { "fb_currency", "USD" }

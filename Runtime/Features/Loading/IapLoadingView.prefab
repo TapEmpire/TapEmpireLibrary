@@ -245,6 +245,7 @@ GameObject:
   - component: {fileID: 2303670499208407578}
   - component: {fileID: 742726377611988291}
   - component: {fileID: 4659693547681895907}
+  - component: {fileID: 1830721040943704250}
   m_Layer: 5
   m_Name: IapLoadingView
   m_TagString: Untagged
@@ -308,6 +309,23 @@ Canvas:
   m_SortingLayerID: 0
   m_SortingOrder: 3
   m_TargetDisplay: 0
+--- !u!114 &1830721040943704250
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7530229469947293527}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dc42784cf147c0c48a680349fa168899, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_IgnoreReversedGraphics: 1
+  m_BlockingObjects: 0
+  m_BlockingMask:
+    serializedVersion: 2
+    m_Bits: 55
 --- !u!1 &8114002784913590037
 GameObject:
   m_ObjectHideFlags: 0
