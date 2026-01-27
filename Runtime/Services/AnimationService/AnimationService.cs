@@ -1,3 +1,4 @@
+using System;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using DG.Tweening;
@@ -8,6 +9,8 @@ using UnityEngine.UI;
 using TapEmpire.Fragments;
 using Zenject;
 using R3;
+using Object = UnityEngine.Object;
+using Random = UnityEngine.Random;
 
 namespace TapEmpire.Services
 {
@@ -66,38 +69,103 @@ namespace TapEmpire.Services
                 return DOTween.Sequence();
             }
 
-            var points = AnimationFragment.GetRadialSpreadPoints(start, newAmount, _settings.ScatterRadius, _settings.ScatterRandomness);
+            return PlayFlyingAnimation(
+                newAmount,
+                start,
+                target,
+                _settings.ScatterRadius,
+                _settings.ScatterRandomness,
+                sprite,
+                configureRenderer: null,
+                onItemComplete: i =>
+                {
+                    if (shouldAddResource)
+                    {
+                        var flyAmount = i == 1 ? firstResourceAmount : resourceAmount;
+                        _resourcesService.Add(resourceType, flyAmount);
+                    }
+                });
+        }
+
+        public Sequence CollectVirtualResource(
+            int amount,
+            Vector3 start,
+            Transform target,
+            float scatterRadius,
+            float scatterRandomness,
+            Vector2 sizeDelta,
+            Sprite sprite,
+            Action onComplete)
+        {
+            var newAmount = Mathf.Clamp(amount, 0, MaxResourceAmount);
+            
+            return PlayFlyingAnimation(
+                newAmount,
+                start,
+                target,
+                scatterRadius,
+                scatterRandomness,
+                sprite,
+                configureRenderer: image =>
+                {
+                    image.transform.localScale = Vector3.one;
+                    image.rectTransform.sizeDelta = sizeDelta;
+                    image.raycastTarget = false;
+                },
+                onItemComplete: _ =>
+                {
+                    onComplete?.Invoke();
+                });
+        }
+
+        private Sequence PlayFlyingAnimation(
+            int count,
+            Vector3 start,
+            Transform target,
+            float scatterRadius,
+            float scatterRandomness,
+            Sprite sprite,
+            Action<Image> configureRenderer,
+            Action<int> onItemComplete)
+        {
+            var newCount = Mathf.Clamp(count, 0, MaxResourceAmount);
+            var points = AnimationFragment.GetRadialSpreadPoints(start, newCount, scatterRadius, scatterRandomness);
             var animation = DOTween.Sequence();
             var end = target.position;
             var index = 0;
 
             foreach (var point in points)
             {
-                var flyAmount = index++ > 0 ? resourceAmount : firstResourceAmount;
                 var resourceRenderer = _flyingResources.Get();
-                var resource = resourceRenderer.transform;
-                resourceRenderer.sprite = sprite;
+                
+                resourceRenderer.sprite = sprite;  
+                
+                configureRenderer?.Invoke(resourceRenderer);
 
+                var resource = resourceRenderer.transform;
                 resource.position = start;
-                resource.parent = target.transform;
+                resource.parent = target;
 
                 var sequence = DOTween.Sequence();
                 resource.DOMove(point, 0.3f).AppendTo(sequence);
-                resource.DOMove(end, 0.5f).SetDelay(Random.Range(0.05f, 0.2f)).SetEase(Ease.InBack).AppendTo(sequence);
+                resource.DOMove(end, 0.5f)
+                    .SetDelay(Random.Range(0.05f, 0.2f))
+                    .SetEase(Ease.InBack)
+                    .AppendTo(sequence);
+
+                var flyAmount = ++index;
+
                 sequence.AppendCallback(() =>
                 {
-                    if (shouldAddResource)
-                    {
-                        _resourcesService.Add(resourceType, flyAmount);
-                    }
+                    onItemComplete?.Invoke(flyAmount);
                     _flyingResources.Release(resourceRenderer);
                     resourceRenderer.transform.parent = _parent;
                 });
+
                 animation.Join(sequence);
             }
 
             animation.SetLink(target.gameObject);
-
             return animation;
         }
 

@@ -65,10 +65,10 @@ namespace TapEmpire.Services.Analytics
             var level = _progressService.GetVisualProgress();
 
             _analyticsService.LogEvent(CoreAnalyticsStrings.TrashData, new Dictionary<string, object>{
-                    { $"Level_{level}", new JObject(new JProperty(ResourcesAnalyticsStrings.Tag,
-                        new JObject(new JProperty(resource.ToString(), reason))))
-                    }
-                });
+                { $"Level_{level}", new JObject(new JProperty(ResourcesAnalyticsStrings.Tag,
+                    new JObject(new JProperty(resource.ToString(), reason))))
+                }
+            });
         }
     }
 }

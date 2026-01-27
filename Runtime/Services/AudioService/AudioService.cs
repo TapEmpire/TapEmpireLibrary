@@ -125,7 +125,7 @@ namespace TapEmpire.Services
         }
 
         public void PlaySoundOneShotAtPoint<TAudioId>(TAudioId audioId, Vector3 position, string uniqueId = "") where TAudioId : Enum
-        {
+        {     
             PlaySound(_soundsSources3DPool, audioId.ToString(), GetAudioData(audioId), uniqueId, position);
         }
 
@@ -149,9 +149,17 @@ namespace TapEmpire.Services
             PlaySound(_soundsSourcesPool, audioId, audioData, uniqueId);
         }
 
-        public void PlaySoundOneShot<TAudioId>(TAudioId audioId, string uniqueId = "") where TAudioId : Enum
+        public void PlaySoundOneShot<TAudioId>(TAudioId audioId, string uniqueId = "", float? customPitch = null, float? customVolume = null) where TAudioId : Enum
         {
-            PlaySound(_soundsSourcesPool, audioId.ToString(), GetAudioData(audioId), uniqueId);
+            var runtimeData = GetAudioData(audioId).Clone();
+
+            if (customPitch.HasValue)
+                runtimeData.Pitch = customPitch.Value;
+
+            if (customVolume.HasValue)
+                runtimeData.Volume = customVolume.Value;
+
+            PlaySound(_soundsSourcesPool, audioId.ToString(), runtimeData, uniqueId);
         }
 
         public void SetCustomAudioBank(IAudioBank audioBank)
