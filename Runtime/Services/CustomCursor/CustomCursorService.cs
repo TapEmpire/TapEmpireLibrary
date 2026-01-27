@@ -4,6 +4,7 @@ using System.Threading;
 using R3;
 using TapEmpire.UI;
 using UnityEngine;
+using TapEmpire.CoreSystems;
 using Zenject;
 
 namespace TapEmpire.Services
@@ -19,15 +20,17 @@ namespace TapEmpire.Services
         
         private bool _isInitialized = false;
         private CompositeDisposable _disposables = new();
+        private DiContainer _container;
 
         [Inject]
-        private void Construct(IUIService uiService, ISceneContextsService sceneContextsService)
+        private void Construct(IUIService uiService, ISceneContextsService sceneContextsService, DiContainer container)
         {
+            _container = container;
             _uiService = uiService;
             _sceneContextsService = sceneContextsService;
             _isInitialized = false;
 
-            _sceneContextsService.OnSceneContextInstalledR3.Subscribe(OnContextInitialized).AddTo(_disposables);
+            _sceneContextsService.OnSceneContextInstalled += OnContextInitialized;
         }
 
         protected override void OnRelease()
@@ -39,12 +42,16 @@ namespace TapEmpire.Services
             base.OnRelease();
         }
 
-        private void OnContextInitialized((string, SceneContext) pair)
+        private void OnContextInitialized(string name, SceneContext sceneContext)
         {
-            if (_isInitialized) return;
+            if (_isInitialized) 
+                return;
             
-            if (HasContext(pair.Item1))
+            if (HasContext(name))
             {
+                var uiCoreSystem =  sceneContext.Container.Resolve<IUICoreSystem>();
+                uiCoreSystem.BlockUI(false);
+                
                 _isInitialized = true;
                 _uiService.OpenViewAsync(_uiView, new CustomCursorUIViewModel(), CancellationToken.None);
             }

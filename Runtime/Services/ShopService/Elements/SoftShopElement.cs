@@ -1,3 +1,4 @@
+using _ConnectWords.Scripts.CoreSystems.Shop;
 using R3;
 using TapEmpire.UI;
 using TapEmpire.Utility;
@@ -21,6 +22,8 @@ namespace TapEmpire.Services.Shop
         protected ProductData _data;
         private ShopSettings _shopSettings;
 
+        protected Button PurchaseButton => _purchaseButton;
+
         [Inject]
         private void Construct(IResourcesService<ResourceType> resourcesService, IAnimationService<ResourceType> animationService,
             IUIService uiService, IShopService shopService)
@@ -31,7 +34,7 @@ namespace TapEmpire.Services.Shop
             _shopSettings = shopService.ShopSettings;
         }
 
-        public override void Initialize(ProductData data)
+        public  override void Initialize(ProductData data)
         {
             base.Initialize(data);
             _data = data;
@@ -64,7 +67,7 @@ namespace TapEmpire.Services.Shop
             _resourcesService.GetResourceData(price.Resource).Amount.Subscribe(OnCoinsChanged).AddTo(_disposables);
         }
 
-        private void OnPurchase()
+        protected virtual void OnPurchase()
         {
             if (HasAmount())
             {
@@ -76,13 +79,13 @@ namespace TapEmpire.Services.Shop
             }
         }
 
-        private void OnCoinsChanged(int _)
+        protected virtual void OnCoinsChanged(int _)
         {
             _purchaseButton.enabled = HasAmount();
             _customButton?.SetActive(_purchaseButton.enabled);
         }
 
-        private bool HasAmount()
+        protected bool HasAmount()
         {
             var price = _data.Price.As<ProductReward<ResourceType>>();
             return _resourcesService.HasAmount(price.Resource, price.Amount);

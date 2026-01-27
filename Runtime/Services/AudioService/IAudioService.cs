@@ -14,7 +14,9 @@ namespace TapEmpire.Services
         void PlaySoundOneShotAtPoint<TAudioId>(TAudioId audioId, Vector3 position, string uniqueId = "") where TAudioId : Enum;
 
         void PlaySoundOneShot(string audioId, string uniqueId = "");
-        void PlaySoundOneShot<TAudioId>(TAudioId audioId, string uniqueId = "") where TAudioId : Enum;
+
+        void PlaySoundOneShot<TAudioId>(TAudioId audioId, string uniqueId = "", float? customPitch = null,
+            float? customVolume = null) where TAudioId : Enum;
 
         void StartPlayMusic<TAudioId>(TAudioId audioId, float fadeInDuration = 0.5f) where TAudioId : Enum;
         void PlaySoundLoop(string audioId, string uniqueId = "");

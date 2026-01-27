@@ -129,7 +129,7 @@ namespace TapEmpire.Services.Offer
             foreach (var offerType in offerTypes)
             {
                 var offerData = Settings.Offers[offerType];
-                if (offerData.Conditions.All(condition => VerifyCondition(condition)))
+                if (offerData.Conditions.All(VerifyCondition))
                 {
                     return offerData;
                 }
