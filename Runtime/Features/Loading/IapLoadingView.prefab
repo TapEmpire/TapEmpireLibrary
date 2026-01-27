@@ -245,7 +245,7 @@ GameObject:
   - component: {fileID: 2303670499208407578}
   - component: {fileID: 742726377611988291}
   - component: {fileID: 4659693547681895907}
-  - component: {fileID: 8588124910507389532}
+  - component: {fileID: 1830721040943704250}
   m_Layer: 5
   m_Name: IapLoadingView
   m_TagString: Untagged
@@ -309,7 +309,7 @@ Canvas:
   m_SortingLayerID: 0
   m_SortingOrder: 3
   m_TargetDisplay: 0
---- !u!114 &8588124910507389532
+--- !u!114 &1830721040943704250
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}

@@ -99,7 +99,10 @@ namespace TapEmpire.Services
                 _ticksContainer.TryRelease();
             }
 
-            _gameEventsContainer.OnApplicationQuitEvent -= GameEventsContainer_OnApplicationQuitEvent;
+            if (_gameEventsContainer != null)
+            {
+                _gameEventsContainer.OnApplicationQuitEvent -= GameEventsContainer_OnApplicationQuitEvent;
+            }
 
             _initialized = false;
         }
