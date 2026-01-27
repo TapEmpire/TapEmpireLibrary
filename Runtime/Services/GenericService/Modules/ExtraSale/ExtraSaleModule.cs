@@ -6,8 +6,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System;
 using TapEmpire.Services.Shop;
-using WordGame.UI;
-using WordGame.Services.Shop;
 using TapEmpire.Services.Offer;
 
 namespace TapEmpire.Modules
@@ -87,7 +85,7 @@ namespace TapEmpire.Modules
             var bundleData = GetBundleData(bundleId);
             var bundleElement = GameObject.Instantiate(Settings.Visuals[bundleId]);
             _diContainer.InjectGameObject(bundleElement.gameObject);
-            bundleElement.GetComponent<BundleShopElement>().Initialize(bundleData);
+            bundleElement.GetComponent<BaseShopElement>().Initialize(bundleData);
 
             return bundleElement;
         }
