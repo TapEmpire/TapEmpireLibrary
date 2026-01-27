@@ -1,4 +1,3 @@
-using _ConnectWords.Scripts.CoreSystems.Shop;
 using R3;
 using TapEmpire.UI;
 using TapEmpire.Utility;
