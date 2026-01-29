@@ -100,6 +100,7 @@ public class AdsManager : MonoBehaviour
     public Action OnMaxBannerFailed { get; private set; }
     public Action OnMaxMrecLoaded { get; private set; }
     public Action OnMaxMrecFailed { get; private set; }
+    public bool IsApplovinMrecActive => IsApplovinInitSuccess && Applovin.HasMrec();
     public Action<bool> OnConsentObtained = null;
 
     public static bool IsAdmobInitSuccess { get; private set; }
@@ -187,8 +188,11 @@ public class AdsManager : MonoBehaviour
 
         if (_adsRuntimeScenario.ShowBanner && EnableBanner)
             Instance.ShowBanner();
-    }
 
+        if (_adsRuntimeScenario.ShowMrec)
+            Instance.Applovin.InitializeMrecAds();
+    }
+    
     private async UniTask InitializeApplovin()
     {
         if (Ram() <= 2)

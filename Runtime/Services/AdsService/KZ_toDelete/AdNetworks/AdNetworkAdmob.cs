@@ -266,7 +266,7 @@ public class AdNetworkAdmob : AdNetworkBase
     {
         ThreadDispatcher.Enqueue(() =>
         {
-            if (!AdsManager.Instance.MrecStatus)
+            if (!AdsManager.Instance.MrecStatus || AdsManager.Instance.IsApplovinMrecActive)
                 HideMREC();
         });
     }
@@ -275,7 +275,7 @@ public class AdNetworkAdmob : AdNetworkBase
     {
         ThreadDispatcher.Enqueue(() =>
         {
-            AdsManager.Instance.DestroyMREC();
+            DestroyMREC();
         });
     }
 

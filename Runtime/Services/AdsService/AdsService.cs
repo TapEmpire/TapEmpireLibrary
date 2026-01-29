@@ -303,7 +303,7 @@ namespace TapEmpire.Services
             if (shouldShow)
                 AdsManager.Instance.ShowMREC();
             else
-                AdsManager.Instance.DestroyMREC();
+                AdsManager.Instance.HideMREC();
 
             return true;
         }
@@ -317,7 +317,7 @@ namespace TapEmpire.Services
             if (shouldShow)
                 AdsManager.Instance.ShowMREC(x, y);
             else
-                AdsManager.Instance.DestroyMREC();
+                AdsManager.Instance.HideMREC();
 
             return true;
         }
