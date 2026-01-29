@@ -47,7 +47,7 @@ namespace TapEmpire.Modules
                 {
                     await UniTask.WaitForSeconds(settings.ScrollDelay, cancellationToken: token);
                     _scrollSnap.ChangePage(i);
-                    await UniTask.WaitForSeconds(settings.WaitDelay, cancellationToken: token);
+                    await UniTask.WaitForSeconds(0.4f, cancellationToken: token);
                 }
             });
 

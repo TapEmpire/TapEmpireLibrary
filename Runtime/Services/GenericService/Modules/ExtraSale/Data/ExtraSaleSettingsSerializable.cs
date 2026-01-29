@@ -22,7 +22,6 @@ namespace TapEmpire.Modules
             public string[][] FlexPacks = null;
             public InfoType[] Labels = null;
             public float ScrollDelay = 3.0f;
-            public float WaitDelay = 3.0f;
 
             public ExtraSaleSettingsRemoteModel() { }
 
@@ -33,13 +32,11 @@ namespace TapEmpire.Modules
                 FlexPacks = settings.GetFlexPacks();
                 Labels = settings.Labels;
                 ScrollDelay = settings.ScrollDelay;
-                WaitDelay = settings.WaitDelay;
             }
 
             public void ToSettings(ExtraSaleSettings settings)
             {
                 settings.ScrollDelay = ScrollDelay;
-                settings.WaitDelay = WaitDelay;
                 settings.SetFlexPacks(FlexPacks ?? Array.Empty<string[]>());
 
                 if (SaleList != null)
