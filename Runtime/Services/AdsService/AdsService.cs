@@ -303,10 +303,11 @@ namespace TapEmpire.Services
             return false;
         }
 
-        public void EnableBanners(int levelIndex)
+        public void EnableBanners()
         {
             if (_adsRuntimeScenario.IsEnabled && _adsSettings.EnableBanners)
             {
+                var levelIndex = _progressService.GetLevelProgress();
                 var cycles = _progressService.GetCyclesProgress();
                 if (cycles > 0 || _adsSettings.BannerFromLevel <= levelIndex + 1)
                 {
