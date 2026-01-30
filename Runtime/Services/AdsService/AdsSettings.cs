@@ -29,6 +29,9 @@ namespace TapEmpire.Services
         public int FromLevel = 0;
         public List<TimerData> TimerData = new();
 
+        public int RewardedFromLevel = 0;
+        public int BannerFromLevel = 0;
+
         [Header("Scene settings")]
         public List<SceneSettings> SceneSettings = new();
 

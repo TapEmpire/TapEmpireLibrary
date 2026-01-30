@@ -109,6 +109,7 @@ public class AdsManager : MonoBehaviour
 
     private AdsSettings _adsSettings = null;
     private AdsRuntimeScenario _adsRuntimeScenario;
+    private bool _canEnableBanners = false;
 
     Action OnRewardComplete;
     private System.Action OnAppOpenShown = null;
@@ -153,10 +154,11 @@ public class AdsManager : MonoBehaviour
         // GameAnalyticsSDK.GameAnalytics.Initialize();
     }
 
-    public async UniTask Initialize_AdNetworks(AdsSettings adsSettings, AdsRuntimeScenario adsRutimeScenario)
+    public async UniTask Initialize_AdNetworks(AdsSettings adsSettings, AdsRuntimeScenario adsRutimeScenario, bool canEnableBanners)
     {
         _adsSettings = adsSettings;
         _adsRuntimeScenario = adsRutimeScenario;
+        _canEnableBanners = canEnableBanners;
         await Initialize();
     }
 
@@ -185,7 +187,7 @@ public class AdsManager : MonoBehaviour
 
         await UniTask.Yield(PlayerLoopTiming.LastPostLateUpdate);
 
-        if (_adsRuntimeScenario.ShowBanner && EnableBanner)
+        if (_adsRuntimeScenario.ShowBanner && EnableBanner && _canEnableBanners)
             Instance.ShowBanner();
     }
 
@@ -309,6 +311,14 @@ public class AdsManager : MonoBehaviour
     #endregion
 
     #region Banner
+
+    public void DoEnableBanner()
+    {
+        if (BannerStatus == false)
+        {
+            ShowBanner();
+        }
+    }
 
     public void ShowBanner()
     {

@@ -60,6 +60,11 @@ namespace TapEmpire.Services.Shop
             _icon.sprite = data.Icon;
 
             UpdateTimer();
+
+            if (_data.Type == ProductType.Ads && !_adsService.CanShowRewarded())
+            {
+                this.gameObject.SetActive(false);
+            }
         }
 
         private void OnClick()
