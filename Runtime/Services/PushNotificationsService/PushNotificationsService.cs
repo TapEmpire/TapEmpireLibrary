@@ -9,7 +9,6 @@ using Cysharp.Threading.Tasks;
 using R3;
 using Unity.Notifications;
 using UnityEngine;
-using WordGame.Services;
 using Zenject;
 
 namespace TapEmpire.Services.Notifications
@@ -84,17 +83,15 @@ namespace TapEmpire.Services.Notifications
 
         private DiContainer _diContainer;
         private ISystemService _systemService;
-        private IGameGenericService _genericService;
 
         private CompositeDisposable _disposables = new();
         private List<INotificationHandler> _handlers = new();
 
         [Inject]
-        private void Construct(DiContainer diContainer, ISystemService systemService, IGameGenericService gameGenericService)
+        private void Construct(DiContainer diContainer, ISystemService systemService)
         {
             _diContainer = diContainer;
             _systemService = systemService;
-            _genericService = gameGenericService;
         }
         
         protected override async UniTask OnInitializeAsync(CancellationToken cancellationToken)
