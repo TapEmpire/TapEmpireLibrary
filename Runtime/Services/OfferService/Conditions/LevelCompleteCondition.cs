@@ -1,10 +1,8 @@
 using System;
 using System.Collections.Generic;
-using TapEmpire.Services;
-using TapEmpire.Services.Offer;
 using Zenject;
 
-namespace WordGame.Services.Offer
+namespace TapEmpire.Services.Offer
 {
     [Serializable]
     public class LevelCompleteCondition : ICondition
