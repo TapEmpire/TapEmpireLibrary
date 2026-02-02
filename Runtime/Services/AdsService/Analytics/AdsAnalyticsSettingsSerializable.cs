@@ -20,6 +20,7 @@ namespace TapEmpire.Services
             public double Threshold;
             public int CounterThreshold = 20;
             public bool AddBanners = false;
+            public bool AddBannerRevenue = true;
             public bool EnableMeta = false;
             public BatchType BatchTypeMeta;
             public double ThresholdMeta;
@@ -37,6 +38,7 @@ namespace TapEmpire.Services
                 Threshold = settings.Threshold;
                 CounterThreshold = settings.CounterThreshold;
                 AddBanners = settings.AddBanners;
+                AddBannerRevenue = settings.AddBannerRevenue;
                 EnableMeta = settings.EnableMeta;
                 BatchTypeMeta = settings.BatchTypeMeta;
                 ThresholdMeta = settings.ThresholdMeta;
@@ -53,6 +55,7 @@ namespace TapEmpire.Services
                 settings.Threshold = Threshold;
                 settings.CounterThreshold = CounterThreshold;
                 settings.AddBanners = AddBanners;
+                settings.AddBannerRevenue = AddBannerRevenue;
                 settings.EnableMeta = EnableMeta;
                 settings.BatchTypeMeta = BatchTypeMeta;
                 settings.ThresholdMeta = ThresholdMeta;
