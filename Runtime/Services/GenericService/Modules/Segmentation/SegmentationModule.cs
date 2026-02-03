@@ -33,7 +33,6 @@ namespace TapEmpire.Modules
         private void OnCampaignName(string campaignName)
         {
             Settings.UpdateData();
-            Debug.LogError("OnCampaignName");
 
             if (Settings.AdsSettings.EnableBanners == false)
             {
