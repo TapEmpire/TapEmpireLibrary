@@ -316,6 +316,15 @@ namespace TapEmpire.Services
             }
         }
 
+        public void DisableBanners()
+        {
+            if (_adsRuntimeScenario.IsEnabled && _adsRuntimeScenario.ShowBanner)
+            {
+                _adsRuntimeScenario.ShowBanner = false;
+                AdsManager.Instance.HideBanner();
+            }
+        }
+
         public bool ShowMrec(bool shouldShow)
         {
             if (!_adsRuntimeScenario.IsEnabled || !_adsSettings.EnableMrec)

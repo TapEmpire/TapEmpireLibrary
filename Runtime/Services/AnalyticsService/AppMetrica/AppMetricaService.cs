@@ -4,11 +4,13 @@ using System.Threading;
 using Cysharp.Threading.Tasks;
 using Io.AppMetrica;
 using Newtonsoft.Json;
+using R3;
 
 namespace TapEmpire.Services
 {
     public class AppMetricaService : Initializable, IAnalyticsService
     {
+        public ReadOnlyReactiveProperty<string> CampaignName => null;
         private Dictionary<string, object> _globalParameters = new();
 
         public AppMetricaService(string analyticsKey, bool shouldEnableLogs)
@@ -81,5 +83,7 @@ namespace TapEmpire.Services
         public void LogAdjustEvent(IDictionary<string, object> properties)
         {
         }
+
+        public void SetCampaignName(string campaignName) { }
     }
 }
