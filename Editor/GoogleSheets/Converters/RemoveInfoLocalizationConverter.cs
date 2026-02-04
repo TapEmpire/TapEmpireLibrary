@@ -1,13 +1,10 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using TapEmpire.Utility.GoogleSheet;
-using UnityEngine;
-using TapEmpire.Utility;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace WordGame.Editor
+namespace TapEmpire.Editor
 {
     [Serializable]
     public class RemoveInfoLocalizationConverter : ILocalizationConverter

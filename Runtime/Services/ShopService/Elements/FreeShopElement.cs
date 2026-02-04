@@ -60,6 +60,11 @@ namespace TapEmpire.Services.Shop
             _icon.sprite = data.Icon;
 
             UpdateTimer();
+
+            if (_data.Type == ProductType.Ads && !_adsService.CanShowRewarded())
+            {
+                this.gameObject.SetActive(false);
+            }
         }
 
         private void OnClick()
@@ -108,7 +113,11 @@ namespace TapEmpire.Services.Shop
         {
             var time = TimeSpan.FromSeconds(value);
             _timerText.text = string.Format("{0:D2}:{1:D2}:{2:D2}", time.Hours, time.Minutes, time.Seconds);
-            _timerProgress.fillAmount = value / _timerTotal;
+
+            if (_timerProgress != null)
+            {
+                _timerProgress.fillAmount = value / _timerTotal;
+            }
         }
 
         protected virtual void SetAvailable(bool isAvailable)

@@ -106,6 +106,10 @@ namespace TapEmpire.Services
                 _adsRuntimeScenario.FromLevel = _adsSettings.FromLevel;
             }
 
+            var level = _progressService.GetLevelProgress();
+            var cycles = _progressService.GetCyclesProgress();
+            var canEnableBanners = cycles > 0 || _adsSettings.BannerFromLevel <= level + 1;
+
 #if UNITY_IOS
             _adsSettings.EnableMetica = false;
 #endif
@@ -128,7 +132,7 @@ namespace TapEmpire.Services
             global::AdsManager.Instance.EnableAppOpen = _adsRuntimeScenario.EnableAppOpen;
             global::AdsManager.Instance.SetAppOpenAutoShow(true);
             global::AdsManager.Instance.OnConsentObtained += OnConsentObtained;
-            global::AdsManager.Instance.Initialize_AdNetworks(_adsSettings, _adsRuntimeScenario)
+            global::AdsManager.Instance.Initialize_AdNetworks(_adsSettings, _adsRuntimeScenario, canEnableBanners)
                 .ContinueWith(() => PeriodicAdCheck()).Forget();
 
             _shouldWaitAppOpen = new ReactiveProperty<bool>(_adsRuntimeScenario.ShouldWaitAppOpen);
@@ -237,6 +241,18 @@ namespace TapEmpire.Services
             return true;
         }
 
+        public bool CanShowRewarded()
+        {
+            var levelIndex = _progressService.GetLevelProgress();
+            return CanShowRewarded(levelIndex);
+        }
+
+        public bool CanShowRewarded(int levelIndex)
+        {
+            var cycles = _progressService.GetCyclesProgress();
+            return cycles > 0 || _adsSettings.RewardedFromLevel <= levelIndex + 1;
+        }
+
         public void ShowRewarded(string adPlacement)
         {
             _currentAdPlacement = adPlacement;
@@ -285,6 +301,28 @@ namespace TapEmpire.Services
             }
 
             return false;
+        }
+
+        public void EnableBanners()
+        {
+            if (_adsRuntimeScenario.IsEnabled && _adsSettings.EnableBanners)
+            {
+                var levelIndex = _progressService.GetLevelProgress();
+                var cycles = _progressService.GetCyclesProgress();
+                if (cycles > 0 || _adsSettings.BannerFromLevel <= levelIndex + 1)
+                {
+                    AdsManager.Instance.DoEnableBanner();
+                }
+            }
+        }
+
+        public void DisableBanners()
+        {
+            if (_adsRuntimeScenario.IsEnabled && _adsRuntimeScenario.ShowBanner)
+            {
+                _adsRuntimeScenario.ShowBanner = false;
+                AdsManager.Instance.HideBanner();
+            }
         }
 
         public bool ShowMrec(bool shouldShow)

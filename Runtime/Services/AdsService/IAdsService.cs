@@ -29,6 +29,8 @@ namespace TapEmpire.Services
         void ShowRewarded(string placement, System.Action action);
 
         bool ShowBanners(bool shouldShow); // returns whether they were shown right now
+        void EnableBanners(); // Enabled banner based on level
+        void DisableBanners();
         bool ShowMrec(bool shouldShow);
         bool ShowMrec(bool shouldShow, int x, int y);
         bool AdsDisabled { get; }
@@ -38,5 +40,8 @@ namespace TapEmpire.Services
         ReadOnlyReactiveProperty<bool> ShouldWaitAppOpen { get; }
 
         AdsSettings Settings { get; }
+
+        bool CanShowRewarded(int levelIndex);
+        bool CanShowRewarded();
     }
 }

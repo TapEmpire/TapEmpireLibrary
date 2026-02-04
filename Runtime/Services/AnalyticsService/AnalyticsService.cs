@@ -9,12 +9,15 @@ using Zenject;
 using Object = UnityEngine.Object;
 using Sirenix.OdinInspector;
 using R3;
+using TapEmpire.Modules;
 
 namespace TapEmpire.Services
 {
     [Serializable]
     public class AnalyticsService : Initializable, IAnalyticsService
     {
+        public ReadOnlyReactiveProperty<string> CampaignName => _campaignName;
+
         [field: SerializeField] public string AdjustEventToken { get; private set;}
         private static readonly Dictionary<string, object> EmptyDictionary = new();
 
@@ -32,6 +35,8 @@ namespace TapEmpire.Services
         // [SerializeField]
         // [ShowIf("@_analyticsType == AnalyticsType.GameAnalytics")]
         // private GameAnalyticsSDK.GameAnalytics _gameAnalyticsPrefab;
+
+        private ReactiveProperty<string> _campaignName = new();
 
         private DiContainer _diContainer = null;
         private IProgressService _progressService = null;
@@ -59,6 +64,8 @@ namespace TapEmpire.Services
 
         protected override UniTask OnInitializeAsync(CancellationToken cancellationToken)
         {
+            _campaignName.Value = _progressService.GetCampaignName();
+
             _globalParameters = new();
             _innerService = CreateAnalyticsInternalService(_analyticsType);
 
@@ -207,6 +214,8 @@ namespace TapEmpire.Services
         private void OnConfigChanged(AdjustAttribution attribution)
         {
             _innerService.SetUserProperty(AnalyticsParameters.AdjustAttribution, attribution.Campaign);
+            _progressService.SetCampaignName(attribution.Campaign);
+            _campaignName.Value = attribution.Campaign;
         }
 
         public void logEventDelayed(string eventName, Dictionary<string, object> parameters = null)
@@ -242,6 +251,12 @@ namespace TapEmpire.Services
             // adjustEvent.AddCallbackParameter(AnalyticsParameters.RemoteConfig, _remoteConfigName);
 
             Adjust.TrackEvent(adjustEvent);
+        }
+
+        public void SetCampaignName(string campaignName)
+        {
+            _progressService.SetCampaignName(campaignName);
+            _campaignName.Value = campaignName;
         }
 
         /*public static void LogEventStatic(string eventName, Dictionary<string, object> details = null)
