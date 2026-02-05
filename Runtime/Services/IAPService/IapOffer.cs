@@ -12,8 +12,9 @@ namespace TapEmpire.Services
     {
         [Header("In game key")]
         [SerializeField, JsonProperty("Key")] private string _key;
-        
+
         [Header("Store IDs")]
+        [SerializeField, JsonIgnore] private bool _autoCreateStoreIds = true;
         [SerializeField, JsonProperty("AppStoreId"), JsonIgnore] private string _appStoreId;
         [SerializeField, JsonProperty("GooglePlayId"), JsonIgnore] private string _googlePlayId;
 
@@ -44,6 +45,18 @@ namespace TapEmpire.Services
         public void CopyIncludedProducts(IapOffer existingOffer)
         {
             _includedProducts = new List<IIapProduct>(existingOffer._includedProducts);
+        }
+
+        public void UpdateStoreIds(string bundleId)
+        {
+            if (!_autoCreateStoreIds || string.IsNullOrEmpty(_key))
+            {
+                return;
+            }
+
+            var storeId = $"{bundleId}.{_key}";
+            _appStoreId = storeId;
+            _googlePlayId = _key;
         }
     }
 }
