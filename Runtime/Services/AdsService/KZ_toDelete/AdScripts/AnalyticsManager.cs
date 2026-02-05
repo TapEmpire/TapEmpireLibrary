@@ -47,10 +47,15 @@ public static class AnalyticsManager
 #endif
         }
 
-        //Rev Event for Adjust
-        AdjustAdRevenue adjustAdRevenue = new AdjustAdRevenue("admob_sdk");
-        adjustAdRevenue.SetRevenue(revenue, admobAd.CurrencyCode);
-        Adjust.TrackAdRevenue(adjustAdRevenue);
+        var shouldLogAdjust = data.Format != AdFormat.Banner || global::AdsManager.Instance.AdsSettings.AdsAnalyticsSettings.AddBannerRevenue;
+
+        if (shouldLogAdjust)
+        {
+            //Rev Event for Adjust
+            AdjustAdRevenue adjustAdRevenue = new AdjustAdRevenue("admob_sdk");
+            adjustAdRevenue.SetRevenue(revenue, admobAd.CurrencyCode);
+            Adjust.TrackAdRevenue(adjustAdRevenue);
+        }
 
         // GameAnalytics.NewAdEvent(GAAdAction.Show, GetAdType(data.Format), "Admob", targetPlacement);
 
@@ -108,14 +113,19 @@ public static class AnalyticsManager
 #endif
         }
 
-        //Rev Event for Adjust
-        AdjustAdRevenue adjustAdRevenue = new AdjustAdRevenue("applovin_max_sdk");
-        adjustAdRevenue.SetRevenue(revenue, "USD");
-        adjustAdRevenue.AdRevenueNetwork = maxAd.NetworkName;
-        adjustAdRevenue.AdRevenueUnit = $"{format}_{maxAd.AdUnitIdentifier}";
-        adjustAdRevenue.AddPartnerParameter("ad_format", maxAd.AdFormat);
-        adjustAdRevenue.AddPartnerParameter("ad_unit_id", maxAd.AdUnitIdentifier);
-        Adjust.TrackAdRevenue(adjustAdRevenue);
+        var shouldLogAdjust = format != AdFormat.Banner || global::AdsManager.Instance.AdsSettings.AdsAnalyticsSettings.AddBannerRevenue;
+
+        if (shouldLogAdjust)
+        {
+            //Rev Event for Adjust
+            AdjustAdRevenue adjustAdRevenue = new AdjustAdRevenue("applovin_max_sdk");
+            adjustAdRevenue.SetRevenue(revenue, "USD");
+            adjustAdRevenue.AdRevenueNetwork = maxAd.NetworkName;
+            adjustAdRevenue.AdRevenueUnit = $"{format}_{maxAd.AdUnitIdentifier}";
+            adjustAdRevenue.AddPartnerParameter("ad_format", maxAd.AdFormat);
+            adjustAdRevenue.AddPartnerParameter("ad_unit_id", maxAd.AdUnitIdentifier);
+            Adjust.TrackAdRevenue(adjustAdRevenue);
+        }
 
         // GameAnalytics.NewAdEvent(GAAdAction.Show, GetAdType(format), "Max", targetPlacement);
 

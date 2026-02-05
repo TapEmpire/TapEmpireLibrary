@@ -11,6 +11,7 @@ namespace TapEmpire.Services
 
         public int CounterThreshold = 20;
         public bool AddBanners = false;
+        public bool AddBannerRevenue = true;
 
         public bool EnableMeta = false;
         public BatchType BatchTypeMeta;

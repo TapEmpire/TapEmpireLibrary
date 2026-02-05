@@ -11,6 +11,7 @@ using UnityEngine.UI;
 using Zenject;
 using System.Linq;
 using TapEmpire.Services.Shop;
+using Sirenix.OdinInspector;
 
 namespace TapEmpire.Services.Offer
 {
@@ -22,6 +23,8 @@ namespace TapEmpire.Services.Offer
         [SerializeField] private Button _closeButton;
         [SerializeField] private bool _disableBanners = false;
         [SerializeField] private Button _debugSwitchButton;
+        [SerializeField] private bool _useCustomIcons = false;
+        [SerializeField][ShowIf(nameof(_useCustomIcons))] private SerializableDictionary<ResourceType, Sprite> _customIcons;
 
         protected IOfferService _offerService;
         private IAdsService _adsService;
@@ -117,7 +120,8 @@ namespace TapEmpire.Services.Offer
                 rewards.ForEach((reward, index2) =>
                 {
                     visual.Resources[index2].Amount.text = $"x{reward.Amount}";
-                    visual.Resources[index2].Icon.sprite = _resourcesService.GetFlyingSprite(reward.ResourceType);
+                    visual.Resources[index2].Icon.sprite = _useCustomIcons ?
+                        _customIcons[reward.ResourceType] : _resourcesService.GetFlyingSprite(reward.ResourceType);
                 });
 
                 for (int i = rewards.Count(); i < visual.Resources.Count; i++)

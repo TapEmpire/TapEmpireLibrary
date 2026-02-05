@@ -25,6 +25,11 @@ namespace TapEmpire.Services.Shop
         {
             base.Initialize(data);
             _adsButton.onClick.Subscribe(OnClick).AddTo(_disposables);
+
+            if (!_adsService.CanShowRewarded())
+            {
+                _adsButton.gameObject.SetActive(false);
+            }
         }
 
         private void OnClick()

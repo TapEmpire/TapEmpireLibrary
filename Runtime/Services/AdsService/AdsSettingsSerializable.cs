@@ -27,6 +27,8 @@ namespace TapEmpire.Services
             public float AppOpenWaitTime = 10.0f;
             public List<int> InterstitialAfterLevels = new();
             public int FromLevel = 1;
+            public int BannerFromLevel = 0;
+            public int RewardedFromLevel = 0;
             public List<TimerData> TimerData = new();
 
             public AdsRemoteModel() {}
@@ -43,6 +45,8 @@ namespace TapEmpire.Services
                 AppOpenWaitTime = settings.AppOpenWaitTime;
                 InterstitialAfterLevels = settings.InterstitialAfterLevels.ToList();
                 FromLevel = settings.FromLevel;
+                BannerFromLevel = settings.BannerFromLevel;
+                RewardedFromLevel = settings.RewardedFromLevel;
                 TimerData = settings.TimerData.ToList();
             }
         }
@@ -62,6 +66,8 @@ namespace TapEmpire.Services
             _adsSettings.AppOpenWaitTime = model.AppOpenWaitTime;
             _adsSettings.InterstitialAfterLevels = model.InterstitialAfterLevels;
             _adsSettings.FromLevel = model.FromLevel;
+            _adsSettings.BannerFromLevel = model.BannerFromLevel;
+            _adsSettings.RewardedFromLevel = model.RewardedFromLevel;
             _adsSettings.TimerData = model.TimerData;
         }
 
