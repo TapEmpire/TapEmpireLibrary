@@ -62,6 +62,11 @@ namespace TapEmpire.Services
             return self.BoolValuesDictionary.TryGetValue(key, out var value) ? value : default;
         }
 
+        public static bool GetBool(this IProgressService self, ProgressBoolProp prop)
+        {
+            return self.TryGetBoolProp(prop, out var value) ? value : default;
+        }
+
         public static void SetBool(this IProgressService self, string key, bool value)
         {
             self.BoolValuesDictionary.SetValue(key, value);

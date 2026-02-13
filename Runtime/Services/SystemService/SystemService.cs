@@ -73,7 +73,8 @@ namespace TapEmpire.Services
 
         private bool CanPlayOfflineInternal()
         {
-            return _progressService.GetPlayOffline(SystemSettings.PlayOfflineForPayers) && _progressService.GetIsPayer() || StaticSettings.IgnoreConnection;
+            return _progressService.GetPlayOffline(SystemSettings.PlayOfflineForPayers) && _progressService.GetIsPayer() ||
+                _progressService.GetAdsDisabled() || StaticSettings.IgnoreConnection;
         }
 
         private void OnDataChanged(SystemSettings settings)
