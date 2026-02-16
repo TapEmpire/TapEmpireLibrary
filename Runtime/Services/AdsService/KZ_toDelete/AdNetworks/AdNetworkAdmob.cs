@@ -195,6 +195,10 @@ public class AdNetworkAdmob : AdNetworkBase
         if (!isInitialized || bannerView == null)
             return;
 
+#if UNITY_EDITOR
+        return;
+#endif
+
         float width = bannerView.GetWidthInPixels();
         float height = bannerView.GetHeightInPixels();
         var size = new Vector2(width, height);
