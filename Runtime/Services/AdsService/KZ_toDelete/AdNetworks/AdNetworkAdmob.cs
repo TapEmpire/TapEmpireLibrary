@@ -195,6 +195,10 @@ public class AdNetworkAdmob : AdNetworkBase
     {
         if (!isInitialized || bannerView == null)
             return;
+            
+#if UNITY_EDITOR
+        return;
+#endif
 
         try
         {
@@ -274,7 +278,7 @@ public class AdNetworkAdmob : AdNetworkBase
     {
         ThreadDispatcher.Enqueue(() =>
         {
-            if (!AdsManager.Instance.MrecStatus)
+            if (!AdsManager.Instance.MrecStatus || AdsManager.Instance.IsApplovinMrecActive)
                 HideMREC();
         });
     }
@@ -283,7 +287,7 @@ public class AdNetworkAdmob : AdNetworkBase
     {
         ThreadDispatcher.Enqueue(() =>
         {
-            AdsManager.Instance.DestroyMREC();
+            DestroyMREC();
         });
     }
 
