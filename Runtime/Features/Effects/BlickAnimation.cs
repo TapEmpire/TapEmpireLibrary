@@ -18,17 +18,27 @@ namespace TapEmpire.Feature.Effects
         [SerializeField] private Vector3 _endPoint = Vector3.zero;
 
         private Sequence _sequence = null;
-
+        private Vector3 _startPos;
+        
         private void Start()
         {
-            _sequence = DOTween.Sequence();
-            _sequence.SetDelay(_delay).SetTarget(this.gameObject);
-
-            _sequence.AppendCallback(() => OnStart.OnNext(Unit.Default));
-            transform.DOLocalMove(_endPoint, _duration).SetEase(Ease.Linear).AppendTo(_sequence);
-            _sequence.AppendInterval(_repeatDelay);
-
-            _sequence.SetLoops(-1, LoopType.Restart);
+            _startPos = transform.localPosition;
+            
+            var body = DOTween.Sequence()
+                .SetTarget(gameObject)
+                .AppendCallback(() =>
+                {
+                    transform.localPosition = _startPos;
+                    OnStart.OnNext(Unit.Default);
+                })
+                .Append(transform.DOLocalMove(_endPoint, _duration).SetEase(Ease.Linear))
+                .AppendInterval(_repeatDelay)
+                .SetLoops(-1, LoopType.Restart);
+            
+            _sequence = DOTween.Sequence()
+                .SetTarget(gameObject)
+                .AppendInterval(_delay)
+                .Append(body);
         }
 
         private void OnDestroy()

@@ -28,6 +28,7 @@ namespace TapEmpire.Services.Shop
         private IProgressService _progressService;
         private IIapService _iapService;
         private IUIService _uiService;
+        private IAdsService _adsService;
 
         private Subject<Unit> _onShopChanged = new();
         private ReactiveProperty<(OfferData Data, DateTime TimeStamp)> _activeOffer = new();
@@ -35,16 +36,17 @@ namespace TapEmpire.Services.Shop
         private CancellableTask _offerTimer = null;
         private CancellableTask _midnightTimer = null;
 
-        private List<string> _freeItemsKeys = new();
+        private List<(string Key, ProductType Type)> _freeItemsKeys = new();
         private CompositeDisposable _disposables = new();
 
         [Inject]
-        private void Construct(DiContainer diContainer, IProgressService progressService, IIapService iapService, IUIService uiService)
+        private void Construct(DiContainer diContainer, IProgressService progressService, IIapService iapService, IUIService uiService, IAdsService adsService)
         {
             _diContainer = diContainer;
             _progressService = progressService;
             _iapService = iapService;
             _uiService = uiService;
+            _adsService = adsService;
         }
 
         protected override UniTask OnInitializeAsync(CancellationToken cancellationToken)
@@ -54,8 +56,8 @@ namespace TapEmpire.Services.Shop
             _freeItemsKeys = _shopSettings.Sections
                 .OfType<CommonSectionData>()
                 .SelectMany(section => section.Products)
-                .Where(product => product.Type == ProductType.Free || product.Type == ProductType.Ads)
-                .Select(product => product.Key)
+                .Where(product => product.Type is ProductType.Free or ProductType.Ads)
+                .Select(product => (product.Key, product.Type))
                 .ToList();
 
             UpdateCurrentOffer();
@@ -98,7 +100,7 @@ namespace TapEmpire.Services.Shop
 
         public void ResetTimers()
         {
-            _freeItemsKeys.ForEach(key => _progressService.CleanTimeStamp(key));
+            _freeItemsKeys.ForEach(item => _progressService.CleanTimeStamp(item.Key));
             UpdateFreeItems();
         }
 
@@ -112,7 +114,9 @@ namespace TapEmpire.Services.Shop
 
         private void UpdateFreeItems()
         {
-            _areFreeItemsAvailable.Value = _freeItemsKeys.Any(key => !HasTimeStampToday(key).Item1);
+            _areFreeItemsAvailable.Value = _freeItemsKeys.Any(item =>
+                !HasTimeStampToday(item.Key).Item1 &&
+                (item.Type != ProductType.Ads || _adsService.CanShowRewarded()));
         }
 
         private void SetMidnightTimer()
