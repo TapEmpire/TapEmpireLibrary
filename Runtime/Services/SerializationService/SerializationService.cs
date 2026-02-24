@@ -7,6 +7,7 @@ using TapEmpire.Utility;
 using Newtonsoft.Json.Linq;
 using Cysharp.Threading.Tasks;
 using System.Threading;
+using Sirenix.OdinInspector;
 
 namespace TapEmpire.Services
 {
@@ -17,7 +18,44 @@ namespace TapEmpire.Services
 
         [SerializeReference]
         private List<IRemoteSerializable> _serializables = new();
-        
+
+#if UNITY_EDITOR
+        [Header("Editor Remote Config Override")]
+        [Tooltip("Enable to use editor overrides instead of default values")]
+        [SerializeField]
+        private bool _useEditorOverrides = false;
+
+        [Tooltip("Remote config key-value overrides for editor testing")]
+        [SerializeField]
+        private List<EditorRemoteConfigEntry> _editorOverrides = new();
+
+        [Button("Copy Current Settings to Overrides")]
+        private void CopyCurrentSettingsToOverrides()
+        {
+            _editorOverrides.Clear();
+            foreach (var serializable in _serializables)
+            {
+                if (serializable == null) continue;
+
+                _editorOverrides.Add(new EditorRemoteConfigEntry
+                {
+                    Key = serializable.TokenName,
+                    Value = serializable.SerializeJson()
+                });
+            }
+            Debug.Log($"Copied {_editorOverrides.Count} config entries to editor overrides");
+        }
+
+        [Button("Log All Override Keys")]
+        private void LogOverrideKeys()
+        {
+            foreach (var entry in _editorOverrides)
+            {
+                Debug.Log($"[{entry.Key}]: {entry.Value}");
+            }
+        }
+#endif
+
         private Dictionary<string, IRemoteSerializable> _serializableDictionary = new();
 
         private IFirebaseService _firebaseService = null;
@@ -54,14 +92,29 @@ namespace TapEmpire.Services
 
             // _disposable.Dispose();
 #if UNITY_EDITOR
-            _progressService.SetRemoteConfigName("unityEditor");
+            if (_useEditorOverrides)
+            {
+                var editorConfig = new EditorRemoteConfiguration(_editorOverrides);
+                _progressService.SetRemoteConfigName(editorConfig.GetString(ConfigNameKey, "editorOverride"));
+                ApplyRemoteConfig(editorConfig);
+            }
+            else
+            {
+                _progressService.SetRemoteConfigName("unityEditor");
+            }
 #else
             _progressService.SetRemoteConfigName(_firebaseService.RemoteConfiguration.GetString(ConfigNameKey, "default"));
+            ApplyRemoteConfig(_firebaseService.RemoteConfiguration);
+#endif
+        }
+
+        private void ApplyRemoteConfig(IRemoteConfiguration remoteConfig)
+        {
             _serializableDictionary.ForEach(x =>
             {
                 try
                 {
-                    var jsonString = _firebaseService.RemoteConfiguration.GetString(x.Key, string.Empty);
+                    var jsonString = remoteConfig.GetString(x.Key, string.Empty);
                     if (!string.IsNullOrEmpty(jsonString))
                     {
                         x.Value.DeserializeJson(JToken.Parse(jsonString));
@@ -72,7 +125,6 @@ namespace TapEmpire.Services
                     Debug.LogError(ex);
                 }
             });
-#endif
         }
 
         protected override void OnRelease()
