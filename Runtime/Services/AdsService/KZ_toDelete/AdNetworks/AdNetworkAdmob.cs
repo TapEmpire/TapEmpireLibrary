@@ -3,6 +3,7 @@ using GoogleMobileAds.Api;
 using System;
 using R3;
 using Cysharp.Threading.Tasks;
+using Firebase.Crashlytics;
 
 public class AdNetworkAdmob : AdNetworkBase
 {
@@ -194,13 +195,24 @@ public class AdNetworkAdmob : AdNetworkBase
     {
         if (!isInitialized || bannerView == null)
             return;
+            
+#if UNITY_EDITOR
+        return;
+#endif
 
-        float width = bannerView.GetWidthInPixels();
-        float height = bannerView.GetHeightInPixels();
-        var size = new Vector2(width, height);
+        try
+        {
+            float width = bannerView.GetWidthInPixels();
+            float height = bannerView.GetHeightInPixels();
+            var size = new Vector2(width, height);
 
-        Debug.Log($"[Admob Banner] {context} - Size: {width}x{height}");
-        AdsManager.Instance.BannerLayout.Value = size;
+            Debug.Log($"[Admob Banner] {context} - Size: {width}x{height}");
+            AdsManager.Instance.BannerLayout.Value = size;
+        }
+        catch (Exception e)
+        {
+            Crashlytics.LogException(e);
+        }
     }
 
     #endregion
@@ -266,7 +278,7 @@ public class AdNetworkAdmob : AdNetworkBase
     {
         ThreadDispatcher.Enqueue(() =>
         {
-            if (!AdsManager.Instance.MrecStatus)
+            if (!AdsManager.Instance.MrecStatus || AdsManager.Instance.IsApplovinMrecActive)
                 HideMREC();
         });
     }
@@ -275,7 +287,7 @@ public class AdNetworkAdmob : AdNetworkBase
     {
         ThreadDispatcher.Enqueue(() =>
         {
-            AdsManager.Instance.DestroyMREC();
+            DestroyMREC();
         });
     }
 

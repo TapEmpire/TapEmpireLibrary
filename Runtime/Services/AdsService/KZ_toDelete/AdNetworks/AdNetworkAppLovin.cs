@@ -218,8 +218,8 @@ public class AdNetworkAppLovin : AdNetworkBase
 
         if (!MrecCreated)
         {
-            MaxSdk.CreateMRec(MrecID, MaxSdkBase.AdViewPosition.BottomLeft);
-
+            var adViewConfiguration = new MaxSdkBase.AdViewConfiguration(ConvertAdPosition(AdsManager.Instance.MrecPos));
+            MaxSdk.CreateMRec(MrecID, adViewConfiguration);
             MaxSdkCallbacks.MRec.OnAdLoadFailedEvent += Mrec_OnAdLoadFailedEvent;
             MaxSdkCallbacks.MRec.OnAdLoadedEvent += Mrec_OnAdLoadedEvent;
             MaxSdkCallbacks.MRec.OnAdRevenuePaidEvent += OnMrecAdRevenuePaidEvent;
@@ -234,8 +234,8 @@ public class AdNetworkAppLovin : AdNetworkBase
 
         if (!MrecCreated)
         {
-            MaxSdk.CreateMRec(MrecID, x, y);
-
+            var (dpX, dpY) = ConvertToDp(x, y);
+            MaxSdk.CreateMRec(MrecID, new MaxSdkBase.AdViewConfiguration(dpX, dpY));
             MaxSdkCallbacks.MRec.OnAdLoadFailedEvent += Mrec_OnAdLoadFailedEvent;
             MaxSdkCallbacks.MRec.OnAdLoadedEvent += Mrec_OnAdLoadedEvent;
             MaxSdkCallbacks.MRec.OnAdRevenuePaidEvent += OnMrecAdRevenuePaidEvent;
@@ -275,7 +275,10 @@ public class AdNetworkAppLovin : AdNetworkBase
         if (!MrecCreated)
             InitializeMrecAds(x, y);
         else
-            MaxSdk.UpdateMRecPosition(MrecID, x, y);
+        {
+            var (dpX, dpY) = ConvertToDp(x, y);
+            MaxSdk.UpdateMRecPosition(MrecID, dpX, dpY);
+        }
 
         MaxSdk.ShowMRec(MrecID);
     }
@@ -327,6 +330,29 @@ public class AdNetworkAppLovin : AdNetworkBase
         {
             AnalyticsManager.ReportRevenue_Applovin(adInfo, AdFormat.MREC);
         });
+    }
+    
+    private (int x, int y) ConvertToDp(int pixelX, int pixelY)
+    {
+        float density = MaxSdkUtils.GetScreenDensity();
+        int dpX = (int)(pixelX / density);
+        int dpY = (int)(pixelY / density);
+        return (dpX, dpY);
+    }
+    
+    private MaxSdkBase.AdViewPosition ConvertAdPosition(AdPosition adMobPosition)
+    {
+        return adMobPosition switch
+        {
+            AdPosition.Top => MaxSdkBase.AdViewPosition.TopCenter,
+            AdPosition.Bottom => MaxSdkBase.AdViewPosition.BottomCenter,
+            AdPosition.TopLeft => MaxSdkBase.AdViewPosition.TopLeft,
+            AdPosition.TopRight => MaxSdkBase.AdViewPosition.TopRight,
+            AdPosition.BottomLeft => MaxSdkBase.AdViewPosition.BottomLeft,
+            AdPosition.BottomRight => MaxSdkBase.AdViewPosition.BottomRight,
+            AdPosition.Center => MaxSdkBase.AdViewPosition.Centered,
+            _ => MaxSdkBase.AdViewPosition.BottomCenter
+        };
     }
 
     #endregion

@@ -6,9 +6,10 @@ namespace TapEmpire.UI
 {
     public class ResourcesBar : MonoBehaviour
     {
-        [SerializeField] Canvas _canvas;
-        [SerializeField] List<ResourceBarData> _data;
-
+        [SerializeField] private Canvas _canvas;
+        [SerializeField] private List<ResourceBarData> _data;
+        [SerializeField] private bool _changePlusVisibilityOnMove = true;
+        
         private int _counter = 0;
 
         public void MoveFront() => CheckMove(false);
@@ -26,7 +27,8 @@ namespace TapEmpire.UI
             foreach (var item in _data)
             {
                 item.Button.enabled = isBack;
-                Utility.Utility.SetActive(item.PlusElement, isBack);
+                if (_changePlusVisibilityOnMove)
+                    Utility.Utility.SetActive(item.PlusElement, isBack);
             }
 
             _canvas.overrideSorting = !isBack;

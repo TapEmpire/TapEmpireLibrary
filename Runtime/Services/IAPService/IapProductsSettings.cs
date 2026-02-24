@@ -16,5 +16,16 @@ namespace TapEmpire.Services
             get => _products;
             set => _products = value;
         }
+
+#if UNITY_EDITOR
+        private void OnValidate()
+        {
+            var bundleId = UnityEditor.PlayerSettings.applicationIdentifier;
+            foreach (var product in _products)
+            {
+                product.UpdateStoreIds(bundleId);
+            }
+        }
+#endif
     }
 }
