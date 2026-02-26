@@ -5,6 +5,7 @@ namespace TapEmpire.Services
     public interface ICachedReactiveDictionary<TValue>
     {
         event Action<string, TValue> OnSetValue;
+        event Action<string> OnDeleteKey;
 
         void SetValue(string key, TValue value, bool save = true);
 
