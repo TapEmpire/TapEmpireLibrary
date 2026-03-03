@@ -18,8 +18,6 @@ namespace TapEmpire.Services
         private ICloudSaveProvider _activeProvider;
 
         public bool IsEnabled { get; private set; }
-        public bool IsAvailable => IsEnabled && (_activeProvider?.IsAvailable ?? false);
-        public bool IsRestored { get; private set; }
 
         private IProgressService _progressService;
         private ProgressSnapshotMapper _snapshotMapper;
@@ -40,7 +38,8 @@ namespace TapEmpire.Services
 
             Debug.Log($"[CloudSave] Initializing. IsEnabled={IsEnabled}, Providers={_providers.Length}, TrackedKeys={_snapshotMapper.TrackedKeysCount}");
 
-            SetEnabled();
+            _progressService.BoolValuesDictionary.TryGetValue(CloudSaveEnabledKey, out var enabled, canUseDefault: false);
+            IsEnabled = enabled;
 
             if (!IsEnabled)
             {
@@ -50,19 +49,7 @@ namespace TapEmpire.Services
 
             await InitializeProvidersAsync(cancellationToken);
         }
-
-        private void SetEnabled()
-        {
-            if (_progressService == null)
-            {
-                IsEnabled = false;
-                return;
-            }
-
-            _progressService.BoolValuesDictionary.TryGetValue(CloudSaveEnabledKey, out var enabled, canUseDefault: false);
-            IsEnabled = enabled;
-        }
-
+        
         public async UniTask<CloudSaveProbeResult> ProbeAsync(CancellationToken cancellationToken)
         {
             Debug.Log("[CloudSave] Probing for cloud data...");
@@ -119,7 +106,7 @@ namespace TapEmpire.Services
 
         public async UniTask<CloudSaveOperationResult> EnableAsync(CancellationToken cancellationToken)
         {
-            if (IsEnabled && _activeProvider != null && _activeProvider.IsAvailable)
+            if (IsEnabled && _activeProvider is {IsAvailable: true})
             {
                 return CloudSaveOperationResult.Completed("Cloud saves are already enabled.");
             }
@@ -181,8 +168,6 @@ namespace TapEmpire.Services
 
                 Debug.Log($"[CloudSave] Provider {provider.GetType().Name} is not available, trying next.");
             }
-
-            Debug.Log($"[CloudSave] Provider resolution done. IsAvailable={IsAvailable}");
         }
         
 
@@ -192,15 +177,7 @@ namespace TapEmpire.Services
             {
                 return CloudSaveOperationResult.Ignored("Cloud restore already in progress.");
             }
-
-            if (!IsAvailable)
-            {
-                IsRestored = true;
-                var unavailableResult = CloudSaveOperationResult.Ignored("Cloud provider is unavailable.");
-                Debug.Log($"[CloudSave] Restore skipped: provider unavailable.");
-                return unavailableResult;
-            }
-
+            
             _isRestoring = true;
             var result = CloudSaveOperationResult.Ignored("Cloud restore skipped.");
 
@@ -220,7 +197,6 @@ namespace TapEmpire.Services
 
                 if (!loadResult.HasSnapshot)
                 {
-                    IsRestored = true;
                     Debug.Log("[CloudSave] No remote snapshot found.");
                     result = CloudSaveOperationResult.Completed("Cloud snapshot not found.");
                     return result;
@@ -232,7 +208,6 @@ namespace TapEmpire.Services
                 var seenTimestamp = GetSeenTimestampMs();
                 if (remoteTimestamp <= seenTimestamp)
                 {
-                    IsRestored = true;
                     Debug.Log($"[CloudSave] Restore skipped: cloud data is not newer. UpdatedAt={remoteTimestamp}, SeenAt={seenTimestamp}");
                     result = CloudSaveOperationResult.Ignored("Cloud snapshot is not newer than seen timestamp.");
                     return result;
@@ -241,8 +216,7 @@ namespace TapEmpire.Services
                 Debug.Log("[CloudSave] Importing remote snapshot into local progress.");
                 _snapshotMapper.Import(remoteSnapshot);
                 SetSeenTimestampMs(remoteTimestamp);
-
-                IsRestored = true;
+                
                 result = CloudSaveOperationResult.Completed("Cloud snapshot restored.");
             }
             catch (OperationCanceledException exception)
@@ -277,14 +251,7 @@ namespace TapEmpire.Services
             {
                 return CloudSaveOperationResult.Ignored("Cloud save already in progress.");
             }
-
-            if (!IsAvailable)
-            {
-                var unavailableResult = CloudSaveOperationResult.Ignored("Cloud provider is unavailable.");
-                Debug.Log("[CloudSave] Save skipped: provider unavailable.");
-                return unavailableResult;
-            }
-
+            
             _isSaving = true;
             var result = CloudSaveOperationResult.Ignored("Cloud save skipped.");
 
@@ -293,6 +260,10 @@ namespace TapEmpire.Services
                 var snapshot = _snapshotMapper.Export();
                 Debug.Log($"[CloudSave] Save started. IntValues={snapshot?.IntValues?.Count ?? 0}, BoolValues={snapshot?.BoolValues?.Count ?? 0}, StringValues={snapshot?.StringValues?.Count ?? 0}, UpdatedAt={snapshot?.UpdatedAtUnixMs}");
                 result = await _activeProvider.SaveAsync(snapshot, cancellationToken);
+                if (result.Success)
+                {
+                    SetSeenTimestampMs(snapshot.UpdatedAtUnixMs);
+                }
             }
             catch (OperationCanceledException exception)
             {
@@ -324,12 +295,7 @@ namespace TapEmpire.Services
             {
                 return CloudSaveOperationResult.Ignored("Cloud save in progress.");
             }
-
-            if (!IsAvailable)
-            {
-                return CloudSaveOperationResult.Ignored("Cloud provider is unavailable.");
-            }
-
+            
             try
             {
                 Debug.Log("[CloudSave] Delete started.");

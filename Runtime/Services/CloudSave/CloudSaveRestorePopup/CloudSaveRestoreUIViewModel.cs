@@ -40,14 +40,14 @@ namespace TapEmpire.Services
             {
                 OnResult?.Invoke(false);
                 OnResult = null;
-                _uiService.CloseViewAsync(this, default).Forget();
+                _uiService.CloseViewAsync(this, CancellationToken.None).Forget();
                 return;
             }
 
             var restoreResult = await _cloudSaveService.RestoreAsync(CancellationToken.None);
             OnResult?.Invoke(restoreResult.Success);
             OnResult = null;
-            _uiService.CloseViewAsync(this, default).Forget();
+            _uiService.CloseViewAsync(this, CancellationToken.None).Forget();
         }
 
         public void OnDeclinePressed()
@@ -55,7 +55,7 @@ namespace TapEmpire.Services
             _cloudSaveService.DeclineRestore(_cloudDataTimestampMs);
             OnResult?.Invoke(false);
             OnResult = null;
-            _uiService.CloseViewAsync(this, default).Forget();
+            _uiService.CloseViewAsync(this, CancellationToken.None).Forget();
         }
     }
 }

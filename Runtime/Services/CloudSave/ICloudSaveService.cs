@@ -6,8 +6,6 @@ namespace TapEmpire.Services
     public interface ICloudSaveService : IService
     {
         bool IsEnabled { get; }
-        bool IsAvailable { get; }
-        bool IsRestored { get; }
 
         UniTask<CloudSaveProbeResult> ProbeAsync(CancellationToken cancellationToken);
         UniTask<CloudSaveOperationResult> EnableAsync(CancellationToken cancellationToken);
