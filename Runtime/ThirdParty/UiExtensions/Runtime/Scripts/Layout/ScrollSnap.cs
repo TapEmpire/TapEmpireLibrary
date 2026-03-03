@@ -119,7 +119,7 @@ namespace UnityEngine.UI.Extensions
             UpdateListItemsSize();
             UpdateListItemPositions();
 
-            if (_pages > 0) PageChanged(CurrentPage());
+            PageChanged(CurrentPage());
 
             if (NextButton)
             {
@@ -216,13 +216,6 @@ namespace UnityEngine.UI.Extensions
         {
             if (!_listContainerRectTransform.rect.size.Equals(_listContainerCachedSize))
             {
-                var previousNormalized = GetNormalizedPosition();
-                var previousContentPos = _listContainerTransform.localPosition;
-                var previousMinPosition = _listContainerMinPosition;
-                var previousMaxPosition = _listContainerMaxPosition;
-                var previousContainerSize = _listContainerSize;
-                var previousPages = _pages;
-
                 // checking how many children of list are active
                 int activeCount = 0;
 
@@ -234,8 +227,8 @@ namespace UnityEngine.UI.Extensions
                     }
                 }
 
-                // check if item count actually changed (not just container size)
-                bool countChanged = _itemsCount != activeCount;
+                // if anything changed since last check reinitialize anchors list
+                _itemsCount = 0;
                 Array.Resize(ref _pageAnchorPositions, activeCount);
 
                 if (activeCount > 0)
@@ -251,31 +244,7 @@ namespace UnityEngine.UI.Extensions
                         _listContainerMinPosition = _listContainerTransform.localPosition.x;
 
                         _listContainerSize = _listContainerMaxPosition - _listContainerMinPosition;
-                    }
-                    else
-                    {
-                        //Debug.Log ("-------------looking for list spanning range----------------");
-                        // looking for list spanning range
-                        _scroll_rect.verticalNormalizedPosition = 1;
-                        _listContainerMinPosition = _listContainerTransform.localPosition.y;
-                        _scroll_rect.verticalNormalizedPosition = 0;
-                        _listContainerMaxPosition = _listContainerTransform.localPosition.y;
 
-                        _listContainerSize = _listContainerMaxPosition - _listContainerMinPosition;
-                    }
-
-                    if (!IsLayoutMeasurementStable(activeCount))
-                    {
-                        _pages = previousPages;
-                        _listContainerMinPosition = previousMinPosition;
-                        _listContainerMaxPosition = previousMaxPosition;
-                        _listContainerSize = previousContainerSize;
-                        RestoreProbeState(previousNormalized, previousContentPos);
-                        return;
-                    }
-
-                    if (direction == ScrollDirection.Horizontal)
-                    {
                         for (var i = 0; i < _pages; i++)
                         {
                             _pageAnchorPositions[i] = new Vector3(
@@ -287,6 +256,15 @@ namespace UnityEngine.UI.Extensions
                     }
                     else
                     {
+                        //Debug.Log ("-------------looking for list spanning range----------------");
+                        // looking for list spanning range
+                        _scroll_rect.verticalNormalizedPosition = 1;
+                        _listContainerMinPosition = _listContainerTransform.localPosition.y;
+                        _scroll_rect.verticalNormalizedPosition = 0;
+                        _listContainerMaxPosition = _listContainerTransform.localPosition.y;
+
+                        _listContainerSize = _listContainerMaxPosition - _listContainerMinPosition;
+
                         for (var i = 0; i < _pages; i++)
                         {
                             _pageAnchorPositions[i] = new Vector3(
@@ -298,15 +276,11 @@ namespace UnityEngine.UI.Extensions
                     }
 
                     UpdateScrollbar(LinkScrolbarSteps);
-
-                    if (countChanged)
-                    {
-                        _startingPage = Mathf.Min(_startingPage, Mathf.Max(0, _pages - 1));
-                        ResetPage();
-                    }
+                    _startingPage = Mathf.Min(_startingPage, _pages);
+                    ResetPage();
                 }
 
-                if (countChanged)
+                if (_itemsCount != activeCount)
                 {
                     PageChanged(CurrentPage());
                 }
@@ -477,7 +451,7 @@ namespace UnityEngine.UI.Extensions
 
             float page = pos / _itemSize;
 
-            return Mathf.Clamp(Mathf.RoundToInt(page), 0, Mathf.Max(0, _pages - 1));
+            return Mathf.Clamp(Mathf.RoundToInt(page), 0, _pages);
         }
 
         /// <summary>
@@ -596,59 +570,5 @@ namespace UnityEngine.UI.Extensions
 
         public void StartScreenChange() { }
         #endregion
-
-        private bool IsLayoutMeasurementStable(int activeCount)
-        {
-            if (activeCount <= 1 || _pages <= 1)
-            {
-                return true;
-            }
-
-            const float minScale = 0.01f;
-            var scale = transform.lossyScale;
-            if (Mathf.Abs(scale.x) < minScale || Mathf.Abs(scale.y) < minScale)
-            {
-                return false;
-            }
-
-            if (float.IsNaN(_listContainerSize) || float.IsInfinity(_listContainerSize))
-            {
-                return false;
-            }
-
-            var minExpectedSpan = _itemSize * (_pages - 1) * 0.75f;
-            return _listContainerSize >= minExpectedSpan;
-        }
-
-        private void RestoreProbeState(float normalized, Vector3 contentPosition)
-        {
-            if (_scroll_rect == null)
-            {
-                return;
-            }
-
-            if (direction == ScrollDirection.Horizontal)
-            {
-                _scroll_rect.horizontalNormalizedPosition = normalized;
-            }
-            else
-            {
-                _scroll_rect.verticalNormalizedPosition = normalized;
-            }
-
-            _listContainerTransform.localPosition = contentPosition;
-        }
-
-        private float GetNormalizedPosition()
-        {
-            if (_scroll_rect == null)
-            {
-                return 0;
-            }
-
-            return direction == ScrollDirection.Horizontal
-                ? _scroll_rect.horizontalNormalizedPosition
-                : _scroll_rect.verticalNormalizedPosition;
-        }
     }
 }
