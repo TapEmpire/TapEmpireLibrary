@@ -165,6 +165,40 @@ namespace TapEmpire.Services
 #endif
         }
 
+        public async UniTask<CloudSaveOperationResult> DeleteAsync(CancellationToken cancellationToken)
+        {
+            if (!IsAvailable)
+            {
+                return CloudSaveOperationResult.Ignored("Android cloud provider is unavailable.");
+            }
+
+#if UNITY_ANDROID
+            try
+            {
+                Debug.Log($"[CloudSave][Android] Delete started. Filename='{SavedGameFilename}'");
+                var savedGameClient = PlayGamesPlatform.Instance.SavedGame;
+
+                var (openStatus, metadata) = await OpenSavedGameAsync(savedGameClient);
+                Debug.Log($"[CloudSave][Android] Open result: {openStatus}, MetadataIsOpen={metadata?.IsOpen}");
+                if (openStatus != SavedGameRequestStatus.Success || metadata == null)
+                {
+                    return CloudSaveOperationResult.Failed($"Failed to open saved game for deletion: {openStatus}");
+                }
+
+                savedGameClient.Delete(metadata);
+                Debug.Log("[CloudSave][Android] Delete completed.");
+                return CloudSaveOperationResult.Completed("Android cloud save deleted.");
+            }
+            catch (Exception exception)
+            {
+                Debug.LogException(exception);
+                return CloudSaveOperationResult.Failed(exception.Message);
+            }
+#else
+            return CloudSaveOperationResult.Ignored("Android cloud provider is unavailable.");
+#endif
+        }
+
         public async UniTask<CloudSaveOperationResult> SaveAsync(ProgressSnapshot snapshot, CancellationToken cancellationToken)
         {
             if (!IsAvailable)

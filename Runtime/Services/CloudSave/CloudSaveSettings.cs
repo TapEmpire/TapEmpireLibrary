@@ -20,13 +20,6 @@ namespace TapEmpire.Services
     [CreateAssetMenu(menuName = "TapEmpire/Settings/CloudSaveSettings", fileName = "CloudSaveSettings")]
     public class CloudSaveSettings : ScriptableObject
     {
-        [Tooltip("Automatically save to cloud when the app loses focus.")]
-        public bool SaveOnFocusLost = true;
-
-        [Tooltip("Delay in seconds before saving after a change is detected.")]
-        [Min(0.0f)]
-        public float SaveDebounceSeconds = 1.0f;
-
         [Tooltip("Tracked keys with explicit value type. Use this list for cross-project compatibility.")]
         public CloudSaveTrackedKey[] TrackedKeyTypes = new[]
         {

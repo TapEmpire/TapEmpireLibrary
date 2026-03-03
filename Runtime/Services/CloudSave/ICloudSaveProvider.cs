@@ -10,5 +10,6 @@ namespace TapEmpire.Services
         UniTask InitializeAsync(CancellationToken cancellationToken);
         UniTask<CloudSaveLoadResult> LoadAsync(CancellationToken cancellationToken);
         UniTask<CloudSaveOperationResult> SaveAsync(ProgressSnapshot snapshot, CancellationToken cancellationToken);
+        UniTask<CloudSaveOperationResult> DeleteAsync(CancellationToken cancellationToken);
     }
 }

@@ -1,6 +1,5 @@
 using System.Threading;
 using Cysharp.Threading.Tasks;
-using R3;
 
 namespace TapEmpire.Services
 {
@@ -9,10 +8,6 @@ namespace TapEmpire.Services
         bool IsEnabled { get; }
         bool IsAvailable { get; }
         bool IsRestored { get; }
-        bool HasPendingChanges { get; }
-
-        Observable<CloudSaveOperationResult> OnRestoreFinished { get; }
-        Observable<CloudSaveOperationResult> OnSaveFinished { get; }
 
         UniTask<CloudSaveProbeResult> ProbeAsync(CancellationToken cancellationToken);
         UniTask<CloudSaveOperationResult> EnableAsync(CancellationToken cancellationToken);
@@ -21,6 +16,6 @@ namespace TapEmpire.Services
 
         UniTask<CloudSaveOperationResult> RestoreAsync(CancellationToken cancellationToken);
         UniTask<CloudSaveOperationResult> SaveAsync(CancellationToken cancellationToken);
-        UniTask<CloudSaveOperationResult> SyncAsync(CancellationToken cancellationToken);
+        UniTask<CloudSaveOperationResult> DeleteAsync(CancellationToken cancellationToken);
     }
 }
