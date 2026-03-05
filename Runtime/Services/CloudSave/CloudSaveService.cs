@@ -20,7 +20,7 @@ namespace TapEmpire.Services
         public bool IsEnabled { get; private set; }
 
         private IProgressService _progressService;
-        private ProgressSnapshotMapper _snapshotMapper;
+        private ICloudSaveSerializer<ProgressSnapshot> _serializer;
 
         private bool _isRestoring;
         private bool _isSaving;
@@ -34,9 +34,9 @@ namespace TapEmpire.Services
         protected override async UniTask OnInitializeAsync(CancellationToken cancellationToken)
         {
             _providers ??= Array.Empty<ICloudSaveProvider>();
-            _snapshotMapper = new ProgressSnapshotMapper(_progressService, _settings);
+            _serializer = new ProgressCloudSaveSerializer(_progressService, _settings);
 
-            Debug.Log($"[CloudSave] Initializing. IsEnabled={IsEnabled}, Providers={_providers.Length}, TrackedKeys={_snapshotMapper.TrackedKeysCount}");
+            Debug.Log($"[CloudSave] Initializing. IsEnabled={IsEnabled}, Providers={_providers.Length}, ExcludedKeys={_serializer.ExcludedKeysCount}");
 
             _progressService.BoolValuesDictionary.TryGetValue(CloudSaveEnabledKey, out var enabled, canUseDefault: false);
             IsEnabled = enabled;
@@ -81,6 +81,8 @@ namespace TapEmpire.Services
                     return CloudSaveProbeResult.NoData();
                 }
 
+                loadResult.Snapshot.LogContents("[CloudSave] Probe");
+
                 var timestamp = loadResult.Snapshot.UpdatedAtUnixMs;
                 var seenTimestamp = GetSeenTimestampMs();
                 if (timestamp <= seenTimestamp)
@@ -90,7 +92,7 @@ namespace TapEmpire.Services
                 }
 
                 Debug.Log($"[CloudSave] Probe: newer cloud data found. UpdatedAt={timestamp}, SeenAt={seenTimestamp}");
-                return CloudSaveProbeResult.DataFound(timestamp);
+                return CloudSaveProbeResult.DataFound(timestamp, loadResult.Snapshot);
             }
             catch (OperationCanceledException exception)
             {
@@ -184,7 +186,7 @@ namespace TapEmpire.Services
             try
             {
                 Debug.Log("[CloudSave] Restore started.");
-                var localSnapshot = _snapshotMapper.Export();
+                var localSnapshot = _serializer.Export();
                 Debug.Log($"[CloudSave] Local snapshot exported. IntValues={localSnapshot?.IntValues?.Count ?? 0}, BoolValues={localSnapshot?.BoolValues?.Count ?? 0}, StringValues={localSnapshot?.StringValues?.Count ?? 0}, UpdatedAt={localSnapshot?.UpdatedAtUnixMs}");
                 var loadResult = await _activeProvider.LoadAsync(cancellationToken);
                 Debug.Log($"[CloudSave] Load result: Success={loadResult.Success}, HasSnapshot={loadResult.HasSnapshot}, Message='{loadResult.Message}'");
@@ -214,7 +216,7 @@ namespace TapEmpire.Services
                 }
 
                 Debug.Log("[CloudSave] Importing remote snapshot into local progress.");
-                _snapshotMapper.Import(remoteSnapshot);
+                _serializer.Import(remoteSnapshot);
                 SetSeenTimestampMs(remoteTimestamp);
                 
                 result = CloudSaveOperationResult.Completed("Cloud snapshot restored.");
@@ -257,8 +259,8 @@ namespace TapEmpire.Services
 
             try
             {
-                var snapshot = _snapshotMapper.Export();
-                Debug.Log($"[CloudSave] Save started. IntValues={snapshot?.IntValues?.Count ?? 0}, BoolValues={snapshot?.BoolValues?.Count ?? 0}, StringValues={snapshot?.StringValues?.Count ?? 0}, UpdatedAt={snapshot?.UpdatedAtUnixMs}");
+                var snapshot = _serializer.Export();
+                snapshot.LogContents("[CloudSave] Save");
                 result = await _activeProvider.SaveAsync(snapshot, cancellationToken);
                 if (result.Success)
                 {

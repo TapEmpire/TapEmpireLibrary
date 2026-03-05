@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace TapEmpire.Services
 {
@@ -14,5 +15,7 @@ namespace TapEmpire.Services
         void ClearCache();
 
         void DeleteKey(string key);
+
+        IReadOnlyCollection<string> GetCachedKeys();
     }
 }
