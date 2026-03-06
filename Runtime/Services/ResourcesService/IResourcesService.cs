@@ -19,5 +19,6 @@ namespace TapEmpire.Services
         Sprite GetFlyingSprite(T type);
 
         void AddVirtual(T resource, int amount, string reason);
+        void Refresh();
     }
 }

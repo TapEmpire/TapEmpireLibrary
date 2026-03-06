@@ -88,6 +88,11 @@ namespace TapEmpire.Services
             return _resources[resource].HasAmount(amount);
         }
 
+        public void Refresh()
+        {
+            _resources.ForEach(pair => pair.Value.RefreshFromProgress());
+        }
+
         public void AddVirtual(T resource, int amount, string reason)
         {
             if (!string.IsNullOrEmpty(reason))
