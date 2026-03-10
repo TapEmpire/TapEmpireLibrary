@@ -16,8 +16,8 @@ namespace TapEmpire.Services
         private Subject<(T, int, string)> _onResourceAdded = new();
         private Subject<(T, int, string)> _onResourceUsed = new();
         private Subject<T> _onVirtualAdded = new();
-        private Subject<(T resourceType, int amountAdd, ResourceAcquireType type, string source)> _onResourceAddedDetailed;
-        private Subject<(T resourceType, int amountUsed, ResourceAcquireType type, string source)> _onResourceUsedDetailed;
+        private Subject<(T resourceType, int amountAdd, ResourceAcquireType type, string source)> _onResourceAddedDetailed = new();
+        private Subject<(T resourceType, int amountUsed, ResourceAcquireType type, string source)> _onResourceUsedDetailed = new();
 
         public Observable<(T, int, string)> OnResourceAdded => _onResourceAdded;
         public Observable<(T, int, string)> OnResourceUsed => _onResourceUsed;
