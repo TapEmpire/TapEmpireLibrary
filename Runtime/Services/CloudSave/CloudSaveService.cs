@@ -242,11 +242,15 @@ namespace TapEmpire.Services
 
         public async UniTask<CloudSaveOperationResult> SaveAsync(CancellationToken cancellationToken)
         {
+            if (_activeProvider == null)
+            {
+                return CloudSaveOperationResult.Ignored("Cloud provider is null.");
+            }
+            
             if (_isRestoring)
             {
-                var restoringResult = CloudSaveOperationResult.Ignored("Cloud restore in progress.");
                 Debug.Log("[CloudSave] Save skipped: restore is in progress.");
-                return restoringResult;
+                return CloudSaveOperationResult.Ignored("Cloud restore in progress.");
             }
 
             if (_isSaving)
