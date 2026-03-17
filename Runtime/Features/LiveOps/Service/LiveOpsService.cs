@@ -69,7 +69,8 @@ namespace TapEmpire.Services.LiveOps
 
         private void InitializeAndRegisterLiveOps(LiveOpsData data)
         {
-            var liveOps = data.Create(); // _diContainer);
+            var liveOps = data.Create();
+            liveOps.Initialize(_diContainer, data);
             liveOps.AddTo(_disposables);
             _liveOps.Add(liveOps);
         }
