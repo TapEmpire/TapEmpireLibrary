@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using TapEmpire.LiveOps.UI;
 using UnityEngine;
 
 namespace TapEmpire.Services.LiveOps
@@ -8,6 +9,8 @@ namespace TapEmpire.Services.LiveOps
     public abstract class LiveOpsData
     {
         [SerializeReference] public List<ICondition> Conditions = new();
+        public LiveOpsIcon IconPrefab;
+        public LiveOpsView LiveOpsPrefab;
 
         // createMethod
         // public OfferRuntimeData ToRuntime(Rarity rarity) => new OfferRuntimeData(this, rarity);

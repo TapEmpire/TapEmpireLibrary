@@ -57,6 +57,8 @@ namespace TapEmpire.Services.LiveOps
             return _liveOps.OfType<T>().FirstOrDefault();
         }
 
+        public List<ILiveOps> GetLiveOps() => _liveOps;
+
         public async UniTask UpdateLiveOps()
         {
             await _liveOps.Select(liveOps => liveOps.UpdateVisual(_resourceEmitter));

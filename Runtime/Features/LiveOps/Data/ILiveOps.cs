@@ -13,6 +13,8 @@ namespace TapEmpire.Services.LiveOps
         string Name { get; }
 
         void Initialize(DiContainer diContainer, LiveOpsData settings);
+        IDisposable CreateIcon(Transform parent);
+        void OpenView();
 
         UpdateAction CheckUpdateAction(); // return what action we should for updateVisual
 

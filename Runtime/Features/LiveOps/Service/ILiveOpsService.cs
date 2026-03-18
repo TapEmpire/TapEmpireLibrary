@@ -1,7 +1,7 @@
 using System;
+using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using R3;
-using TapEmpire.Patterns.Strategy;
 
 namespace TapEmpire.Services.LiveOps
 {
@@ -12,6 +12,7 @@ namespace TapEmpire.Services.LiveOps
         LiveOpsSettings Settings { get; }
 
         T GetLiveOps<T>() where T : ILiveOps;
+        List<ILiveOps> GetLiveOps();
 
         UniTask UpdateLiveOps();
     }
