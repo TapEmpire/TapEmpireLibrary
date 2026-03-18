@@ -29,6 +29,7 @@ namespace TapEmpire.Services
         protected ISystemService _systemService;
         protected DiContainer _diContainer;
         protected ResourcesAnalyticsModule<T> _analyticsModule;
+        protected CloudSaveResourceModule<T> _cloudSaveModule;
 
         protected Dictionary<T, ResourceRuntimeData<T>> _resources = new();
 
@@ -50,6 +51,7 @@ namespace TapEmpire.Services
             _systemService.OnApplicationFocusChanged.Subscribe(UpdateOnFocusChange).AddTo(_disposables);
 
             _analyticsModule = new ResourcesAnalyticsModule<T>(_diContainer);
+            _cloudSaveModule = new CloudSaveResourceModule<T>(_diContainer, this);
 
             return base.OnInitializeAsync(cancellationToken);
         }
@@ -57,6 +59,7 @@ namespace TapEmpire.Services
         protected override void OnRelease()
         {
             _analyticsModule?.OnRelease();
+            _cloudSaveModule?.OnRelease();
             _resources.ForEach(pair => pair.Value.Dispose());
             _resources.Clear();
             base.OnRelease();

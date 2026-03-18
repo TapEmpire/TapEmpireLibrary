@@ -36,18 +36,19 @@ namespace TapEmpire.Services
             _providers ??= Array.Empty<ICloudSaveProvider>();
             _serializer = new ProgressCloudSaveSerializer(_progressService, _settings);
 
-            Debug.Log($"[CloudSave] Initializing. IsEnabled={IsEnabled}, Providers={_providers.Length}, ExcludedKeys={_serializer.ExcludedKeysCount}");
+            var hasExplicitSetting = _progressService.BoolValuesDictionary.TryGetValue(CloudSaveEnabledKey, out var enabled, canUseDefault: false);
+            IsEnabled = hasExplicitSetting && enabled;
 
-            _progressService.BoolValuesDictionary.TryGetValue(CloudSaveEnabledKey, out var enabled, canUseDefault: false);
-            IsEnabled = enabled;
-
-            if (!IsEnabled)
-            {
-                Debug.Log("[CloudSave] Cloud saves are not enabled. Skipping provider initialization.");
-                return;
-            }
+            Debug.Log($"[CloudSave] Initializing. IsEnabled={IsEnabled}, HasExplicitSetting={hasExplicitSetting}, Providers={_providers.Length}, ExcludedKeys={_serializer.ExcludedKeysCount}");
 
             await InitializeProvidersAsync(cancellationToken);
+
+            if (!hasExplicitSetting && _activeProvider is { IsAvailable: true })
+            {
+                Debug.Log("[CloudSave] Provider available and no prior user preference — auto-enabling cloud saves.");
+                _progressService.BoolValuesDictionary.SetValue(CloudSaveEnabledKey, true);
+                IsEnabled = true;
+            }
         }
         
         public async UniTask<CloudSaveProbeResult> ProbeAsync(CancellationToken cancellationToken)
@@ -243,9 +244,10 @@ namespace TapEmpire.Services
         public async UniTask<CloudSaveOperationResult> SaveAsync(CancellationToken cancellationToken)
         {
             if (_activeProvider == null)
-            {
                 return CloudSaveOperationResult.Ignored("Cloud provider is null.");
-            }
+            
+            if (!IsEnabled)
+                return CloudSaveOperationResult.Ignored("Cloud saves are not enabled.");
             
             if (_isRestoring)
             {
@@ -254,9 +256,7 @@ namespace TapEmpire.Services
             }
 
             if (_isSaving)
-            {
                 return CloudSaveOperationResult.Ignored("Cloud save already in progress.");
-            }
             
             _isSaving = true;
             var result = CloudSaveOperationResult.Ignored("Cloud save skipped.");
