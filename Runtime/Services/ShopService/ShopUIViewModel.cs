@@ -15,12 +15,21 @@ namespace TapEmpire.Services.Shop
         public IShopService ShopService;
         public IAdsService AdsService;
 
+        public bool HasCloseButton { get; }
+        public Action OnSettingsPressed { get; }
+
         private IUIService _uiService;
 
         private ResourcesBar _resourcesBar;
         private CompositeDisposable _disposables = new();
 
         public event Action OnClose;
+
+        public ShopUIViewModel(bool hasCloseButton = true, Action onSettingsPressed = null)
+        {
+            HasCloseButton = hasCloseButton;
+            OnSettingsPressed = onSettingsPressed;
+        }
         
         [Inject]
         private void Construct(DiContainer diContainer, IUIService uiService, IIapService iapService,
