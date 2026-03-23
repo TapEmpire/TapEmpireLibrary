@@ -31,7 +31,7 @@ namespace TapEmpire.Services
                 return;
             }
 
-#if UNITY_IOS
+#if UNITY_IOS && !UNITY_EDITOR
             try
             {
                 Debug.Log("[CloudSave][iOS] Authenticating with Game Center...");
@@ -57,7 +57,7 @@ namespace TapEmpire.Services
         {
             get
             {
-#if UNITY_IOS
+#if UNITY_IOS && !UNITY_EDITOR
                 var authenticated = _isAuthenticated && GKLocalPlayer.Local.IsAuthenticated;
                 var available = _enabled && authenticated;
                 if (!available)
