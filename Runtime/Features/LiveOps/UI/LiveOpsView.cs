@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace TapEmpire.LiveOps.UI
 {
-    public class LiveOpsView : UIView<LiveOpsViewModel>
+    public class LiveOpsView : UIView<LiveOpsViewModel>, IInjectable
     {
         protected readonly CompositeDisposable _disposables = new();
 
