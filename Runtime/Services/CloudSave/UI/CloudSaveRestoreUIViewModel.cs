@@ -67,7 +67,7 @@ namespace TapEmpire.Services
                 return;
             }
 
-            var restoreResult = await _cloudSaveService.RestoreAsync(CancellationToken.None);
+            var restoreResult = await _cloudSaveService.RestoreAsync(CloudSnapshot, CancellationToken.None);
             
             OnResult?.Invoke(restoreResult.Success);
             OnResult = null;

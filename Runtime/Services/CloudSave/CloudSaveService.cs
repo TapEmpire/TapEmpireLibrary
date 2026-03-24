@@ -92,11 +92,6 @@ namespace TapEmpire.Services
 
             try
             {
-                if (_activeProvider == null)
-                {
-                    await InitializeProvidersAsync(cancellationToken, allowManualLogin: false);
-                }
-
                 if (_activeProvider == null || !_activeProvider.IsAvailable)
                 {
                     Debug.Log("[CloudSave] Probe: no available provider.");
@@ -154,7 +149,7 @@ namespace TapEmpire.Services
             // Clear declined flag — user is explicitly requesting login via Settings
             SetLoginDeclined(false);
 
-            if (_activeProvider == null || !_activeProvider.IsAvailable)
+            if (_activeProvider is not {IsAvailable: true})
             {
                 await InitializeProvidersAsync(cancellationToken, allowManualLogin: true);
             }
@@ -215,55 +210,60 @@ namespace TapEmpire.Services
         public async UniTask<CloudSaveOperationResult> RestoreAsync(CancellationToken cancellationToken)
         {
             if (_isRestoring)
-            {
                 return CloudSaveOperationResult.Ignored("Cloud restore already in progress.");
-            }
-            
-            _isRestoring = true;
-            var result = CloudSaveOperationResult.Ignored("Cloud restore skipped.");
 
             try
             {
-                Debug.Log("[CloudSave] Restore started.");
-                var localSnapshot = _serializer.Export();
-                Debug.Log($"[CloudSave] Local snapshot exported. IntValues={localSnapshot?.IntValues?.Count ?? 0}, BoolValues={localSnapshot?.BoolValues?.Count ?? 0}, StringValues={localSnapshot?.StringValues?.Count ?? 0}, UpdatedAt={localSnapshot?.UpdatedAtUnixMs}");
+                Debug.Log("[CloudSave] Restore started (loading from provider).");
                 var loadResult = await _activeProvider.LoadAsync(cancellationToken);
                 Debug.Log($"[CloudSave] Load result: Success={loadResult.Success}, HasSnapshot={loadResult.HasSnapshot}, Message='{loadResult.Message}'");
 
                 if (!loadResult.Success)
-                {
-                    result = CloudSaveOperationResult.Failed(loadResult.Message);
-                    return result;
-                }
+                    return CloudSaveOperationResult.Failed(loadResult.Message);
 
                 if (!loadResult.HasSnapshot)
                 {
                     Debug.Log("[CloudSave] No remote snapshot found.");
-                    result = CloudSaveOperationResult.Completed("Cloud snapshot not found.");
-                    return result;
+                    return CloudSaveOperationResult.Completed("Cloud snapshot not found.");
                 }
 
                 var remoteSnapshot = loadResult.Snapshot;
-                Debug.Log($"[CloudSave] Remote snapshot received. IntValues={remoteSnapshot?.IntValues?.Count ?? 0}, BoolValues={remoteSnapshot?.BoolValues?.Count ?? 0}, StringValues={remoteSnapshot?.StringValues?.Count ?? 0}, UpdatedAt={remoteSnapshot?.UpdatedAtUnixMs}");
                 var remoteTimestamp = remoteSnapshot?.UpdatedAtUnixMs ?? 0;
                 var seenTimestamp = GetSeenTimestampMs();
                 if (remoteTimestamp <= seenTimestamp)
                 {
                     Debug.Log($"[CloudSave] Restore skipped: cloud data is not newer. UpdatedAt={remoteTimestamp}, SeenAt={seenTimestamp}");
-                    result = CloudSaveOperationResult.Ignored("Cloud snapshot is not newer than seen timestamp.");
-                    return result;
+                    return CloudSaveOperationResult.Ignored("Cloud snapshot is not newer than seen timestamp.");
                 }
 
-                Debug.Log("[CloudSave] Importing remote snapshot into local progress.");
-                _serializer.Import(remoteSnapshot);
-                SetSeenTimestampMs(remoteTimestamp);
-                
-                result = CloudSaveOperationResult.Completed("Cloud snapshot restored.");
+                return await RestoreAsync(remoteSnapshot, cancellationToken);
             }
             catch (OperationCanceledException exception)
             {
                 Debug.LogException(exception);
-                result = CloudSaveOperationResult.Failed(exception.Message);
+                return CloudSaveOperationResult.Failed(exception.Message);
+            }
+            catch (Exception exception)
+            {
+                Debug.LogException(exception);
+                return CloudSaveOperationResult.Failed(exception.Message);
+            }
+        }
+
+        public async UniTask<CloudSaveOperationResult> RestoreAsync(ProgressSnapshot snapshot, CancellationToken cancellationToken)
+        {
+            if (_isRestoring)
+                return CloudSaveOperationResult.Ignored("Cloud restore already in progress.");
+
+            _isRestoring = true;
+            var result = CloudSaveOperationResult.Ignored("Cloud restore skipped.");
+
+            try
+            {
+                Debug.Log($"[CloudSave] Restoring from snapshot. IntValues={snapshot?.IntValues?.Count ?? 0}, BoolValues={snapshot?.BoolValues?.Count ?? 0}, StringValues={snapshot?.StringValues?.Count ?? 0}, UpdatedAt={snapshot?.UpdatedAtUnixMs}");
+                _serializer.Import(snapshot);
+                SetSeenTimestampMs(snapshot?.UpdatedAtUnixMs ?? 0);
+                result = CloudSaveOperationResult.Completed("Cloud snapshot restored.");
             }
             catch (Exception exception)
             {
