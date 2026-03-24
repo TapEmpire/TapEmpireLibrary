@@ -70,9 +70,51 @@ namespace TapEmpire.Utility.GoogleSheet
             return GoogleSheetUtility.SendRequest(url, "POST", jsonBody, googleSheetData.ConnectionData.Token);
         }
 
+        public static async UniTask DeleteSheetAsync(GoogleSheetData googleSheetData, string tableId, string tableName)
+        {
+            if (googleSheetData.ConnectionData == null || googleSheetData.ConnectionData.Expiration <= DateTime.Now)
+            {
+                Debug.Log("Getting new access token...");
+                googleSheetData.ConnectionData = await GoogleSheetUtility.GetAccessTokenAsync(googleSheetData.ServiceAccountKey.text);
+
+                if (googleSheetData.ConnectionData == null)
+                {
+                    Debug.LogWarning("Failed to create connection data");
+                    return;
+                }
+            }
+
+            var spreadSheetData = googleSheetData.SpreadSheets.GetSpreadSheetData(tableName);
+            string spreadsheetId = spreadSheetData.Id;
+            
+            Debug.Log($@"Removing from sheet {spreadsheetId} with id {tableId} ({tableName})");
+
+            var response = await DeleteSheetAsyncInternal(googleSheetData, spreadsheetId, tableId);
+
+            Debug.Log($@"Removing sheet response {response}");
+        }
+
+        private static UniTask<string> DeleteSheetAsyncInternal(GoogleSheetData googleSheetData, string spreadsheetId, string tableId)
+        {
+
+            string url = $"https://sheets.googleapis.com/v4/spreadsheets/{spreadsheetId}:batchUpdate";
+
+            string jsonBody = $@"{{
+                ""requests"": [
+                    {{
+                        ""deleteSheet"": {{
+                            ""sheetId"": {tableId}
+                        }}
+                    }}
+                ]
+            }}";
+
+            return GoogleSheetUtility.SendRequest(url, "POST", jsonBody, googleSheetData.ConnectionData.Token);
+        }
+
         private static UniTask<string> PopulateSheetAsync(GoogleSheetData googleSheetData, string sheetName, List<List<string>> data)
         {
-            string range = $"{sheetName}!A2:{(char)('A' + data[0].Count - 1)}{data.Count + 1}";
+            string range = $"{sheetName}!A2:{(char) ('A' + data[0].Count - 1)}{data.Count + 1}";
             string spreadsheetId = googleSheetData.SpreadSheets.GetSpreadSheet(sheetName);
             string url = $"https://sheets.googleapis.com/v4/spreadsheets/{spreadsheetId}/values/{range}?valueInputOption=USER_ENTERED";
 
@@ -90,7 +132,7 @@ namespace TapEmpire.Utility.GoogleSheet
             try
             {
                 JObject jObject = JObject.Parse(jsonResponse);
-                return (int)jObject["replies"][0]["duplicateSheet"]["properties"]["sheetId"];
+                return (int) jObject["replies"][0]["duplicateSheet"]["properties"]["sheetId"];
             }
             catch (Exception ex)
             {

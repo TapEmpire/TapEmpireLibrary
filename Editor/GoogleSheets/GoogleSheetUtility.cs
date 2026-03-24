@@ -95,6 +95,11 @@ namespace TapEmpire.Utility.GoogleSheet
             return GoogleSheetCopyAndPaste.DuplicateAndPopulateSheet(googleSheetData, tableName, data);
         }
 
+        public static UniTask RemoveGoogleSheetTab(GoogleSheetData googleSheetData, string tableId, string tableName)
+        {
+            return GoogleSheetCopyAndPaste.DeleteSheetAsync(googleSheetData, tableId, tableName);
+        }
+
         public static async UniTask<string> SendRequest(string url, string method, string data, string token)
         {
             try
