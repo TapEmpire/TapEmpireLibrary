@@ -23,7 +23,7 @@ namespace TapEmpire.Services
         private SignInStatus _signInStatus = SignInStatus.Canceled;
 #endif
 
-        public async UniTask InitializeAsync(CancellationToken cancellationToken)
+        public async UniTask InitializeAsync(CancellationToken cancellationToken, bool allowManualLogin = true)
         {
             if (!_enabled)
             {
@@ -64,10 +64,10 @@ namespace TapEmpire.Services
                 _signInStatus = SignInStatus.Canceled;
             }
 
-            Debug.Log($"[CloudSave][Android] Authentication result: {_signInStatus}");
+            Debug.Log($"[CloudSave][Android] Auto authentication result: {_signInStatus}");
 
-            // If auto sign-in failed, try manual (shows system UI)
-            if (_signInStatus != SignInStatus.Success)
+            // If auto sign-in failed, try manual (shows system UI) only if allowed
+            if (_signInStatus != SignInStatus.Success && allowManualLogin)
             {
                 Debug.Log("[CloudSave][Android] Trying ManuallyAuthenticate...");
                 var manualTcs = new UniTaskCompletionSource<SignInStatus>();
@@ -93,6 +93,10 @@ namespace TapEmpire.Services
                 }
 
                 Debug.Log($"[CloudSave][Android] Manual authentication result: {_signInStatus}");
+            }
+            else if (_signInStatus != SignInStatus.Success)
+            {
+                Debug.Log("[CloudSave][Android] Manual login skipped (not allowed).");
             }
 #else
             await UniTask.CompletedTask;

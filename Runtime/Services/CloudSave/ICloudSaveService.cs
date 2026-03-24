@@ -13,6 +13,7 @@ namespace TapEmpire.Services
         void DeclineRestore(long cloudDataTimestampMs);
 
         UniTask<CloudSaveOperationResult> RestoreAsync(CancellationToken cancellationToken);
+        UniTask<CloudSaveOperationResult> RestoreAsync(ProgressSnapshot snapshot, CancellationToken cancellationToken);
         UniTask<CloudSaveOperationResult> SaveAsync(CancellationToken cancellationToken);
         UniTask<CloudSaveOperationResult> DeleteAsync(CancellationToken cancellationToken);
     }

@@ -8,5 +8,8 @@ namespace TapEmpire.Services
     {
         [Tooltip("Keys that should be excluded from cloud save/restore.")]
         public string[] ExcludedKeys = Array.Empty<string>();
+
+        [SerializeField] private CloudSaveRestoreUIViewBase _restoreUIViewPrefab;
+        public CloudSaveRestoreUIViewBase RestoreUIViewPrefab => _restoreUIViewPrefab;
     }
 }

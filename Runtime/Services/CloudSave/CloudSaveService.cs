@@ -2,6 +2,7 @@ using System;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
+using TapEmpire.UI;
 using Zenject;
 
 namespace TapEmpire.Services
@@ -14,21 +15,26 @@ namespace TapEmpire.Services
 
         private const string CloudSaveEnabledKey = "CloudSaveEnabledKey";
         private const string CloudSaveSeenTimestampKey = "CloudSaveSeenTimestampKey";
+        private const string CloudSaveLoginDeclinedKey = "CloudSaveLoginDeclinedKey";
 
         private ICloudSaveProvider _activeProvider;
 
         public bool IsEnabled { get; private set; }
 
         private IProgressService _progressService;
+        private IUIService _uiService;
         private ICloudSaveSerializer<ProgressSnapshot> _serializer;
 
         private bool _isRestoring;
         private bool _isSaving;
+        private DiContainer _container;
 
         [Inject]
-        private void Construct(IProgressService progressService)
+        private void Construct(IProgressService progressService, IUIService uiService, DiContainer container)
         {
+            _container = container;
             _progressService = progressService;
+            _uiService = uiService;
         }
 
         protected override async UniTask OnInitializeAsync(CancellationToken cancellationToken)
@@ -39,9 +45,17 @@ namespace TapEmpire.Services
             var hasExplicitSetting = _progressService.BoolValuesDictionary.TryGetValue(CloudSaveEnabledKey, out var enabled, canUseDefault: false);
             IsEnabled = hasExplicitSetting && enabled;
 
-            Debug.Log($"[CloudSave] Initializing. IsEnabled={IsEnabled}, HasExplicitSetting={hasExplicitSetting}, Providers={_providers.Length}, ExcludedKeys={_serializer.ExcludedKeysCount}");
+            var loginDeclined = IsLoginDeclined();
+            Debug.Log($"[CloudSave] Initializing. IsEnabled={IsEnabled}, HasExplicitSetting={hasExplicitSetting}, LoginDeclined={loginDeclined}, Providers={_providers.Length}, ExcludedKeys={_serializer.ExcludedKeysCount}");
 
-            await InitializeProvidersAsync(cancellationToken);
+            await InitializeProvidersAsync(cancellationToken, allowManualLogin: !loginDeclined);
+
+            // If manual login was shown and provider still unavailable → user declined
+            if (!loginDeclined && !hasExplicitSetting && _activeProvider == null)
+            {
+                Debug.Log("[CloudSave] Provider unavailable after manual login attempt — marking login as declined.");
+                SetLoginDeclined(true);
+            }
 
             if (!hasExplicitSetting && _activeProvider is { IsAvailable: true })
             {
@@ -49,8 +63,29 @@ namespace TapEmpire.Services
                 _progressService.BoolValuesDictionary.SetValue(CloudSaveEnabledKey, true);
                 IsEnabled = true;
             }
+            await TryShowRestoreAsync(cancellationToken);
         }
-        
+
+        public async UniTask<bool> TryShowRestoreAsync(CancellationToken cancellationToken)
+        {
+            var probeResult = await ProbeAsync(cancellationToken);
+            if (!probeResult.HasCloudData)
+                return false;
+            
+            if (!_settings || !_settings.RestoreUIViewPrefab)
+            {
+                Debug.LogWarning("[CloudSave] RestoreUIViewPrefab not set in CloudSaveSettings — skipping restore UI.");
+                return false;
+            }
+            
+            var viewModel = new CloudSaveRestoreUIViewModel(_container, probeResult.CloudDataTimestampMs, probeResult.CloudSnapshot);
+            var tcs = new UniTaskCompletionSource<bool>();
+            viewModel.OnResult = accepted => tcs.TrySetResult(accepted);
+
+            await _uiService.OpenViewAsync(_settings.RestoreUIViewPrefab, viewModel, cancellationToken);
+            return await tcs.Task;
+        }
+
         public async UniTask<CloudSaveProbeResult> ProbeAsync(CancellationToken cancellationToken)
         {
             Debug.Log("[CloudSave] Probing for cloud data...");
@@ -59,7 +94,7 @@ namespace TapEmpire.Services
             {
                 if (_activeProvider == null)
                 {
-                    await InitializeProvidersAsync(cancellationToken);
+                    await InitializeProvidersAsync(cancellationToken, allowManualLogin: false);
                 }
 
                 if (_activeProvider == null || !_activeProvider.IsAvailable)
@@ -116,9 +151,12 @@ namespace TapEmpire.Services
 
             Debug.Log("[CloudSave] Enabling cloud saves.");
 
+            // Clear declined flag — user is explicitly requesting login via Settings
+            SetLoginDeclined(false);
+
             if (_activeProvider == null || !_activeProvider.IsAvailable)
             {
-                await InitializeProvidersAsync(cancellationToken);
+                await InitializeProvidersAsync(cancellationToken, allowManualLogin: true);
             }
 
             if (_activeProvider == null || !_activeProvider.IsAvailable)
@@ -149,7 +187,7 @@ namespace TapEmpire.Services
             Debug.Log($"[CloudSave] Restore declined. Saved seen timestamp={cloudDataTimestampMs}");
         }
 
-        private async UniTask InitializeProvidersAsync(CancellationToken cancellationToken)
+        private async UniTask InitializeProvidersAsync(CancellationToken cancellationToken, bool allowManualLogin = true)
         {
             _activeProvider = null;
             foreach (var provider in _providers)
@@ -159,8 +197,8 @@ namespace TapEmpire.Services
                     continue;
                 }
 
-                Debug.Log($"[CloudSave] Initializing provider: {provider.GetType().Name}");
-                await provider.InitializeAsync(cancellationToken);
+                Debug.Log($"[CloudSave] Initializing provider: {provider.GetType().Name} (allowManualLogin={allowManualLogin})");
+                await provider.InitializeAsync(cancellationToken, allowManualLogin);
 
                 if (provider.IsAvailable)
                 {
@@ -330,6 +368,17 @@ namespace TapEmpire.Services
                 Debug.LogException(exception);
                 return CloudSaveOperationResult.Failed(exception.Message);
             }
+        }
+
+        private bool IsLoginDeclined()
+        {
+            _progressService.BoolValuesDictionary.TryGetValue(CloudSaveLoginDeclinedKey, out var declined, canUseDefault: false);
+            return declined;
+        }
+
+        private void SetLoginDeclined(bool declined)
+        {
+            _progressService.BoolValuesDictionary.SetValue(CloudSaveLoginDeclinedKey, declined);
         }
 
         private long GetSeenTimestampMs()

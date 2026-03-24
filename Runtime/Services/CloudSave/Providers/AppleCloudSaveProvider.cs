@@ -23,7 +23,7 @@ namespace TapEmpire.Services
         private bool _isAuthenticated;
 #endif
 
-        public async UniTask InitializeAsync(CancellationToken cancellationToken)
+        public async UniTask InitializeAsync(CancellationToken cancellationToken, bool allowManualLogin = true)
         {
             if (!_enabled)
             {
