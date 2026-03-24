@@ -1,0 +1,146 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using Cysharp.Threading.Tasks;
+using Io.AppMetrica;
+using UnityEngine;
+using Zenject;
+
+namespace TapEmpire.Services
+{
+    [Serializable]
+    public abstract class PatchService<T> : Initializable, IPatchService
+        where T : PatchEntryBase
+    {
+        public const string DeviceIdProgressKey = "AppMetricaDeviceId";
+        public const string UuidProgressKey = "AppMetricaUuid";
+        public const string DeviceIdHashProgressKey = "AppMetricaDeviceIdHash";
+        
+        private const string PatchVersionProgressKey = "PlayerPatchVersion";
+        private const int RequestTimeoutMs = 5000;
+
+        protected IProgressService _progressService;
+        private ICloudSaveService _cloudSaveService;
+
+        [Inject]
+        private void Construct(IProgressService progressService, ICloudSaveService cloudSaveService)
+        {
+            _progressService = progressService;
+            _cloudSaveService = cloudSaveService;
+        }
+
+        protected override async UniTask OnInitializeAsync(CancellationToken cancellationToken)
+        {
+            var (deviceId, uuid, deviceIdHash) = await RequestIdsAsync(cancellationToken);
+
+            if (string.IsNullOrEmpty(deviceId) && string.IsNullOrEmpty(uuid))
+            {
+                Debug.Log("[PlayerPatch] Could not obtain AppMetrica IDs. Skipping.");
+                return;
+            }
+
+            if (!string.IsNullOrEmpty(deviceId))
+            {
+                _progressService.SetString(DeviceIdProgressKey, deviceId);
+            }
+
+            if (!string.IsNullOrEmpty(uuid))
+            {
+                _progressService.SetString(UuidProgressKey, uuid);
+            }
+
+            if (!string.IsNullOrEmpty(deviceIdHash))
+            {
+                _progressService.SetString(DeviceIdHashProgressKey, deviceIdHash);
+            }
+
+            var patches = GetPatchEntries();
+            if (patches == null || patches.Count == 0)
+            {
+                Debug.Log("[PlayerPatch] No patch entries. Skipping.");
+                return;
+            }
+
+            var entry = patches.FirstOrDefault(p => MatchesPlayer(p, deviceId, uuid, deviceIdHash));
+            if (entry == null)
+            {
+                Debug.Log($"[PlayerPatch] No matching patch for DeviceId={deviceId}, UUID={uuid}. Skipping.");
+                return;
+            }
+
+            var savedPatchVersion = _progressService.GetInt(PatchVersionProgressKey);
+            if (entry.Version <= savedPatchVersion)
+            {
+                Debug.Log($"[PlayerPatch] Patch v{entry.Version} already applied (saved={savedPatchVersion}). Skipping.");
+                return;
+            }
+
+            Debug.Log($"[PlayerPatch] Applying patch v{entry.Version} for DeviceId={deviceId}, UUID={uuid}");
+            ApplyPatch(entry);
+
+            _progressService.SetInt(PatchVersionProgressKey, entry.Version);
+
+            await _cloudSaveService.SaveAsync(cancellationToken);
+            Debug.Log("[PlayerPatch] Patch applied and cloud save forced.");
+        }
+
+        protected abstract IReadOnlyList<T> GetPatchEntries();
+
+        protected abstract void ApplyPatch(T entry);
+
+        private static bool MatchesPlayer(PatchEntryBase entry, string deviceId, string uuid, string deviceIdHash)
+        {
+            if (!string.IsNullOrEmpty(entry.DeviceId) && !string.IsNullOrEmpty(deviceId) &&
+                string.Equals(entry.DeviceId, deviceId, StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+
+            if (!string.IsNullOrEmpty(entry.Uuid) && !string.IsNullOrEmpty(uuid) &&
+                string.Equals(entry.Uuid, uuid, StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+            
+            if (!string.IsNullOrEmpty(entry.DeviceIdHash) && !string.IsNullOrEmpty(deviceIdHash) &&
+                string.Equals(entry.DeviceIdHash, deviceIdHash, StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        private async UniTask<(string deviceId, string uuid, string deviceIdHash)> RequestIdsAsync(CancellationToken cancellationToken)
+        {
+            var tcs = new UniTaskCompletionSource<(string, string, string)>();
+
+            AppMetrica.RequestStartupParams(
+                (result, error) =>
+                {
+                    tcs.TrySetResult((result?.DeviceId, result?.Uuid, result?.DeviceIdHash));
+                },
+                new[] { StartupParamsKey.AppMetricaDeviceID, StartupParamsKey.AppMetricaUuid, StartupParamsKey.AppMetricaDeviceIDHash }
+            );
+
+            bool hasResult;
+            (string deviceId, string uuid, string deviceIdHash) ids;
+            (hasResult, ids) = await UniTask.WhenAny(
+                tcs.Task,
+                UniTask.Delay(RequestTimeoutMs, cancellationToken: cancellationToken)
+            );
+            
+            await UniTask.SwitchToMainThread(cancellationToken);
+
+            if (hasResult)
+            {
+                Debug.Log($"[PlayerPatch] Got AppMetrica IDs: DeviceId={ids.deviceId}, UUID={ids.uuid},  DeviceIdHash={ids.deviceIdHash} ");
+                return ids;
+            }
+
+            Debug.LogWarning("[PlayerPatch] AppMetrica ID request timed out.");
+            return (null, null, null);
+        }
+    }
+}

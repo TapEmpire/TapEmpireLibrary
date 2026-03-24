@@ -94,10 +94,6 @@ namespace TapEmpire.Services
 
                 Debug.Log($"[CloudSave][Android] Manual authentication result: {_signInStatus}");
             }
-            else if (_signInStatus != SignInStatus.Success)
-            {
-                Debug.Log("[CloudSave][Android] Manual login skipped (not allowed).");
-            }
 #else
             await UniTask.CompletedTask;
 #endif
