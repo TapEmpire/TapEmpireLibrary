@@ -1,3 +1,4 @@
+#if TEL_CLOUD_SAVE
 using System;
 using UnityEngine;
 
@@ -13,3 +14,4 @@ namespace TapEmpire.Services
         public CloudSaveRestoreUIViewBase RestoreUIViewPrefab => _restoreUIViewPrefab;
     }
 }
+#endif

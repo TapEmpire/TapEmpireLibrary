@@ -1,3 +1,4 @@
+#if TEL_CLOUD_SAVE
 using System.Threading;
 using Cysharp.Threading.Tasks;
 
@@ -18,3 +19,4 @@ namespace TapEmpire.Services
         UniTask<CloudSaveOperationResult> DeleteAsync(CancellationToken cancellationToken);
     }
 }
+#endif

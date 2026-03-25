@@ -21,13 +21,21 @@ namespace TapEmpire.Services
         private const int RequestTimeoutMs = 5000;
 
         protected IProgressService _progressService;
+#if TEL_CLOUD_SAVE
         private ICloudSaveService _cloudSaveService;
+#endif
 
         [Inject]
-        private void Construct(IProgressService progressService, ICloudSaveService cloudSaveService)
+        private void Construct(IProgressService progressService
+#if TEL_CLOUD_SAVE
+            , ICloudSaveService cloudSaveService
+#endif
+            )
         {
             _progressService = progressService;
+#if TEL_CLOUD_SAVE
             _cloudSaveService = cloudSaveService;
+#endif
         }
 
         protected override async UniTask OnInitializeAsync(CancellationToken cancellationToken)
@@ -81,8 +89,10 @@ namespace TapEmpire.Services
 
             _progressService.SetInt(PatchVersionProgressKey, entry.Version);
 
+#if TEL_CLOUD_SAVE
             await _cloudSaveService.SaveAsync(cancellationToken);
             Debug.Log("[PlayerPatch] Patch applied and cloud save forced.");
+#endif
         }
 
         protected abstract IReadOnlyList<T> GetPatchEntries();

@@ -1,3 +1,4 @@
+#if TEL_CLOUD_SAVE
 using System;
 using System.Linq;
 using System.Text;
@@ -204,3 +205,4 @@ namespace TapEmpire.Services
         }
     }
 }
+#endif

@@ -1,3 +1,4 @@
+#if TEL_CLOUD_SAVE
 using System;
 using System.Threading;
 using Cysharp.Threading.Tasks;
@@ -75,3 +76,4 @@ namespace TapEmpire.Services
         }
     }
 }
+#endif
