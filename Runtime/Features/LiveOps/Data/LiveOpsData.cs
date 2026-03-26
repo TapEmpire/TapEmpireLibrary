@@ -12,9 +12,6 @@ namespace TapEmpire.Services.LiveOps
         public LiveOpsIcon IconPrefab;
         public LiveOpsView LiveOpsPrefab;
 
-        // createMethod
-        // public OfferRuntimeData ToRuntime(Rarity rarity) => new OfferRuntimeData(this, rarity);
-
         public abstract ILiveOps Create();
     }
 
