@@ -11,6 +11,8 @@ namespace TapEmpire.Services
         private const float MillionFloat = 1000000.0f;
         private const double MillionDouble = 1000000.0;
 
+        public static bool GetAdsDisabled(this IProgressService self) => self.GetBool(ProgressBoolProp.DisableAds);
+
         private static int GetIntAdRevenue(this IProgressService self)
         {
             return self.IntValuesDictionary.TryGetValue(AdRevenueKey, out var value, canUseDefault: false) ? value : 0;

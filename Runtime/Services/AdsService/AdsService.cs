@@ -10,6 +10,7 @@ using R3;
 using AdjustSdk;
 using Metica.Unity;
 using TapEmpire.Modules;
+using GoogleMobileAds.Api;
 
 namespace TapEmpire.Services
 {
@@ -68,6 +69,9 @@ namespace TapEmpire.Services
         public bool IsMeticaEnabled => global::AdsManager.Instance.IsMeticaEnabled;
 
         private AdsRuntimeScenario _adsRuntimeScenario;
+
+        private BannerWidth? _pendingBannerSize = null;
+        private AdPosition? _pendingBannerPos = null;
 
         private CompositeDisposable _disposables = new();
 
@@ -129,6 +133,7 @@ namespace TapEmpire.Services
             new AdsSignalsModule(_diContainer).AddTo(_disposables);
 
             // global::AdsManager.Instance.OnInitialized += OnInitialized;
+            ApplyPendingBannerSettings();
             global::AdsManager.Instance.EnableAppOpen = _adsRuntimeScenario.EnableAppOpen;
             global::AdsManager.Instance.SetAppOpenAutoShow(true);
             global::AdsManager.Instance.OnConsentObtained += OnConsentObtained;
@@ -170,6 +175,8 @@ namespace TapEmpire.Services
 #endif
 
             global::AdsManager.Instance?.OnRelease();
+            _pendingBannerSize = null;
+            _pendingBannerPos = null;
         }
 
         public void ShowInterstitial(int levelIndex, System.Action callback, string placement = "")
@@ -341,7 +348,7 @@ namespace TapEmpire.Services
             if (shouldShow)
                 AdsManager.Instance.ShowMREC();
             else
-                AdsManager.Instance.DestroyMREC();
+                AdsManager.Instance.HideMREC();
 
             return true;
         }
@@ -355,7 +362,7 @@ namespace TapEmpire.Services
             if (shouldShow)
                 AdsManager.Instance.ShowMREC(x, y);
             else
-                AdsManager.Instance.DestroyMREC();
+                AdsManager.Instance.HideMREC();
 
             return true;
         }
@@ -459,6 +466,29 @@ namespace TapEmpire.Services
             }
 
             return false;
+        }
+
+        public void SetBannerSettings(BannerWidth bannerSize, AdPosition bannerPos)
+        {
+            _pendingBannerSize = bannerSize;
+            _pendingBannerPos = bannerPos;
+
+            if (AdsManager.Instance != null)
+            {
+                ApplyPendingBannerSettings();
+            }
+        }
+
+        private void ApplyPendingBannerSettings()
+        {
+            if (_pendingBannerSize.HasValue)
+            {
+                AdsManager.Instance.BannerSize = _pendingBannerSize.Value;
+            }
+            if (_pendingBannerPos.HasValue)
+            {
+                AdsManager.Instance.BannerPos = _pendingBannerPos.Value;
+            }
         }
     }
 }

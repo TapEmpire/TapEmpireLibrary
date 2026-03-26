@@ -16,6 +16,7 @@ namespace TapEmpire.Services
         public class SystemSettingsRemoteModel
         {
             public float SessionInterval = 600.0f;
+            public bool PlayOfflineNoAds = true;
             public bool PlayOfflineForPayers = true;
             public bool IsPushServiceEnabled = true;
 
@@ -24,6 +25,7 @@ namespace TapEmpire.Services
             public SystemSettingsRemoteModel(SystemSettings settings)
             {
                 SessionInterval = settings.SessionInterval;
+                PlayOfflineNoAds = settings.PlayOfflineNoAds;
                 PlayOfflineForPayers = settings.PlayOfflineForPayers;
                 IsPushServiceEnabled = settings.IsPushServiceEnabled;
             }
@@ -31,6 +33,7 @@ namespace TapEmpire.Services
             public void ToSettings(SystemSettings settings)
             {
                 settings.SessionInterval = SessionInterval;
+                settings.PlayOfflineNoAds = PlayOfflineNoAds;
                 settings.PlayOfflineForPayers = PlayOfflineForPayers;
                 settings.IsPushServiceEnabled = IsPushServiceEnabled;
 

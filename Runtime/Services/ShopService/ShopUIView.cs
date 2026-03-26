@@ -12,6 +12,7 @@ namespace TapEmpire.Services.Shop
     public class ShopUIView : UIView<ShopUIViewModel>, IInjectable
     {
         [SerializeField] private Button _closeButton = null;
+        [SerializeField] private Button _settingsButton = null;
         [SerializeField] private Transform _content;
 
         private List<ShopSection> _shopSections = new();
@@ -19,7 +20,20 @@ namespace TapEmpire.Services.Shop
 
         protected override UniTask OnOpenAsync(CancellationToken cancellationToken)
         {
-            _closeButton.onClick.Subscribe(DerivedModel.OnClosePressed).AddTo(_disposables);
+            _closeButton.gameObject.SetActive(DerivedModel.HasCloseButton);
+            if (DerivedModel.HasCloseButton)
+            {
+                _closeButton.onClick.Subscribe(DerivedModel.OnClosePressed).AddTo(_disposables);
+            }
+
+            if (_settingsButton != null)
+            {
+                _settingsButton.gameObject.SetActive(!DerivedModel.HasCloseButton);
+                if (!DerivedModel.HasCloseButton)
+                {
+                    _settingsButton.onClick.Subscribe(() => DerivedModel.OnSettingsPressed?.Invoke()).AddTo(_disposables);
+                }
+            }
 
             CreateSections(DerivedModel.ShopSettings);
 

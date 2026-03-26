@@ -9,6 +9,7 @@ namespace TapEmpire.Services
         private readonly Dictionary<string, TValue> _dictionary = new ();
 
         public event Action<string, TValue> OnSetValue;
+        public event Action<string> OnDeleteKey;
         
         protected abstract TValue GetValueFromPrefs(string key);
         
@@ -28,7 +29,11 @@ namespace TapEmpire.Services
         {
             _dictionary.Remove(key);
             PlayerPrefs.DeleteKey(key);
+            OnDeleteKey?.Invoke(key);
         }
+
+        public IReadOnlyCollection<string> GetCachedKeys() => 
+            _dictionary.Keys;
 
         private void SetCacheValue(string key, TValue value)
         {

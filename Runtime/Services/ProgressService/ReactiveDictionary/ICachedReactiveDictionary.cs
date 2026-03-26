@@ -1,10 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace TapEmpire.Services
 {
     public interface ICachedReactiveDictionary<TValue>
     {
         event Action<string, TValue> OnSetValue;
+        event Action<string> OnDeleteKey;
 
         void SetValue(string key, TValue value, bool save = true);
 
@@ -13,5 +15,7 @@ namespace TapEmpire.Services
         void ClearCache();
 
         void DeleteKey(string key);
+
+        IReadOnlyCollection<string> GetCachedKeys();
     }
 }
