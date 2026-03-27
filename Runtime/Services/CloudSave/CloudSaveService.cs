@@ -17,6 +17,8 @@ namespace TapEmpire.Services
         private const string CloudSaveEnabledKey = "CloudSaveEnabledKey";
         private const string CloudSaveSeenTimestampKey = "CloudSaveSeenTimestampKey";
         private const string CloudSaveLoginDeclinedKey = "CloudSaveLoginDeclinedKey";
+        private const int AppleStartupProbeMaxAttempts = 3;
+        private const int AppleStartupProbeRetryDelaySeconds = 5;
 
         private ICloudSaveProvider _activeProvider;
 
@@ -99,7 +101,7 @@ namespace TapEmpire.Services
                     return CloudSaveProbeResult.NoProvider("No cloud save provider is available.");
                 }
 
-                var loadResult = await _activeProvider.LoadAsync(cancellationToken);
+                var loadResult = await LoadStartupProbeResultAsync(cancellationToken);
 
                 if (!loadResult.Success)
                 {
@@ -375,6 +377,52 @@ namespace TapEmpire.Services
         {
             _progressService.BoolValuesDictionary.TryGetValue(CloudSaveLoginDeclinedKey, out var declined, canUseDefault: false);
             return declined;
+        }
+
+        private async UniTask<CloudSaveLoadResult> LoadStartupProbeResultAsync(CancellationToken cancellationToken)
+        {
+            if (!ShouldRetryAppleStartupProbe())
+            {
+                return await _activeProvider.LoadAsync(cancellationToken);
+            }
+
+            CloudSaveLoadResult loadResult = default;
+
+            for (var attempt = 1; attempt <= AppleStartupProbeMaxAttempts; attempt++)
+            {
+                Debug.Log($"[CloudSave][iOS] Startup probe attempt {attempt}/{AppleStartupProbeMaxAttempts}.");
+                loadResult = await _activeProvider.LoadAsync(cancellationToken);
+
+                if (!loadResult.Success)
+                {
+                    Debug.Log($"[CloudSave][iOS] Startup probe attempt {attempt}/{AppleStartupProbeMaxAttempts} failed: {loadResult.Message}");
+                    return loadResult;
+                }
+
+                if (loadResult.HasSnapshot)
+                {
+                    Debug.Log($"[CloudSave][iOS] Startup probe found snapshot on attempt {attempt}/{AppleStartupProbeMaxAttempts}.");
+                    return loadResult;
+                }
+
+                if (attempt < AppleStartupProbeMaxAttempts)
+                {
+                    Debug.Log($"[CloudSave][iOS] Startup probe attempt {attempt}/{AppleStartupProbeMaxAttempts} returned empty result. Waiting {AppleStartupProbeRetryDelaySeconds} seconds before retry.");
+                    await UniTask.Delay(TimeSpan.FromSeconds(AppleStartupProbeRetryDelaySeconds), cancellationToken: cancellationToken);
+                }
+            }
+
+            Debug.Log($"[CloudSave][iOS] Startup probe found no snapshot after {AppleStartupProbeMaxAttempts} attempts.");
+            return loadResult;
+        }
+
+        private bool ShouldRetryAppleStartupProbe()
+        {
+#if UNITY_IOS && !UNITY_EDITOR
+            return _activeProvider is AppleCloudSaveProvider;
+#else
+            return false;
+#endif
         }
 
         private void SetLoginDeclined(bool declined)
