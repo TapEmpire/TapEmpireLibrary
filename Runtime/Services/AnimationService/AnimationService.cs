@@ -14,7 +14,7 @@ using Random = UnityEngine.Random;
 
 namespace TapEmpire.Services
 {
-    [System.Serializable]
+    [Serializable]
     public class AnimationService<ResourceType> : Initializable, IAnimationService<ResourceType>
     {
         [SerializeField] private AnimationSettings _settings;
@@ -25,6 +25,8 @@ namespace TapEmpire.Services
         protected IAudioService _audioService;
 
         private ComponentPool<Image> _flyingResources;
+        private ComponentPool<Transform> _flyingPrefabPool;
+        private GameObject _prefabTemplate;
         private Transform _parent;
         private const int MaxResourceAmount = 40;
         private CompositeDisposable _disposables = new();
@@ -48,6 +50,7 @@ namespace TapEmpire.Services
         protected override void OnRelease()
         {
             _flyingResources?.Clear();
+            _flyingPrefabPool?.Clear();
             base.OnRelease();
         }
 
@@ -167,6 +170,79 @@ namespace TapEmpire.Services
 
             animation.SetLink(target.gameObject);
             return animation;
+        }
+
+        public Sequence PlayFlyingPrefabAnimation(
+            int count,
+            Vector3 start,
+            Transform target,
+            float spawnInterval,
+            float scatterRadius,
+            float scatterRandomness,
+            GameObject prefab,
+            Action<int> onItemComplete,
+            Action onAllComplete = null)
+        {
+            if (!target || !prefab)
+                return DOTween.Sequence();
+
+            CreatePrefabPool(prefab);
+
+            const float birthDuration = 0.2f;
+            const float hoverDuration = 0.15f;
+            const float flyDuration = 0.5f;
+            const float hoverHeight = 20f;
+
+            var newCount = Mathf.Clamp(count, 1, MaxResourceAmount);
+            var spawnPoints = AnimationFragment.GetRadialSpreadPoints(start, newCount, scatterRadius, scatterRandomness);
+            var animation = DOTween.Sequence();
+            var end = target.position;
+
+            for (var i = 0; i < newCount; i++)
+            {
+                var resourceTransform = _flyingPrefabPool.Get();
+                resourceTransform.localScale = Vector3.zero;
+
+                var spawnPos = (Vector3)spawnPoints[i];
+                var hoverPos = spawnPos + Vector3.up * hoverHeight;
+                resourceTransform.position = spawnPos;
+                resourceTransform.SetParent(target);
+
+                var sequence = DOTween.Sequence();
+                sequence.SetDelay(i * spawnInterval);
+                sequence.Append(resourceTransform.DOScale(1f, birthDuration).SetEase(Ease.OutBack));
+                sequence.Append(resourceTransform.DOMove(hoverPos, hoverDuration).SetEase(Ease.OutQuad));
+                sequence.Append(resourceTransform.DOMove(end, flyDuration).SetEase(Ease.InBack));
+
+                var flyIndex = i + 1;
+                var isLast = flyIndex == newCount;
+
+                sequence.AppendCallback(() =>
+                {
+                    onItemComplete?.Invoke(flyIndex);
+                    _flyingPrefabPool.Release(resourceTransform);
+                    resourceTransform.SetParent(_parent);
+
+                    if (isLast)
+                        onAllComplete?.Invoke();
+                });
+
+                animation.Join(sequence);
+            }
+
+            animation.SetLink(target.gameObject);
+            return animation;
+        }
+
+        private void CreatePrefabPool(GameObject prefab)
+        {
+            if (_prefabTemplate == prefab && _flyingPrefabPool != null)
+                return;
+
+            _flyingPrefabPool?.Clear();
+            _prefabTemplate = prefab;
+            var prefabTransform = prefab.GetComponent<Transform>();
+            _flyingPrefabPool = new ComponentPool<Transform>(prefabTransform, _parent, MaxResourceAmount, MaxResourceAmount);
         }
 
         private void CreatePoolParent()
