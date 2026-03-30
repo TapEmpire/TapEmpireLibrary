@@ -17,9 +17,9 @@ namespace TapEmpire.Services.LiveOps
 
     public class StateData
     {
-        public State State;
-        public int Inner;
-        public int Value;
-        public int Addend;
+        public State State = State.NotStarted;
+        public int Inner = 0;
+        public int Value = 0;
+        public int Addend = 0;
     }
 }

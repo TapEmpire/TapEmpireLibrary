@@ -33,7 +33,7 @@ namespace TapEmpire.LiveOps.UI
             _disposables.Dispose();
         }
 
-        public virtual void Animate()
+        public virtual void Animate(int addend)
         {
         }
 
