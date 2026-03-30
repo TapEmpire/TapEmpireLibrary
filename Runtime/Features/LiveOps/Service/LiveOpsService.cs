@@ -59,10 +59,10 @@ namespace TapEmpire.Services.LiveOps
 
         public List<ILiveOps> GetLiveOps() => _liveOps;
 
-        public async UniTask UpdateLiveOps()
+        public async UniTask UpdateLiveOps(bool debug = false)
         {
             await UniTask.WaitForSeconds(1.0f, cancellationToken: default);
-            await _liveOps.Select(liveOps => liveOps.UpdateVisual(_resourceEmitter));
+            await _liveOps.Select(liveOps => liveOps.UpdateVisual(_resourceEmitter, debug));
 
             foreach (var liveOps in _liveOps)
             {

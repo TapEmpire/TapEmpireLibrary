@@ -19,7 +19,7 @@ namespace TapEmpire.Services.LiveOps
         UpdateAction CheckUpdateAction(); // return what action we should for updateVisual
 
         void UpdateData(string placement); // Forward call. Try not to use.
-        UniTask UpdateVisual(Transform from); // Flying step
+        UniTask UpdateVisual(Transform from, bool debug = false); // Flying step
         UniTask UpdateState(); // Popup state
     }
 
