@@ -64,6 +64,8 @@ namespace TapEmpire.Services.LiveOps
             await UniTask.WaitForSeconds(1.0f, cancellationToken: default);
             await _liveOps.Select(liveOps => liveOps.UpdateVisual(_resourceEmitter, debug));
 
+            Debug.LogError("ANIMATION STEP END");
+
             foreach (var liveOps in _liveOps)
             {
                 await liveOps.UpdateState();

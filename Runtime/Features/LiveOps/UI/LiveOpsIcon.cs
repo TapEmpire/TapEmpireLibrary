@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Cysharp.Threading.Tasks;
 using DG.Tweening;
 using R3;
 using TapEmpire.Services.LiveOps;
@@ -33,8 +34,9 @@ namespace TapEmpire.LiveOps.UI
             _disposables.Dispose();
         }
 
-        public virtual void Animate(int addend, bool debug = false)
+        public virtual UniTask Animate(int addend, bool debug = false)
         {
+            return UniTask.CompletedTask;
         }
 
         protected virtual void OnDestroy() => Dispose();
