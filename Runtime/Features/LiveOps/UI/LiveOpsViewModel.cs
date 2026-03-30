@@ -30,5 +30,7 @@ namespace TapEmpire.LiveOps.UI
         {
             UiService.CloseViewAsync(this, default).Forget();
         }
+
+        public void OpenInfo() => LiveOps.OpenTutorial();
     }
 }

@@ -15,6 +15,7 @@ namespace TapEmpire.Services.LiveOps
         void Initialize(DiContainer diContainer, LiveOpsData settings);
         IDisposable CreateIcon(Transform parent);
         void OpenView();
+        void OpenTutorial();
 
         UpdateAction CheckUpdateAction(); // return what action we should for updateVisual
 
