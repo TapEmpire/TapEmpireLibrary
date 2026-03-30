@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using TapEmpire.LiveOps.UI;
 using UnityEngine;
+using WordGame.Feature.Tutorial;
 
 namespace TapEmpire.Services.LiveOps
 {
@@ -11,6 +12,7 @@ namespace TapEmpire.Services.LiveOps
         [SerializeReference] public List<ICondition> Conditions = new();
         public LiveOpsIcon IconPrefab;
         public LiveOpsView LiveOpsPrefab;
+        public TutorialUIView TutorialPrefab;
 
         public abstract ILiveOps Create();
     }
