@@ -1,3 +1,4 @@
+#if TEL_CLOUD_SAVE
 using System;
 using System.Linq;
 using System.Text;
@@ -23,7 +24,7 @@ namespace TapEmpire.Services
         private bool _isAuthenticated;
 #endif
 
-        public async UniTask InitializeAsync(CancellationToken cancellationToken)
+        public async UniTask InitializeAsync(CancellationToken cancellationToken, bool allowManualLogin = true)
         {
             if (!_enabled)
             {
@@ -204,3 +205,4 @@ namespace TapEmpire.Services
         }
     }
 }
+#endif
