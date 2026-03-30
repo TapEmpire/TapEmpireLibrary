@@ -25,7 +25,6 @@ namespace TapEmpire.LiveOps.UI
         {
             _liveOps = liveOps;
             _button.onClick.Subscribe(OnButtonPressed).AddTo(_disposables);
-            // _progress.fillAmount = ;
         }
 
         public virtual void Dispose()

@@ -27,7 +27,8 @@ namespace TapEmpire.Services.LiveOps
     {
         NotStarted,
         Active,
-        Finished
+        Finished,
+        Closed,
     }
 
     public enum UpdateAction
