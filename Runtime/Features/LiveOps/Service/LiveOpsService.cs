@@ -40,8 +40,14 @@ namespace TapEmpire.Services.LiveOps
 
             new LiveOpsAnalyticsModule(_diContainer).AddTo(_disposables);
 
-            Settings.LiveOps.ForEach(liveOpsData => InitializeAndRegisterLiveOps(liveOpsData));
-
+            Settings.LiveOps.ForEach(InitializeAndRegisterLiveOps);
+            
+            foreach (var handler in Settings.ConditionHandlers)
+            {
+                handler.Initialize(_diContainer);
+                _handlers[handler.GetSubjectType()] = handler;
+            }
+            
             return base.OnInitializeAsync(cancellationToken);
         }
 
@@ -70,6 +76,19 @@ namespace TapEmpire.Services.LiveOps
             {
                 await liveOps.UpdateState();
             }
+        }
+        
+        public bool EvaluateConditions(LiveOpsData data)
+        {
+            foreach (var condition in data.Conditions)
+            {
+                var type = condition.GetType();
+                if (!_handlers.TryGetValue(type, out var handler) || !handler.CanHandle(condition)) 
+                    continue;
+                if (!handler.Handle(condition))
+                    return false;
+            }
+            return true;
         }
 
         private void InitializeAndRegisterLiveOps(LiveOpsData data)

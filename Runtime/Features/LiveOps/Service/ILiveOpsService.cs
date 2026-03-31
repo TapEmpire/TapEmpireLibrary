@@ -15,5 +15,6 @@ namespace TapEmpire.Services.LiveOps
         List<ILiveOps> GetLiveOps();
 
         UniTask UpdateLiveOps(bool debug = false);
+        bool EvaluateConditions(LiveOpsData liveOpsData);
     }
 }

@@ -10,5 +10,6 @@ namespace TapEmpire.Services.LiveOps
     public class LiveOpsSettings : ScriptableObject
     {
         [SerializeReference] public List<LiveOpsData> LiveOps;
+        [SerializeReference] public List<IHandler> ConditionHandlers = new();
     }
 }
