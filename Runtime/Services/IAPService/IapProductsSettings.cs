@@ -18,7 +18,8 @@ namespace TapEmpire.Services
         }
 
 #if UNITY_EDITOR
-        private void OnValidate()
+        [Sirenix.OdinInspector.Button]
+        private void UpdateStoreIds()
         {
             var bundleId = UnityEditor.PlayerSettings.applicationIdentifier;
             foreach (var product in _products)
