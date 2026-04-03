@@ -10,10 +10,11 @@ using Object = UnityEngine.Object;
 namespace TapEmpire.Services
 {
     [Serializable]
-    public class SystemService : Initializable, ISystemService
+    public class SystemService : Initializable, ISystemService, ITickable
     {
         public Subject<bool> OnApplicationFocusChanged => _monoCallbackService.OnApplicationFocusChanged;
         public Subject<Unit> OnSessionStarted { get; private set; } = new Subject<Unit>();
+        public Observable<Unit> OnTick => _secondTick;
 
         [field: SerializeField] public SystemSettings SystemSettings { get; private set; }
         [field: SerializeField] public GameStartSettings StaticSettings { get; private set; }
@@ -25,6 +26,8 @@ namespace TapEmpire.Services
         private MonoCallbacksService _monoCallbackService = null;
         private DateTime _sessionTimeStamp = DateTime.UtcNow;
         private CompositeDisposable _disposables = new();
+        private readonly Subject<Unit> _secondTick = new();
+        private float _elapsed;
 
         [Inject]
         private void Construct(IProgressService progressService)
@@ -48,6 +51,17 @@ namespace TapEmpire.Services
             SystemSettings.OnDataChanged.Subscribe(OnDataChanged).AddTo(_disposables);
 
             return UniTask.CompletedTask;
+        }
+
+        public void Tick()
+        {
+            _elapsed += Time.unscaledDeltaTime;
+
+            while (_elapsed >= 1f)
+            {
+                _elapsed -= 1f;
+                _secondTick.OnNext(Unit.Default);
+            }
         }
 
         protected override void OnRelease()

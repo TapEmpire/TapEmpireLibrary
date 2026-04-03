@@ -35,6 +35,9 @@ namespace TapEmpire.Utility
                 return;
             }
 
+            if (_tickables.Count > 0 || _fixedTickables.Count > 0 || _lateTickables.Count > 0)
+                return;
+            
             _tickableManager.Remove(this as ITickable);
             _tickableManager.RemoveFixed(this as IFixedTickable);
             _tickableManager.RemoveLate(this as ILateTickable);
