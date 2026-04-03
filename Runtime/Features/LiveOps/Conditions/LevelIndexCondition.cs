@@ -23,7 +23,7 @@ namespace TapEmpire.Services.LiveOps
         public override bool Handle(LevelIndexCondition condition)
         {
             var level = _progressService.GetLevelProgress();
-            return condition.MinStartLevelIndex >= level;
+            return  level >= condition.MinStartLevelIndex;
         }
     }
 }
