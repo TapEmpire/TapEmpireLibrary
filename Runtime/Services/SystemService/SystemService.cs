@@ -55,7 +55,7 @@ namespace TapEmpire.Services
 
         public void Tick()
         {
-            _elapsed += Time.unscaledDeltaTime;
+            _elapsed += Time.deltaTime;
 
             while (_elapsed >= 1f)
             {

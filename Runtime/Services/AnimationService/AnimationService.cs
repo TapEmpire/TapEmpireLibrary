@@ -202,17 +202,18 @@ namespace TapEmpire.Services
             {
                 var resourceTransform = _flyingPrefabPool.Get();
                 resourceTransform.localScale = Vector3.zero;
-
+                var cg = resourceTransform.GetComponent<CanvasGroup>();
                 var spawnPos = (Vector3)spawnPoints[i];
                 var hoverPos = spawnPos + Vector3.up * hoverHeight;
                 resourceTransform.position = spawnPos;
-                resourceTransform.SetParent(target);
+                resourceTransform.SetParent(target.parent);
 
                 var sequence = DOTween.Sequence();
                 sequence.SetDelay(i * spawnInterval);
                 sequence.Append(resourceTransform.DOScale(1f, birthDuration).SetEase(Ease.OutBack));
                 sequence.Append(resourceTransform.DOMove(hoverPos, hoverDuration).SetEase(Ease.OutQuad));
                 sequence.Append(resourceTransform.DOMove(end, flyDuration).SetEase(Ease.InBack));
+                sequence.Join(cg.DOFade(0f, flyDuration).SetEase(Ease.InBack));
 
                 var flyIndex = i + 1;
                 var isLast = flyIndex == newCount;
@@ -221,6 +222,7 @@ namespace TapEmpire.Services
                 {
                     onItemComplete?.Invoke(flyIndex);
                     _flyingPrefabPool.Release(resourceTransform);
+                    cg.alpha = 1;
                     resourceTransform.SetParent(_parent);
 
                     if (isLast)

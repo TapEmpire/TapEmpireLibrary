@@ -35,6 +35,7 @@ namespace TapEmpire.Utility
                 return;
             }
 
+            //todo: this is hotfix, refactor in future. release ticks_container at app exit
             if (_tickables.Count > 0 || _fixedTickables.Count > 0 || _lateTickables.Count > 0)
                 return;
             

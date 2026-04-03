@@ -12,10 +12,10 @@ namespace TapEmpire.Utility
 
         public Action OnExpired;
 
-        private Func<double> _getRemainingSeconds;
+        private Func<long> _getRemainingSeconds;
         private IDisposable _subscription;
 
-        public IDisposable Initialize(Func<double> getRemainingSeconds, ISystemService systemService)
+        public IDisposable Initialize(Func<long> getRemainingSeconds, ISystemService systemService)
         {
             _getRemainingSeconds = getRemainingSeconds;
             UpdateTimer();
