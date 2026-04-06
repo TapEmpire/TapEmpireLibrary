@@ -205,5 +205,10 @@ namespace TapEmpire.Utility
 
             return result;
         }
+
+        public static T IndexOrLast<T>(this List<T> list, int index)
+        {
+            return index < list.Count ? list[index] : list[-1];
+        }
     }
 }
