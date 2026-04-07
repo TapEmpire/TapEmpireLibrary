@@ -22,6 +22,8 @@ namespace TapEmpire.Services.LiveOps
         void UpdateData(string placement); // Forward call. Try not to use.
         UniTask UpdateVisual(Transform from, bool debug = false); // Flying step
         UniTask UpdateState(); // Popup state
+
+        void Save();
     }
 
     public enum State
