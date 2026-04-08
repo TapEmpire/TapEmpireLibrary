@@ -67,7 +67,7 @@ namespace TapEmpire.Services.LiveOps
 
         public async UniTask UpdateLiveOps(bool debug = false)
         {
-            await UniTask.WaitForSeconds(1.0f, cancellationToken: default);
+            await UniTask.WaitForSeconds(1.5f, cancellationToken: default);
             await UniTask.WhenAll(_liveOps.Select(liveOps => liveOps.UpdateVisual(_resourceEmitter, debug)));
 
             foreach (var liveOps in _liveOps)
