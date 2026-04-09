@@ -1,3 +1,4 @@
+#if TEL_CLOUD_SAVE
 using System;
 using System.Collections.Generic;
 
@@ -17,3 +18,4 @@ namespace TapEmpire.Services
         public Dictionary<string, string> StringValues = new();
     }
 }
+#endif

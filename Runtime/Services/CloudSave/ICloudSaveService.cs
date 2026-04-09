@@ -1,3 +1,4 @@
+#if TEL_CLOUD_SAVE
 using System.Threading;
 using Cysharp.Threading.Tasks;
 
@@ -13,7 +14,9 @@ namespace TapEmpire.Services
         void DeclineRestore(long cloudDataTimestampMs);
 
         UniTask<CloudSaveOperationResult> RestoreAsync(CancellationToken cancellationToken);
+        UniTask<CloudSaveOperationResult> RestoreAsync(ProgressSnapshot snapshot, CancellationToken cancellationToken);
         UniTask<CloudSaveOperationResult> SaveAsync(CancellationToken cancellationToken);
         UniTask<CloudSaveOperationResult> DeleteAsync(CancellationToken cancellationToken);
     }
 }
+#endif

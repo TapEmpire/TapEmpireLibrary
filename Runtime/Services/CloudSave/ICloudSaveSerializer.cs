@@ -1,3 +1,4 @@
+#if TEL_CLOUD_SAVE
 namespace TapEmpire.Services
 {
     public interface ICloudSaveSerializer<T>
@@ -7,3 +8,4 @@ namespace TapEmpire.Services
         void Import(T snapshot);
     }
 }
+#endif

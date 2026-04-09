@@ -1,3 +1,4 @@
+#if TEL_CLOUD_SAVE
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -73,3 +74,4 @@ namespace TapEmpire.Services
         }
     }
 }
+#endif

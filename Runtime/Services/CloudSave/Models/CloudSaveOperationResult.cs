@@ -1,3 +1,4 @@
+#if TEL_CLOUD_SAVE
 namespace TapEmpire.Services
 {
     public readonly struct CloudSaveOperationResult
@@ -23,3 +24,4 @@ namespace TapEmpire.Services
             => new(false, true, message);
     }
 }
+#endif

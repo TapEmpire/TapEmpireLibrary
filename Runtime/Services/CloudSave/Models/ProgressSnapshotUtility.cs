@@ -1,3 +1,4 @@
+#if TEL_CLOUD_SAVE
 namespace TapEmpire.Services
 {
     public static class ProgressSnapshotUtility
@@ -11,3 +12,4 @@ namespace TapEmpire.Services
         }
     }
 }
+#endif
