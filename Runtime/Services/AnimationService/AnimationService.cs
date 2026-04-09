@@ -26,7 +26,9 @@ namespace TapEmpire.Services
 
         private ComponentPool<Image> _flyingResources;
         private ComponentPool<Transform> _flyingPrefabPool;
+        private ComponentPool<Transform> _floatUpPool;
         private GameObject _prefabTemplate;
+        [SerializeField] protected GameObject _floatUpPrefab;
         private Transform _parent;
         private const int MaxResourceAmount = 40;
         private CompositeDisposable _disposables = new();
@@ -51,6 +53,7 @@ namespace TapEmpire.Services
         {
             _flyingResources?.Clear();
             _flyingPrefabPool?.Clear();
+            _floatUpPool?.Clear();
             base.OnRelease();
         }
 
@@ -235,6 +238,49 @@ namespace TapEmpire.Services
             animation.SetLink(target.gameObject);
             return animation;
         }
+
+        public virtual Sequence FloatUpResource(ResourceType resourceType, int amount, Transform target, Vector3 start, bool shouldAddResource)
+        {
+            if (!_floatUpPrefab)
+                return DOTween.Sequence();
+
+            _floatUpPool ??= new ComponentPool<Transform>(_floatUpPrefab.GetComponent<Transform>(), _parent, MaxResourceAmount, MaxResourceAmount);
+
+            const float birthDuration = 0.2f;
+            const float floatDuration = 0.6f;
+            const float floatHeight = 80f;
+
+            var sprite = _resourcesService.GetFlyingSprite(resourceType);
+            var animationItem = _floatUpPool.Get();
+            var cg = animationItem.GetComponent<CanvasGroup>();
+
+            ConfigureFloatUpRenderer(animationItem, sprite, amount);
+
+            animationItem.position = start;
+            animationItem.SetParent(target);
+            animationItem.localScale = Vector3.zero;
+            cg.alpha = 1f;
+
+            var floatTarget = start + Vector3.up * floatHeight;
+
+            var sequence = DOTween.Sequence();
+            sequence.Append(animationItem.DOScale(1f, birthDuration).SetEase(Ease.OutBack));
+            sequence.Append(animationItem.DOMove(floatTarget, floatDuration).SetEase(Ease.OutQuad));
+            sequence.Join(cg.DOFade(0f, floatDuration).SetEase(Ease.InQuad));
+            sequence.AppendCallback(() =>
+            {
+                if (shouldAddResource)
+                    _resourcesService.Add(resourceType, amount);
+                cg.alpha = 1f;
+                animationItem.localScale = Vector3.one;
+                animationItem.SetParent(_parent);
+                _floatUpPool.Release(animationItem);
+            });
+
+            return sequence;
+        }
+
+        protected virtual void ConfigureFloatUpRenderer(Transform t, Sprite sprite, int amount) { }
 
         private void CreatePrefabPool(GameObject prefab)
         {
