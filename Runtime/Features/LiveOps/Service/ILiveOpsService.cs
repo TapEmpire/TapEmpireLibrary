@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using R3;
+using UnityEngine;
 
 namespace TapEmpire.Services.LiveOps
 {
@@ -14,7 +15,7 @@ namespace TapEmpire.Services.LiveOps
         T GetLiveOps<T>() where T : ILiveOps;
         List<ILiveOps> GetLiveOps();
 
-        UniTask UpdateLiveOps(bool debug = false);
+        UniTask UpdateLiveOps(List<Transform> placements = null, bool debug = false);
         bool EvaluateConditions(LiveOpsData liveOpsData);
     }
 }

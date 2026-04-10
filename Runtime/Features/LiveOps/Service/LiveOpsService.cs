@@ -65,14 +65,19 @@ namespace TapEmpire.Services.LiveOps
 
         public List<ILiveOps> GetLiveOps() => _liveOps;
 
-        public async UniTask UpdateLiveOps(bool debug = false)
+        public async UniTask UpdateLiveOps(List<Transform> placements = null, bool debug = false)
         {
-            await UniTask.WaitForSeconds(1.5f, cancellationToken: default);
-
             var actions = _liveOps
                 .Select(liveOps => (LiveOps: liveOps, Action: liveOps.CheckUpdateAction()))
                 .Where(x => x.Action != UpdateAction.None)
                 .ToList();
+
+            if (placements != null)
+            {
+                _liveOps.ForEach((liveOps, index) => liveOps.CreateIcon(placements[index]));
+            }
+
+            await UniTask.WaitForSeconds(1.5f, cancellationToken: default);
 
             foreach (var updateAction in Settings.ProcessingOrder)
             {
