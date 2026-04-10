@@ -68,7 +68,7 @@ namespace TapEmpire.Services.LiveOps
         public async UniTask UpdateLiveOps(List<Transform> placements = null, bool debug = false)
         {
             var actions = _liveOps
-                .Select(liveOps => (LiveOps: liveOps, Action: liveOps.CheckUpdateAction()))
+                .Select(liveOps => (LiveOps: liveOps, Action: liveOps.CheckUpdateAction(debug)))
                 .Where(x => x.Action != UpdateAction.None)
                 .ToList();
 
