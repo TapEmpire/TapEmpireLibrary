@@ -70,7 +70,7 @@ namespace TapEmpire.Services.LiveOps
             await UniTask.WaitForSeconds(1.5f, cancellationToken: default);
 
             var actions = _liveOps
-                .Select(liveOps => (LiveOps: liveOps, Action: liveOps.CheckUpdateAction()))
+                .Select(liveOps => (LiveOps: liveOps, Action: liveOps.CheckUpdateAction(debug)))
                 .Where(x => x.Action != UpdateAction.None)
                 .ToList();
 
