@@ -69,7 +69,6 @@ namespace TapEmpire.Services.LiveOps
         {
             var actions = _liveOps
                 .Select(liveOps => (LiveOps: liveOps, Action: liveOps.CheckUpdateAction(debug)))
-                .Where(x => x.Action != UpdateAction.None)
                 .ToList();
 
             if (placements != null)
@@ -78,21 +77,19 @@ namespace TapEmpire.Services.LiveOps
             }
 
             await UniTask.WaitForSeconds(1.5f, cancellationToken: default);
-
+            await UniTask.WhenAll(actions.Select(x => x.LiveOps.UpdateVisual(_resourceEmitter, debug)));
+            
             foreach (var updateAction in Settings.ProcessingOrder)
             {
                 var group = actions
-                    .Where(x => x.Action == updateAction)
-                    .Select(x => x.LiveOps)
+                    .Where(x => x.Action == updateAction && x.Action != UpdateAction.None)
                     .ToList();
 
                 if (group.Count == 0)
                     continue;
 
-                await UniTask.WhenAll(group.Select(liveOps => liveOps.UpdateVisual(_resourceEmitter, debug)));
-
-                foreach (var liveOps in group)
-                    await liveOps.UpdateState();
+                foreach (var tuple in group)
+                    await tuple.LiveOps.UpdateState();
             }
         }
         

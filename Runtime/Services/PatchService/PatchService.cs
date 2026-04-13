@@ -40,27 +40,10 @@ namespace TapEmpire.Services
 
         protected override async UniTask OnInitializeAsync(CancellationToken cancellationToken)
         {
-            var (deviceId, uuid, deviceIdHash) = await RequestIdsAsync(cancellationToken);
-
-            if (string.IsNullOrEmpty(deviceId) && string.IsNullOrEmpty(uuid))
+            if (Application.isEditor)
             {
-                Debug.Log("[PlayerPatch] Could not obtain AppMetrica IDs. Skipping.");
-                return;
-            }
-
-            if (!string.IsNullOrEmpty(deviceId))
-            {
-                _progressService.SetString(DeviceIdProgressKey, deviceId);
-            }
-
-            if (!string.IsNullOrEmpty(uuid))
-            {
-                _progressService.SetString(UuidProgressKey, uuid);
-            }
-
-            if (!string.IsNullOrEmpty(deviceIdHash))
-            {
-                _progressService.SetString(DeviceIdHashProgressKey, deviceIdHash);
+                Debug.Log("[PlayerPatch] Skip in editor.");
+                return;   
             }
 
             var patches = GetPatchEntries();
@@ -69,6 +52,8 @@ namespace TapEmpire.Services
                 Debug.Log("[PlayerPatch] No patch entries. Skipping.");
                 return;
             }
+            
+            var (deviceId, uuid, deviceIdHash) = await GetPlayerIdAsync(cancellationToken);
 
             var entry = patches.FirstOrDefault(p => MatchesPlayer(p, deviceId, uuid, deviceIdHash));
             if (entry == null)
@@ -93,6 +78,33 @@ namespace TapEmpire.Services
             await _cloudSaveService.SaveAsync(cancellationToken);
             Debug.Log("[PlayerPatch] Patch applied and cloud save forced.");
 #endif
+        }
+        
+        private async UniTask<(string deviceId, string uuid, string deviceIdHash)> GetPlayerIdAsync(CancellationToken cancellationToken)
+        {
+            var (deviceId, uuid, deviceIdHash) = await RequestIdsAsync(cancellationToken);
+
+            if (string.IsNullOrEmpty(deviceId) && string.IsNullOrEmpty(uuid))
+            {
+                Debug.Log("[PlayerPatch] Could not obtain AppMetrica IDs. Skipping.");
+                return (deviceId, uuid, deviceIdHash);
+            }
+
+            if (!string.IsNullOrEmpty(deviceId))
+            {
+                _progressService.SetString(DeviceIdProgressKey, deviceId);
+            }
+
+            if (!string.IsNullOrEmpty(uuid))
+            {
+                _progressService.SetString(UuidProgressKey, uuid);
+            }
+
+            if (!string.IsNullOrEmpty(deviceIdHash))
+            {
+                _progressService.SetString(DeviceIdHashProgressKey, deviceIdHash);
+            }
+            return (deviceId, uuid, deviceIdHash);
         }
 
         protected abstract IReadOnlyList<T> GetPatchEntries();
