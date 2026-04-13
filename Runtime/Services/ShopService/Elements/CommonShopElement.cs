@@ -58,7 +58,7 @@ namespace TapEmpire.Services.Shop
             {
                 var from = _icon.transform.position;
                 var product = GetProduct<AddResourceProduct<ResourceType>>(_data.Key);
-                AcquireResources(product.ResourceType, product.Amount, _placement, from, false);
+                AcquireResources(product.ResourceType, product.Amount, _placement, from, false, ResourceAcquireType.IAP);
             }
         }
     }

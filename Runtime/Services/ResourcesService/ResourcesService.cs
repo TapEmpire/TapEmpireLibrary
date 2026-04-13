@@ -108,11 +108,12 @@ namespace TapEmpire.Services
             _resources.ForEach(pair => pair.Value.RefreshFromProgress());
         }
 
-        public void AddVirtual(T resource, int amount, string reason)
+        public void AddVirtual(T resource, int amount, string reason, ResourceAcquireType acquireType = ResourceAcquireType.Free)
         {
             if (!string.IsNullOrEmpty(reason))
             {
                 _onResourceAdded.OnNext((resource, _resources[resource].Amount.Value + amount, reason));
+                _onResourceAddedDetailed.OnNext((resource, amount, acquireType, reason));
             }
             _onVirtualAdded.OnNext(resource);
         }
