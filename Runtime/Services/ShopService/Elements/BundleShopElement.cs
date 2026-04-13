@@ -38,6 +38,12 @@ namespace TapEmpire.Services.Shop
 
         public override void Initialize(OfferData data)
         {
+            if (Application.internetReachability == NetworkReachability.NotReachable)
+            {
+                gameObject.SetActive(false);
+                return;
+            }
+
             base.Initialize(data);
             _data = data;
 

@@ -24,6 +24,12 @@ namespace TapEmpire.Services.Shop
 
         public override void Initialize(OfferData data)
         {
+            if (Application.internetReachability == NetworkReachability.NotReachable)
+            {
+                gameObject.SetActive(false);
+                return;
+            }
+
             base.Initialize(data);
             _purchaseButton.onClick.Subscribe(() => _iapService.BuyProduct(data.Products[0])).AddTo(_disposables);
             _iapService.OnPurchaseSuccess.Subscribe(OnPurchaseSuccess).AddTo(_disposables);
