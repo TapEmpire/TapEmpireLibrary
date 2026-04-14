@@ -87,7 +87,7 @@ namespace TapEmpire.Services
                 {
                     { "fb_content_type", "product" },
                     { "fb_content_id", iapId },
-                    { "fb_order_id", data.product.transactionID }
+                    { "fb_order_id", data.product.transactionID ?? string.Empty }
                 });
             }
 #endif
