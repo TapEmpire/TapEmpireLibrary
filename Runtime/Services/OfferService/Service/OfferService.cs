@@ -94,6 +94,7 @@ namespace TapEmpire.Services.Offer
 
         private void ShowOfferInternal(OfferData data, Rarity rarity, string placement, bool autoshown)
         {
+            _progressService.SetPendingOffer(false);
             var model = new OfferViewModel(data.ToRuntime(rarity), placement);
             model.OnViewClosed.Take(1).Subscribe(_ => OnOfferClosed.OnNext(data.Type));
             _uiService.OpenViewAsync(data.Element, model, default).Forget();

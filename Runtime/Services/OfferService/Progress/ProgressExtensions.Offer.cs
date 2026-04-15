@@ -7,6 +7,7 @@ namespace TapEmpire.Services.Offer
     {
         private static string RarityKey = "Rarity";
         private static string RaritySequenceKey = "RaritySequence";
+        private static string PendingOfferKey = "PendingOffer";
 
         public static Rarity GetRarity(this IProgressService self)
         {
@@ -36,6 +37,16 @@ namespace TapEmpire.Services.Offer
         public static void ClearRaritySequence(this IProgressService self)
         {
             self.StringValuesDictionary.DeleteKey(RaritySequenceKey);
+        }
+
+        public static bool GetPendingOffer(this IProgressService self)
+        {
+            return self.BoolValuesDictionary.TryGetValue(PendingOfferKey, out var value) && value;
+        }
+
+        public static void SetPendingOffer(this IProgressService self, bool value)
+        {
+            self.BoolValuesDictionary.SetValue(PendingOfferKey, value);
         }
     }
 }
