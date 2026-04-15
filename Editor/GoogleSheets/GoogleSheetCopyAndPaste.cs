@@ -51,14 +51,15 @@ namespace TapEmpire.Utility.GoogleSheet
 
         private static UniTask<string> DuplicateSheetAsync(GoogleSheetData googleSheetData, string newSheetName)
         {
-            string spreadsheetId = googleSheetData.SpreadSheetId;
+            var spreadSheetData = googleSheetData.SpreadSheets.GetSpreadSheetData(newSheetName);
+            string spreadsheetId = spreadSheetData.Id;
             string url = $"https://sheets.googleapis.com/v4/spreadsheets/{spreadsheetId}:batchUpdate";
 
             string jsonBody = $@"{{
                 ""requests"": [
                     {{
                         ""duplicateSheet"": {{
-                            ""sourceSheetId"": {googleSheetData.TemplateSheetId},
+                            ""sourceSheetId"": {spreadSheetData.TemplateSheetId},
                             ""insertSheetIndex"": 9999,
                             ""newSheetName"": ""{newSheetName}""
                         }}
@@ -72,7 +73,7 @@ namespace TapEmpire.Utility.GoogleSheet
         private static UniTask<string> PopulateSheetAsync(GoogleSheetData googleSheetData, string sheetName, List<List<string>> data)
         {
             string range = $"{sheetName}!A2:{(char)('A' + data[0].Count - 1)}{data.Count + 1}";
-            string spreadsheetId = googleSheetData.SpreadSheetId;
+            string spreadsheetId = googleSheetData.SpreadSheets.GetSpreadSheet(sheetName);
             string url = $"https://sheets.googleapis.com/v4/spreadsheets/{spreadsheetId}/values/{range}?valueInputOption=USER_ENTERED";
 
             var requestBody = new

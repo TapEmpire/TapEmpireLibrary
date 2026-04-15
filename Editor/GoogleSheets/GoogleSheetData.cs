@@ -8,6 +8,7 @@ using UnityEditor;
 using UnityEditor.Localization;
 using UnityEngine;
 using UnityEngine.Localization.Tables;
+using UnityEngine.SocialPlatforms;
 using UnityEngine.UI;
 
 namespace TapEmpire.Utility.GoogleSheet
@@ -17,6 +18,7 @@ namespace TapEmpire.Utility.GoogleSheet
     {
         public TextAsset ServiceAccountKey;
         public string SpreadSheetId = string.Empty;
+        public GoogleSheetSelector SpreadSheets;
         public string TemplateSheetId = string.Empty;
         public List<LevelGoogleData> List = new();
 
@@ -111,7 +113,8 @@ namespace TapEmpire.Utility.GoogleSheet
         {
             var googleSheetData = GoogleSheetData.Instance;
             var provider = new GoogleSheetsSettingsProvider();
-            var localizationData = await provider.GetLocalization(googleSheetData.SpreadSheetId, TableId);
+            var spreadSheetId = googleSheetData.SpreadSheets.GetSpreadSheet(LocalizationTableName);
+            var localizationData = await provider.GetLocalization(spreadSheetId, TableId);
             googleSheetData.Converters.ForEach(converter => localizationData = converter.Deconvert(LocalizationTableName, localizationData, log));
 
             var collection = LocalizationEditorSettings.GetStringTableCollection(LocalizationTableName);
