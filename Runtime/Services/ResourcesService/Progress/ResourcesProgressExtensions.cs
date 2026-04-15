@@ -7,7 +7,7 @@ namespace TapEmpire.Services
         private static string ResourceKey = "Resource_";
         private static string TimeStampKey = "TimeStamp_";
 
-        private static string CreateResourceKey(string resourceName) => $"{ResourceKey}{resourceName}";
+        public static string CreateResourceKey(string resourceName) => $"{ResourceKey}{resourceName}";
         private static string CreateTimeStampKey(string resourceName) => $"{TimeStampKey}{resourceName}";
         
         public static int GetResourceCount(this IProgressService self, string resourceName, int defaultValue = default)

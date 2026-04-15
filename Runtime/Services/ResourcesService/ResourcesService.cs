@@ -16,15 +16,22 @@ namespace TapEmpire.Services
         private Subject<(T, int, string)> _onResourceAdded = new();
         private Subject<(T, int, string)> _onResourceUsed = new();
         private Subject<T> _onVirtualAdded = new();
+        private Subject<(T resourceType, int amountAdd, ResourceAcquireType type, string source)> _onResourceAddedDetailed = new();
+        private Subject<(T resourceType, int amountUsed, ResourceAcquireType type, string source)> _onResourceUsedDetailed = new();
 
         public Observable<(T, int, string)> OnResourceAdded => _onResourceAdded;
         public Observable<(T, int, string)> OnResourceUsed => _onResourceUsed;
         public Observable<T> OnVirtualAdded => _onVirtualAdded;
+        public Observable<(T, int, ResourceAcquireType, string)> OnResourceAddedDetailed => _onResourceAddedDetailed;
+        public Observable<(T, int, ResourceAcquireType, string)> OnResourceUsedDetailed => _onResourceUsedDetailed;
 
         protected IProgressService _progressService;
         protected ISystemService _systemService;
         protected DiContainer _diContainer;
         protected ResourcesAnalyticsModule<T> _analyticsModule;
+#if TEL_CLOUD_SAVE
+        protected CloudSaveResourceModule<T> _cloudSaveModule;
+#endif
 
         protected Dictionary<T, ResourceRuntimeData<T>> _resources = new();
 
@@ -46,6 +53,9 @@ namespace TapEmpire.Services
             _systemService.OnApplicationFocusChanged.Subscribe(UpdateOnFocusChange).AddTo(_disposables);
 
             _analyticsModule = new ResourcesAnalyticsModule<T>(_diContainer);
+#if TEL_CLOUD_SAVE
+            _cloudSaveModule = new CloudSaveResourceModule<T>(_diContainer, this);
+#endif
 
             return base.OnInitializeAsync(cancellationToken);
         }
@@ -53,28 +63,33 @@ namespace TapEmpire.Services
         protected override void OnRelease()
         {
             _analyticsModule?.OnRelease();
+#if TEL_CLOUD_SAVE
+            _cloudSaveModule?.OnRelease();
+#endif
             _resources.ForEach(pair => pair.Value.Dispose());
             _resources.Clear();
             base.OnRelease();
         }
 
-        public void Add(T resource, int amount, string reason = "")
+        public void Add(T resource, int amount, string reason = "", ResourceAcquireType acquireType = ResourceAcquireType.Free)
         {
             var value = _resources[resource].Add(amount);
 
             if (!string.IsNullOrEmpty(reason))
             {
                 _onResourceAdded.OnNext((resource, value, reason));
+                _onResourceAddedDetailed.OnNext((resource, amount, acquireType, reason));
             }
         }
 
-        public void Subtract(T resource, int amount, string reason = "")
+        public void Subtract(T resource, int amount, string reason = "", ResourceAcquireType acquireType = ResourceAcquireType.Free)
         {
             var value = _resources[resource].Subtract(amount);
 
             if (!string.IsNullOrEmpty(reason))
             {
                 _onResourceUsed.OnNext((resource, value, reason));
+                _onResourceUsedDetailed.OnNext((resource, amount, acquireType, reason));
             }
         }
 
@@ -86,6 +101,11 @@ namespace TapEmpire.Services
         public bool HasAmount(T resource, int amount)
         {
             return _resources[resource].HasAmount(amount);
+        }
+
+        public void Refresh()
+        {
+            _resources.ForEach(pair => pair.Value.RefreshFromProgress());
         }
 
         public void AddVirtual(T resource, int amount, string reason)
@@ -111,5 +131,12 @@ namespace TapEmpire.Services
         {
             _resources.ForEach(resource => resource.Value.RecheckAbsentTime());
         }
+    }
+    
+    public enum ResourceAcquireType
+    {
+        Free,
+        Rewarded,
+        IAP
     }
 }

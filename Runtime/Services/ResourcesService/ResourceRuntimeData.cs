@@ -68,6 +68,11 @@ namespace TapEmpire.Services
             return Amount.Value;
         }
 
+        public void RefreshFromProgress()
+        {
+            Amount.Value = _progressService.GetResourceCount(_resourceName, _settings.InitialAmount);
+        }
+
         public void RecheckAbsentTime()
         {
             if (_isRestorable)

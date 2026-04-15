@@ -21,6 +21,9 @@ namespace TapEmpire.Services.Analytics
 
             _resourcesService.OnResourceAdded.Subscribe(OnResourceAdded).AddTo(_disposables);
             _resourcesService.OnResourceUsed.Subscribe(OnResourceUsed).AddTo(_disposables);
+            
+            _resourcesService.OnResourceAddedDetailed.Subscribe(OnResourceAddedDetailed).AddTo(_disposables);
+            _resourcesService.OnResourceUsedDetailed.Subscribe(OnResourceUsedDetailed).AddTo(_disposables);
         }
 
         public void OnRelease()
@@ -58,6 +61,28 @@ namespace TapEmpire.Services.Analytics
             });
         
             SendGeneralEvents(data.resource, data.reason);
+        }
+        
+        private void OnResourceAddedDetailed((ResourceType resource, int amountAdded, ResourceAcquireType type, string reason) data) 
+            => SendAdjustAssetEvent("earn_asset", data.resource, data.amountAdded, data.type, data.reason);
+
+        private void OnResourceUsedDetailed((ResourceType resource, int amountUsed, ResourceAcquireType type, string reason) data) 
+            => SendAdjustAssetEvent("spend_asset", data.resource, data.amountUsed, data.type, data.reason);
+
+        private void SendAdjustAssetEvent(string eventName, ResourceType resource, int amount, ResourceAcquireType type, string reason)
+        {
+            var level = _progressService.GetVisualProgress();
+
+            _analyticsService.LogAdjustEvent(new Dictionary<string, object>
+            {
+                { "adjust_event_name", eventName },
+                { "level", level },
+                { "level_id", level },
+                { "amount", amount },
+                { "type", type.ToString() },
+                { "asset", resource.ToString() },
+                { "source", reason }
+            });
         }
 
         private void SendGeneralEvents(ResourceType resource, string reason)
