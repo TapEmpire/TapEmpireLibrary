@@ -15,5 +15,6 @@ namespace TapEmpire.Services.LiveOps
             UpdateAction.Start,
             UpdateAction.Update,
         };
+        public float UpdateDelaySeconds = 1.5f;
     }
 }

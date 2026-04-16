@@ -76,7 +76,7 @@ namespace TapEmpire.Services.LiveOps
                 _liveOps.ForEach((liveOps, index) => liveOps.CreateIcon(placements[index]));
             }
 
-            await UniTask.WaitForSeconds(1.5f, cancellationToken: default);
+            await UniTask.WaitForSeconds(Settings.UpdateDelaySeconds, cancellationToken: default);
             await UniTask.WhenAll(actions.Select(x => x.LiveOps.UpdateVisual(_resourceEmitter, debug)));
             
             foreach (var updateAction in Settings.ProcessingOrder)
