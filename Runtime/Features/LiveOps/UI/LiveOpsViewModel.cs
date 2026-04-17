@@ -11,13 +11,15 @@ namespace TapEmpire.LiveOps.UI
     public class LiveOpsViewModel : IUIViewModel, IInjectable
     {
         public ILiveOps LiveOps { get; private set; }
-        public IUIService UiService;
+        public IUIService UiService { get; private set; }
+        public DiContainer DiContainer { get; private set; }
 
         public T As<T>() where T : ILiveOps => (T)LiveOps;
 
         [Inject]
-        private void Construct(IUIService uiService)
+        private void Construct(DiContainer diContainer, IUIService uiService)
         {
+            DiContainer = diContainer;
             UiService = uiService;
         }
 
@@ -30,5 +32,7 @@ namespace TapEmpire.LiveOps.UI
         {
             UiService.CloseViewAsync(this, default).Forget();
         }
+
+        public void OpenInfo() => LiveOps.OpenTutorial();
     }
 }

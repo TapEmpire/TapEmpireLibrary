@@ -39,8 +39,7 @@ namespace TapEmpire.Services.Shop
                 }
             }
 
-            this.gameObject.SetActive(_elements.Count > 0);
-
+            gameObject.SetActive(_elements.Count > 0 && _elements.Any(x=>x.gameObject.activeSelf));
             base.Initialize(diContainer, sectionData);
         }
 

@@ -61,7 +61,8 @@ namespace TapEmpire.Services.Shop
 
             UpdateTimer();
 
-            if (_data.Type == ProductType.Ads && !_adsService.CanShowRewarded())
+            if (_data.Type == ProductType.Ads &&
+                (!_adsService.CanShowRewarded() || Application.internetReachability == NetworkReachability.NotReachable))
             {
                 this.gameObject.SetActive(false);
             }
@@ -71,20 +72,20 @@ namespace TapEmpire.Services.Shop
         {
             if (_data.Type == ProductType.Free)
             {
-                OnClickResult(ResourceUsageType.ShopFree);
+                OnClickResult(ResourceUsageType.ShopFree, ResourceAcquireType.Free);
             }
 
             if (_data.Type == ProductType.Ads)
             {
-                _adsService.ShowRewarded(AdType.ShopCoins.ToString(), () => OnClickResult(ResourceUsageType.ShopAds));
+                _adsService.ShowRewarded(AdType.ShopCoins.ToString(), () => OnClickResult(ResourceUsageType.ShopAds, ResourceAcquireType.Rewarded));
             }
         }
 
-        private void OnClickResult(string resourceUsage)
+        private void OnClickResult(string resourceUsage, ResourceAcquireType acquireType)
         {
             var from = _icon.transform.position;
             var reward = _data.Reward.As<ProductReward<ResourceType>>();
-            var sequence = AcquireResources(reward.Resource, reward.Amount, resourceUsage, from, true);
+            var sequence = AcquireResources(reward.Resource, reward.Amount, resourceUsage, from, true, acquireType);
 
             sequence.OnComplete(() => OnAnimationComplete(_data.Type));
 

@@ -1,3 +1,4 @@
+using System.Linq;
 using TapEmpire.Utility;
 using UnityEngine;
 using Zenject;
@@ -19,7 +20,7 @@ namespace TapEmpire.Services.Shop
                     element.Initialize(product);
                 }
             }
-
+            gameObject.SetActive(_elements.Count > 0 && _elements.Any(x=>x.gameObject.activeSelf));
             base.Initialize(diContainer, sectionData);
         }
 

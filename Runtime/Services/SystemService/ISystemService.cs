@@ -9,6 +9,7 @@ namespace TapEmpire.Services
     {
         Subject<bool> OnApplicationFocusChanged { get; }
         Subject<Unit> OnSessionStarted { get; }
+        Observable<Unit> OnTick { get; }
 
         GameStartSettings StaticSettings { get; }
         SystemSettings SystemSettings { get; }

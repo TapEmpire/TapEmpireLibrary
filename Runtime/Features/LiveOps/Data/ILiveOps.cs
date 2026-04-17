@@ -11,23 +11,28 @@ namespace TapEmpire.Services.LiveOps
     {
         StateData StateData { get; }
         string Name { get; }
+        Observable<StateData> OnDataChanged { get; }
 
         void Initialize(DiContainer diContainer, LiveOpsData settings);
         IDisposable CreateIcon(Transform parent);
         void OpenView();
+        void OpenTutorial();
 
-        UpdateAction CheckUpdateAction(); // return what action we should for updateVisual
+        UpdateAction CheckUpdateAction(bool debug = false); // return what action we should for updateVisual
 
         void UpdateData(string placement); // Forward call. Try not to use.
-        UniTask UpdateVisual(Transform from); // Flying step
+        UniTask UpdateVisual(Transform from, bool debug = false); // Flying step
         UniTask UpdateState(); // Popup state
+
+        void Save();
     }
 
     public enum State
     {
         NotStarted,
+        Starting,
         Active,
-        Finished
+        Finished,
     }
 
     public enum UpdateAction

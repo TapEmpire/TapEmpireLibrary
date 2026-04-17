@@ -38,6 +38,12 @@ namespace TapEmpire.Services.Shop
 
         public override void Initialize(OfferData data)
         {
+            if (Application.internetReachability == NetworkReachability.NotReachable)
+            {
+                gameObject.SetActive(false);
+                return;
+            }
+
             base.Initialize(data);
             _data = data;
 
@@ -73,7 +79,7 @@ namespace TapEmpire.Services.Shop
 
             rewards.ForEach((reward, index2) =>
                 AcquireResources(reward.ResourceType, reward.Amount, ResourceUsageType.ShopPaid,
-                    _offerChoices[index].Resources[index2].Icon.transform.position, false));
+                    _offerChoices[index].Resources[index2].Icon.transform.position, false, ResourceAcquireType.IAP));
 
             OnShouldDestroy.OnNext(this);
         }

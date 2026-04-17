@@ -14,7 +14,7 @@ using Random = UnityEngine.Random;
 
 namespace TapEmpire.Services
 {
-    [System.Serializable]
+    [Serializable]
     public class AnimationService<ResourceType> : Initializable, IAnimationService<ResourceType>
     {
         [SerializeField] private AnimationSettings _settings;
@@ -25,6 +25,10 @@ namespace TapEmpire.Services
         protected IAudioService _audioService;
 
         private ComponentPool<Image> _flyingResources;
+        private ComponentPool<Transform> _flyingPrefabPool;
+        private ComponentPool<Transform> _floatUpPool;
+        private GameObject _prefabTemplate;
+        [SerializeField] protected GameObject _floatUpPrefab;
         private Transform _parent;
         private const int MaxResourceAmount = 40;
         private CompositeDisposable _disposables = new();
@@ -48,6 +52,8 @@ namespace TapEmpire.Services
         protected override void OnRelease()
         {
             _flyingResources?.Clear();
+            _flyingPrefabPool?.Clear();
+            _floatUpPool?.Clear();
             base.OnRelease();
         }
 
@@ -167,6 +173,124 @@ namespace TapEmpire.Services
 
             animation.SetLink(target.gameObject);
             return animation;
+        }
+
+        public Sequence PlayFlyingPrefabAnimation(
+            int count,
+            Vector3 start,
+            Transform target,
+            float spawnInterval,
+            float scatterRadius,
+            float scatterRandomness,
+            GameObject prefab,
+            Action<int> onItemComplete,
+            Action onAllComplete = null)
+        {
+            if (!target || !prefab)
+                return DOTween.Sequence();
+
+            CreatePrefabPool(prefab);
+
+            const float birthDuration = 0.2f;
+            const float hoverDuration = 0.15f;
+            const float flyDuration = 0.5f;
+            const float hoverHeight = 20f;
+
+            var newCount = Mathf.Clamp(count, 1, MaxResourceAmount);
+            var spawnPoints = AnimationFragment.GetRadialSpreadPoints(start, newCount, scatterRadius, scatterRandomness);
+            var animation = DOTween.Sequence();
+            var end = target.position;
+
+            for (var i = 0; i < newCount; i++)
+            {
+                var resourceTransform = _flyingPrefabPool.Get();
+                resourceTransform.localScale = Vector3.zero;
+                var cg = resourceTransform.GetComponent<CanvasGroup>();
+                var spawnPos = (Vector3)spawnPoints[i];
+                var hoverPos = spawnPos + Vector3.up * hoverHeight;
+                resourceTransform.position = spawnPos;
+                resourceTransform.SetParent(target.parent);
+
+                var sequence = DOTween.Sequence();
+                sequence.SetDelay(i * spawnInterval);
+                sequence.Append(resourceTransform.DOScale(1f, birthDuration).SetEase(Ease.OutBack));
+                sequence.Append(resourceTransform.DOMove(hoverPos, hoverDuration).SetEase(Ease.OutQuad));
+                sequence.Append(resourceTransform.DOMove(end, flyDuration).SetEase(Ease.InBack));
+                sequence.Join(cg.DOFade(0f, flyDuration).SetEase(Ease.InBack));
+
+                var flyIndex = i + 1;
+                var isLast = flyIndex == newCount;
+
+                sequence.AppendCallback(() =>
+                {
+                    onItemComplete?.Invoke(flyIndex);
+                    _flyingPrefabPool.Release(resourceTransform);
+                    cg.alpha = 1;
+                    resourceTransform.SetParent(_parent);
+
+                    if (isLast)
+                        onAllComplete?.Invoke();
+                });
+
+                animation.Join(sequence);
+            }
+
+            animation.SetLink(target.gameObject);
+            return animation;
+        }
+
+        public virtual Sequence FloatUpResource(ResourceType resourceType, int amount, Transform target, Vector3 start, bool shouldAddResource)
+        {
+            if (!_floatUpPrefab)
+                return DOTween.Sequence();
+
+            _floatUpPool ??= new ComponentPool<Transform>(_floatUpPrefab.GetComponent<Transform>(), _parent, MaxResourceAmount, MaxResourceAmount);
+
+            const float birthDuration = 0.2f;
+            const float floatDuration = 0.6f;
+            const float floatHeight = 80f;
+
+            var sprite = _resourcesService.GetFlyingSprite(resourceType);
+            var animationItem = _floatUpPool.Get();
+            var cg = animationItem.GetComponent<CanvasGroup>();
+
+            ConfigureFloatUpRenderer(animationItem, sprite, amount);
+
+            animationItem.position = start;
+            animationItem.SetParent(target);
+            animationItem.localScale = Vector3.zero;
+            cg.alpha = 1f;
+
+            var floatTarget = start + Vector3.up * floatHeight;
+
+            var sequence = DOTween.Sequence();
+            sequence.Append(animationItem.DOScale(1f, birthDuration).SetEase(Ease.OutBack));
+            sequence.Append(animationItem.DOMove(floatTarget, floatDuration).SetEase(Ease.OutQuad));
+            sequence.Join(cg.DOFade(0f, floatDuration).SetEase(Ease.InQuad));
+            sequence.AppendCallback(() =>
+            {
+                if (shouldAddResource)
+                    _resourcesService.Add(resourceType, amount);
+                cg.alpha = 1f;
+                animationItem.localScale = Vector3.one;
+                animationItem.SetParent(_parent);
+                _floatUpPool.Release(animationItem);
+            });
+
+            return sequence;
+        }
+
+        protected virtual void ConfigureFloatUpRenderer(Transform t, Sprite sprite, int amount) { }
+
+        private void CreatePrefabPool(GameObject prefab)
+        {
+            if (_prefabTemplate == prefab && _flyingPrefabPool != null)
+                return;
+
+            _flyingPrefabPool?.Clear();
+            _prefabTemplate = prefab;
+            var prefabTransform = prefab.GetComponent<Transform>();
+            _flyingPrefabPool = new ComponentPool<Transform>(prefabTransform, _parent, MaxResourceAmount, MaxResourceAmount);
         }
 
         private void CreatePoolParent()

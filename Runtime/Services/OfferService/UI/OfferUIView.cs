@@ -149,7 +149,7 @@ namespace TapEmpire.Services.Offer
             var animation = _animationService.CollectResource(resourceType, amount, startPosition, false);
 
             var reason = shouldAddResource ? usageType : string.Empty;
-            _resourcesService.AddVirtual(resourceType, amount, reason);
+            _resourcesService.AddVirtual(resourceType, amount, reason, ResourceAcquireType.IAP);
 
             animation.Play();
         }

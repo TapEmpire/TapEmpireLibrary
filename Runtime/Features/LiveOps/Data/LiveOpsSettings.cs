@@ -1,7 +1,5 @@
-using System;
 using System.Collections.Generic;
 using TapEmpire.Patterns.Strategy;
-using TapEmpire.Utility;
 using UnityEngine;
 
 namespace TapEmpire.Services.LiveOps
@@ -10,5 +8,13 @@ namespace TapEmpire.Services.LiveOps
     public class LiveOpsSettings : ScriptableObject
     {
         [SerializeReference] public List<LiveOpsData> LiveOps;
+        [SerializeReference] public List<IHandler> ConditionHandlers = new();
+        [field: SerializeField] public List<UpdateAction> ProcessingOrder { get; private set; } = new()
+        {
+            UpdateAction.Finish,
+            UpdateAction.Start,
+            UpdateAction.Update,
+        };
+        public float UpdateDelaySeconds = 1.5f;
     }
 }

@@ -6,7 +6,6 @@ using Cysharp.Threading.Tasks;
 using R3;
 using TapEmpire.Patterns.Strategy;
 using TapEmpire.UI;
-using TapEmpire.Utility;
 using UnityEngine;
 using Zenject;
 
@@ -40,8 +39,14 @@ namespace TapEmpire.Services.LiveOps
 
             new LiveOpsAnalyticsModule(_diContainer).AddTo(_disposables);
 
-            Settings.LiveOps.ForEach(liveOpsData => InitializeAndRegisterLiveOps(liveOpsData));
-
+            Settings.LiveOps.ForEach(InitializeAndRegisterLiveOps);
+            
+            foreach (var handler in Settings.ConditionHandlers)
+            {
+                handler.Initialize(_diContainer);
+                _handlers[handler.GetSubjectType()] = handler;
+            }
+            
             return base.OnInitializeAsync(cancellationToken);
         }
 
@@ -59,15 +64,50 @@ namespace TapEmpire.Services.LiveOps
 
         public List<ILiveOps> GetLiveOps() => _liveOps;
 
-        public async UniTask UpdateLiveOps()
+        public async UniTask UpdateLiveOps(List<Transform> placements = null, bool debug = false)
         {
-            await UniTask.WaitForSeconds(1.0f, cancellationToken: default);
-            await _liveOps.Select(liveOps => liveOps.UpdateVisual(_resourceEmitter));
+            var actions = _liveOps
+                .Select(liveOps => (LiveOps: liveOps, Action: liveOps.CheckUpdateAction(debug)))
+                .ToList();
 
-            foreach (var liveOps in _liveOps)
+            if (placements != null)
             {
-                await liveOps.UpdateState();
+                var placementIndex = 0;
+                foreach (var liveOps in _liveOps)
+                {
+                    if (liveOps.CreateIcon(placements[placementIndex]) != null)
+                        placementIndex++;
+                }
             }
+
+            await UniTask.WaitForSeconds(Settings.UpdateDelaySeconds, cancellationToken: default);
+            await UniTask.WhenAll(actions.Select(x => x.LiveOps.UpdateVisual(_resourceEmitter, debug)));
+            
+            foreach (var updateAction in Settings.ProcessingOrder)
+            {
+                var group = actions
+                    .Where(x => x.Action == updateAction && x.Action != UpdateAction.None)
+                    .ToList();
+
+                if (group.Count == 0)
+                    continue;
+
+                foreach (var tuple in group)
+                    await tuple.LiveOps.UpdateState();
+            }
+        }
+        
+        public bool EvaluateConditions(LiveOpsData data)
+        {
+            foreach (var condition in data.Conditions)
+            {
+                var type = condition.GetType();
+                if (!_handlers.TryGetValue(type, out var handler) || !handler.CanHandle(condition)) 
+                    continue;
+                if (!handler.Handle(condition))
+                    return false;
+            }
+            return true;
         }
 
         private void InitializeAndRegisterLiveOps(LiveOpsData data)

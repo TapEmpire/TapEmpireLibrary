@@ -29,8 +29,9 @@ namespace TapEmpire.Build
             Debug.Log("Updated Always Embed Swift Standard Libraries to NO for UnityFramework target.");
 
 #if TEL_CLOUD_SAVE
-            EnableICloudCapability(project, projectPath, pathToBuiltProject, unityMainTarget);
-            NormalizeEntitlements(projectPath, pathToBuiltProject);
+            //todo: enable when cloud saves enabled on ios
+            // EnableICloudCapability(project, projectPath, pathToBuiltProject, unityMainTarget);
+            // NormalizeEntitlements(projectPath, pathToBuiltProject);
 #endif
             InjectToPlist(pathToBuiltProject);
         }

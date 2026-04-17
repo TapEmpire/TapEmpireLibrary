@@ -100,6 +100,11 @@ namespace TapEmpire.Utility
             return new CancellableTask(token => ExecuteAfterSeconds(seconds, callback, cancellationToken: token));
         }
 
+        public static CancellableTask DelayFrames(int frames, Action callback)
+        {
+            return new CancellableTask(token => ExecuteAfterFrames(frames, callback, cancellationToken: token));
+        }
+
         public static CancellableTask ExecuteNextFrame(Action callback)
         {
             return new CancellableTask(token => ExecuteNextFrame(callback, cancellationToken: token));

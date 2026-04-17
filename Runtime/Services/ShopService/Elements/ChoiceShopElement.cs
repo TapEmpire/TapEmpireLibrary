@@ -26,7 +26,7 @@ namespace TapEmpire.Services.Shop
             base.Initialize(data);
             _adsButton.onClick.Subscribe(OnClick).AddTo(_disposables);
 
-            if (!_adsService.CanShowRewarded())
+            if (!_adsService.CanShowRewarded() || Application.internetReachability == NetworkReachability.NotReachable)
             {
                 _adsButton.gameObject.SetActive(false);
             }
@@ -42,13 +42,13 @@ namespace TapEmpire.Services.Shop
         {
             var reward = _data.Reward.As<ProductReward<ResourceType>>();
             var from = _icon.transform.position;
-            AcquireResources(reward.Resource, reward.Amount, ResourceUsageType.PopupAds, from, true);
+            AcquireResources(reward.Resource, reward.Amount, ResourceUsageType.PopupAds, from, true, ResourceAcquireType.Rewarded);
         }
 
         protected override Sequence AcquireResources(ResourceType resourceType, int amount, string usageType,
-            Vector3 startPosition, bool shouldAddResource)
+            Vector3 startPosition, bool shouldAddResource, ResourceAcquireType acquireType = ResourceAcquireType.Free)
         {
-            _resourcesService.Add(resourceType, amount, usageType);
+            _resourcesService.Add(resourceType, amount, usageType, acquireType);
             OnResourceAdded.Execute(resourceType);
             return null;
         }

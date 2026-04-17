@@ -101,6 +101,22 @@ namespace TapEmpire.Utility
             list.AddRange(Enumerable.Repeat(value, count));
         }
 
+        public static void Fill<T>(this List<T> list, int count, T value)
+        {
+            for (int i = 0; i < count; ++i)
+            {
+                list[i] = value;
+            }
+        }
+
+        public static void Fill<T>(this List<T> list, T value)
+        {
+            for (int i = 0; i < list.Count; ++i)
+            {
+                list[i] = value;
+            }
+        }
+
         public static void ResizeAndFill<T>(this List<T> list, int count, Func<int, T> createMethod)
         {
             list.ClearResize(count);
@@ -204,6 +220,11 @@ namespace TapEmpire.Utility
             }
 
             return result;
+        }
+
+        public static T IndexOrLast<T>(this List<T> list, int index)
+        {
+            return index < list.Count ? list[index] : list[-1];
         }
     }
 }

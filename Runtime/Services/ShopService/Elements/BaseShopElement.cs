@@ -56,12 +56,12 @@ namespace TapEmpire.Services.Shop
         protected IAnimationService<ResourceType> _animationService;
 
         protected virtual Sequence AcquireResources(ResourceType resourceType, int amount, string usageType,
-            Vector3 startPosition, bool shouldAddResource)
+            Vector3 startPosition, bool shouldAddResource, ResourceAcquireType acquireType = ResourceAcquireType.Free)
         {
             var animation = _animationService.CollectResource(resourceType, amount, startPosition, shouldAddResource);
 
             var reason = shouldAddResource ? usageType : string.Empty;
-            _resourcesService.AddVirtual(resourceType, amount, reason);
+            _resourcesService.AddVirtual(resourceType, amount, reason, acquireType);
 
             return animation.Play();
         }
