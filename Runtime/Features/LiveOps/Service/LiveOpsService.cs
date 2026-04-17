@@ -6,7 +6,6 @@ using Cysharp.Threading.Tasks;
 using R3;
 using TapEmpire.Patterns.Strategy;
 using TapEmpire.UI;
-using TapEmpire.Utility;
 using UnityEngine;
 using Zenject;
 
@@ -73,7 +72,12 @@ namespace TapEmpire.Services.LiveOps
 
             if (placements != null)
             {
-                _liveOps.ForEach((liveOps, index) => liveOps.CreateIcon(placements[index]));
+                var placementIndex = 0;
+                foreach (var liveOps in _liveOps)
+                {
+                    if (liveOps.CreateIcon(placements[placementIndex]) != null)
+                        placementIndex++;
+                }
             }
 
             await UniTask.WaitForSeconds(Settings.UpdateDelaySeconds, cancellationToken: default);
