@@ -8,7 +8,9 @@ using Zenject;
 using TapEmpire.Utility;
 using R3;
 using AdjustSdk;
+#if TEL_METICA
 using Metica.Unity;
+#endif
 using TapEmpire.Modules;
 using GoogleMobileAds.Api;
 
@@ -37,8 +39,10 @@ namespace TapEmpire.Services
         [SerializeField]
         private Adjust _adjustPrefab = null;
 
+#if TEL_METICA
         [SerializeField]
         private MeticaUnitySdk _meticaPrefab = null;
+#endif
 
         [SerializeField]
         private AdsSettings _adsSettings = null;
@@ -114,14 +118,14 @@ namespace TapEmpire.Services
             var cycles = _progressService.GetCyclesProgress();
             var canEnableBanners = cycles > 0 || _adsSettings.BannerFromLevel <= level + 1;
 
-#if UNITY_IOS
-            _adsSettings.EnableMetica = false;
-#endif
-
+#if TEL_METICA
             if (_adsSettings.EnableMetica)
             {
                 GameObject.Instantiate(_meticaPrefab);
             }
+#else
+            _adsSettings.EnableMetica = false;
+#endif
 
             GameObject.Instantiate(_adsManagerPrefab);
             // GameObject.Instantiate(_appMetricaPrefab);

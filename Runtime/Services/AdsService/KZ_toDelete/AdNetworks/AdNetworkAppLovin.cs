@@ -1,8 +1,10 @@
 ﻿using UnityEngine;
 using GoogleMobileAds.Api;
 using System;
+#if TEL_METICA
 using Metica.SDK;
 using Metica.ADS;
+#endif
 using Cysharp.Threading.Tasks;
 
 //GAID Example = 93e4a8ed-f879-4e6d-9ba3-3d83531b8e8b
@@ -51,11 +53,14 @@ public class AdNetworkAppLovin : AdNetworkBase
 
     public async UniTask InitializeMetica()
     {
+#if TEL_METICA
         MeticaSdk.CurrentUserId = GetUserId();
 
         var meticaConfiguration = new MeticaConfiguration();
 
         IsMeticaAdsEnabled = await MeticaAds.InitializeAsync(meticaConfiguration);
+#endif
+        await UniTask.CompletedTask;
     }
 
     private string GetUserId()
@@ -361,6 +366,7 @@ public class AdNetworkAppLovin : AdNetworkBase
 
     void InitializeInterstitialAds()
     {
+#if TEL_METICA
         if (IsMeticaAdsEnabled)
         {
             MeticaAdsCallbacks.Interstitial.OnAdLoadSuccess += (meticaAd) => Interstitial_OnLoadedEvent(meticaAd.adUnitId, meticaAd.ToAdInfo());
@@ -370,6 +376,7 @@ public class AdNetworkAppLovin : AdNetworkBase
             MeticaAdsCallbacks.Interstitial.OnAdRevenuePaid += (meticaAd) => Interstitial_OnAdRevenuePaidEvent(meticaAd.adUnitId, meticaAd.ToAdInfo());
         }
         else
+#endif
         {
             MaxSdkCallbacks.Interstitial.OnAdLoadedEvent += Interstitial_OnLoadedEvent;
             MaxSdkCallbacks.Interstitial.OnAdLoadFailedEvent += (adUnitId, adInfo) => Interstitial_OnAdLoadFailedEvent(adUnitId, adInfo.Message);
@@ -386,7 +393,11 @@ public class AdNetworkAppLovin : AdNetworkBase
         if (!isInitialized)
             return false;
 
+#if TEL_METICA
         bool isReady = IsMeticaAdsEnabled ? MeticaAds.IsInterstitialReady() : MaxSdk.IsInterstitialReady(InterstitialID);
+#else
+        bool isReady = MaxSdk.IsInterstitialReady(InterstitialID);
+#endif
         if (!isReady && doRequest)
             RequestInterstitial();
 
@@ -398,11 +409,13 @@ public class AdNetworkAppLovin : AdNetworkBase
 
     public void ShowInterstitial()
     {
+#if TEL_METICA
         if (IsMeticaAdsEnabled)
         {
             MeticaAds.ShowInterstitial();
         }
         else
+#endif
         {
             MaxSdk.ShowInterstitial(InterstitialID);
         }
@@ -410,6 +423,7 @@ public class AdNetworkAppLovin : AdNetworkBase
 
     void RequestInterstitial()
     {
+#if TEL_METICA
         if (IsMeticaAdsEnabled)
         {
             MeticaAds.LoadInterstitial();
@@ -422,24 +436,31 @@ public class AdNetworkAppLovin : AdNetworkBase
             }
             MaxSdk.LoadInterstitial(InterstitialID);
         }
+#else
+        MaxSdk.LoadInterstitial(InterstitialID);
+#endif
     }
 
     private void Interstitial_OnLoadedEvent(string adUnitId, MaxSdkBase.AdInfo adInfo)
     {
+#if TEL_METICA
         if (!IsMeticaAdsEnabled && _isMeticaSdkEnabled)
         {
             MeticaAds.NotifyAdLoadSuccess(adInfo.ToMeticaAd());
         }
+#endif
 
         interstitialRetryAttempt = 0;
     }
 
     private void Interstitial_OnAdLoadFailedEvent(string adUnitId, string error)
     {
+#if TEL_METICA
         if (!IsMeticaAdsEnabled && _isMeticaSdkEnabled)
         {
             MeticaAds.NotifyAdLoadFailed(adUnitId, error);
         }
+#endif
 
         ThreadDispatcher.Enqueue(() =>
         {
@@ -469,10 +490,12 @@ public class AdNetworkAppLovin : AdNetworkBase
 
     private void Interstitial_OnAdRevenuePaidEvent(string arg1, MaxSdkBase.AdInfo adInfo)
     {
+#if TEL_METICA
         if (!IsMeticaAdsEnabled && _isMeticaSdkEnabled)
         {
             MeticaAds.NotifyAdShowSuccess(adInfo.ToMeticaAd());
         }
+#endif
 
         ThreadDispatcher.Enqueue(() =>
         {
@@ -486,6 +509,7 @@ public class AdNetworkAppLovin : AdNetworkBase
 
     void InitializeRewardedAds()
     {
+#if TEL_METICA
         if (IsMeticaAdsEnabled)
         {
             MeticaAdsCallbacks.Rewarded.OnAdLoadSuccess += (meticaAd) => Rewarded_OnAdLoadedEvent(meticaAd.adUnitId, meticaAd.ToAdInfo());
@@ -496,6 +520,7 @@ public class AdNetworkAppLovin : AdNetworkBase
             MeticaAdsCallbacks.Rewarded.OnAdRevenuePaid += (meticaAd) => Rewarded_OnAdRevenuePaidEvent(meticaAd.adUnitId, meticaAd.ToAdInfo());
         }
         else
+#endif
         {
             MaxSdkCallbacks.Rewarded.OnAdHiddenEvent += Rewarded_OnAdHiddenEvent;
             MaxSdkCallbacks.Rewarded.OnAdLoadFailedEvent += (adUnitId, errorInfo) => Rewarded_OnAdLoadFailedEvent(adUnitId, errorInfo.Message);
@@ -510,11 +535,13 @@ public class AdNetworkAppLovin : AdNetworkBase
 
     public void ShowRewardedAd()
     {
+#if TEL_METICA
         if (IsMeticaAdsEnabled)
         {
             MeticaAds.ShowRewarded();
         }
         else
+#endif
         {
             MaxSdk.ShowRewardedAd(RewardedID);
         }
@@ -525,7 +552,11 @@ public class AdNetworkAppLovin : AdNetworkBase
         if (!isInitialized)
             return false;
 
+#if TEL_METICA
         bool isReady = IsMeticaAdsEnabled ? MeticaAds.IsRewardedReady() : MaxSdk.IsRewardedAdReady(RewardedID);
+#else
+        bool isReady = MaxSdk.IsRewardedAdReady(RewardedID);
+#endif
         if (!isReady && doRequest)
             RequestRewardedAd();
 
@@ -537,6 +568,7 @@ public class AdNetworkAppLovin : AdNetworkBase
 
     void RequestRewardedAd()
     {
+#if TEL_METICA
         if (IsMeticaAdsEnabled)
         {
             MeticaAds.LoadRewarded();
@@ -549,24 +581,31 @@ public class AdNetworkAppLovin : AdNetworkBase
             }
             MaxSdk.LoadRewardedAd(RewardedID);
         }
+#else
+        MaxSdk.LoadRewardedAd(RewardedID);
+#endif
     }
 
     private void Rewarded_OnAdLoadedEvent(string adUnitId, MaxSdkBase.AdInfo adInfo)
     {
+#if TEL_METICA
         if (!IsMeticaAdsEnabled && _isMeticaSdkEnabled)
         {
             MeticaAds.NotifyAdLoadSuccess(adInfo.ToMeticaAd());
         }
+#endif
 
         rewardedRetryAttempt = 0;
     }
 
     private void Rewarded_OnAdLoadFailedEvent(string adUnitId, string error)
     {
+#if TEL_METICA
         if (!IsMeticaAdsEnabled && _isMeticaSdkEnabled)
         {
             MeticaAds.NotifyAdLoadFailed(adUnitId, error);
         }
+#endif
 
         ThreadDispatcher.Enqueue(() =>
         {
@@ -603,10 +642,12 @@ public class AdNetworkAppLovin : AdNetworkBase
 
     private void Rewarded_OnAdRevenuePaidEvent(string arg1, MaxSdkBase.AdInfo adInfo)
     {
+#if TEL_METICA
         if (!IsMeticaAdsEnabled && _isMeticaSdkEnabled)
         {
             MeticaAds.NotifyAdShowSuccess(adInfo.ToMeticaAd());
         }
+#endif
 
         ThreadDispatcher.Enqueue(() =>
         {
