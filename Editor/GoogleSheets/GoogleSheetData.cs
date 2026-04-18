@@ -95,6 +95,30 @@ namespace TapEmpire.Utility.GoogleSheet
                 entry.TableId = string.Empty;
             }
         }
+        
+        [Button]
+        private async void RemoveFrom(string name)
+        {
+            var entries = List
+                .SkipWhile(entry => entry.LocalizationTableName != name)
+                .ToList();
+
+            foreach (var entry in entries)
+            {
+                await entry.RemoveFromGoogleSheet(_log);
+            }
+
+            if (entries.Count > 0)
+            {
+                var startIndex = List.IndexOf(entries[0]);
+                List.RemoveRange(startIndex, List.Count - startIndex);
+                EditorUtility.SetDirty(this);
+            }
+            else
+            {
+                Debug.Log($"No entries with name {name} to delete!");
+            }
+        }
     }
 
     [Serializable]
@@ -142,6 +166,11 @@ namespace TapEmpire.Utility.GoogleSheet
                     EditorUtility.SetDirty(table.SharedData);
                 }
             }
+        }
+
+        public async UniTask RemoveFromGoogleSheet(StringBuilder log = null)
+        {
+            await GoogleSheetUtility.RemoveGoogleSheetTab(GoogleSheetData.Instance, TableId, LocalizationTableName);
         }
 
         [Button]
