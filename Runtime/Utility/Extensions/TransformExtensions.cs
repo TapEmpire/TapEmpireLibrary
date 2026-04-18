@@ -44,10 +44,25 @@ namespace TapEmpire.Utility
             self.position = position;
         }
 
+
+        public static void SetY(this Transform self, float y)
+        {
+            var position = self.position;
+            position.y = y;
+            self.position = position;
+        }
+
         public static void SetZ(this Transform self, float z)
         {
             var position = self.position;
             position.z = z;
+            self.position = position;
+        }
+
+        public static void SetYLocal(this Transform self, float y)
+        {
+            var position = self.position;
+            position.y = y;
             self.position = position;
         }
 

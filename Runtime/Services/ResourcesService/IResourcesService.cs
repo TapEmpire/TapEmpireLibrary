@@ -20,7 +20,7 @@ namespace TapEmpire.Services
         ResourceRuntimeData<T> GetResourceData(T type);
         Sprite GetFlyingSprite(T type);
 
-        void AddVirtual(T resource, int amount, string reason);
+        void AddVirtual(T resource, int amount, string reason, ResourceAcquireType acquireType = ResourceAcquireType.Free);
         void Refresh();
     }
 }

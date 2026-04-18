@@ -54,6 +54,12 @@ namespace TapEmpire.UI
             if (_needUpdateTMPSubmeshesShadow)
             {
                 _needUpdateTMPSubmeshesShadow = false;
+
+                if (_trueShadow == null || _tmp == null)
+                {
+                    return;
+                }
+
                 _trueShadow.CopyToTMPSubMeshes();
                 UpdateSubmeshShadowUsage();
             }

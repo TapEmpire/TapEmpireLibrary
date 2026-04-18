@@ -18,7 +18,7 @@ namespace TapEmpire.Services
         public override UniTask Handle(AddResourceProduct<ResourceType> product, string placement)
         {
             Debug.Log($"IAP AddHintsHandler Handle: {product.ProductId}");
-            _resourcesService.Add(product.ResourceType, product.Amount, placement ?? Shop.ResourceUsageType.ShopPaid.ToString());
+            _resourcesService.Add(product.ResourceType, product.Amount, placement ?? Shop.ResourceUsageType.ShopPaid.ToString(), ResourceAcquireType.IAP);
             return UniTask.CompletedTask;
         }
     }

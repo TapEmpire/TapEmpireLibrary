@@ -27,5 +27,11 @@ namespace TapEmpire.Utility
             sequence.Append(tween);
             return tween;
         }
+
+        public static T InsertTo<T>(this T tween, Sequence sequence, float atPosition) where T : Tween
+        {
+            sequence.Insert(atPosition, tween);
+            return tween;
+        }
     }
 }

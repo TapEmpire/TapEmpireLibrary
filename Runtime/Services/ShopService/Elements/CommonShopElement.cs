@@ -33,6 +33,12 @@ namespace TapEmpire.Services.Shop
 
         public override void Initialize(ProductData data)
         {
+            if (Application.internetReachability == NetworkReachability.NotReachable)
+            {
+                gameObject.SetActive(false);
+                return;
+            }
+
             base.Initialize(data);
             _data = data;
             _purchaseButton.onClick.Subscribe(() => _iapService.BuyProduct(data.Key, _placement)).AddTo(_disposables);
@@ -58,7 +64,7 @@ namespace TapEmpire.Services.Shop
             {
                 var from = _icon.transform.position;
                 var product = GetProduct<AddResourceProduct<ResourceType>>(_data.Key);
-                AcquireResources(product.ResourceType, product.Amount, _placement, from, false);
+                AcquireResources(product.ResourceType, product.Amount, _placement, from, false, ResourceAcquireType.IAP);
             }
         }
     }
