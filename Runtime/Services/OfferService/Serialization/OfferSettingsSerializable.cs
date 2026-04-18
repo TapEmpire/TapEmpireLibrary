@@ -17,6 +17,8 @@ namespace TapEmpire.Services.Offer
         {
             public Rarity ButtonOfferRarity = Rarity.Fifty;
             public List<int> RaritySequence = new () { 0 };
+            public List<int> StarterLevels = null;
+            public List<int> MysteryLevels = null;
 
             public OfferSettingsRemoteModel() { }
 
@@ -24,12 +26,36 @@ namespace TapEmpire.Services.Offer
             {
                 ButtonOfferRarity = settings.ButtonOfferRarity;
                 RaritySequence = settings.RaritySequence;
+
+                StarterLevels = GetLevelCompleteCondition(settings, OfferType.Starter)?.Levels?.ToList();
+                MysteryLevels = GetLevelCompleteCondition(settings, OfferType.Mystery)?.Levels?.ToList();
             }
 
             public virtual void ToSettings(OfferSettings settings)
             {
                 settings.ButtonOfferRarity = ButtonOfferRarity;
                 settings.RaritySequence = RaritySequence;
+
+                if (StarterLevels != null)
+                {
+                    var condition = GetLevelCompleteCondition(settings, OfferType.Starter);
+                    if (condition != null)
+                        condition.Levels = StarterLevels;
+                }
+
+                if (MysteryLevels != null)
+                {
+                    var condition = GetLevelCompleteCondition(settings, OfferType.Mystery);
+                    if (condition != null)
+                        condition.Levels = MysteryLevels;
+                }
+            }
+
+            private static LevelCompleteCondition GetLevelCompleteCondition(OfferSettings settings, OfferType offerType)
+            {
+                if (!settings.Offers.TryGetValue(offerType, out var offerData))
+                    return null;
+                return offerData.Conditions.OfType<LevelCompleteCondition>().FirstOrDefault();
             }
         }
 
