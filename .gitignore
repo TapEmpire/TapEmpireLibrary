@@ -73,6 +73,9 @@ crashlytics-build.properties
 .vscode
 .vsconfig
 
+# Unity-hidden packages (override global *~ rule)
+!Packages~/
+
 #Custom
 /LunaTemp/
 /[Aa]ssets/Plugins/Zenject/Source/Zenject.csproj
