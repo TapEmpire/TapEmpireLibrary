@@ -37,8 +37,6 @@ namespace TapEmpire.Services.LiveOps
             _disposables = new();
             _liveOps = new();
 
-            new LiveOpsAnalyticsModule(_diContainer).AddTo(_disposables);
-
             Settings.LiveOps.ForEach(InitializeAndRegisterLiveOps);
             
             foreach (var handler in Settings.ConditionHandlers)
