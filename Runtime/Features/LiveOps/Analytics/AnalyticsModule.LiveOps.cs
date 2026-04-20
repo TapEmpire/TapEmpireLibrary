@@ -7,22 +7,43 @@ using Zenject;
 
 namespace TapEmpire.Services.LiveOps
 {
-    public abstract class LiveOpsAnalyticsModule<T> : IDisposable where T : ILiveOps
+    public class LiveOpsAnalyticsModule<T> : IDisposable where T : ILiveOps
     {
         protected readonly T _liveOps;
         protected readonly CompositeDisposable _disposables = new();
 
         private readonly IAnalyticsService _analyticsService;
 
-        protected LiveOpsAnalyticsModule(DiContainer diContainer, T liveOps)
+        public LiveOpsAnalyticsModule(DiContainer diContainer, T liveOps)
         {
             _analyticsService = diContainer.Resolve<IAnalyticsService>();
             _liveOps = liveOps;
+
+            liveOps.OnStarted.Subscribe(OnStarted).AddTo(_disposables);
+            liveOps.OnStage.Subscribe(OnStage).AddTo(_disposables);
+            liveOps.OnFinished.Subscribe(OnFinished).AddTo(_disposables);
         }
 
         public void Dispose()
         {
             _disposables.Dispose();
+        }
+
+        protected virtual void OnStarted(ILiveOps liveOps)
+        {
+            LogStart(liveOps.StateData.Id);
+        }
+
+        protected virtual void OnStage(ILiveOps liveOps)
+        {
+            var completeTime = (int)(DateTime.UtcNow - liveOps.StateData.StartedAt).TotalMinutes;
+            LogStage(liveOps.StateData.Id, liveOps.StateData.Inner, completeTime);
+        }
+
+        protected virtual void OnFinished(ILiveOps liveOps)
+        {
+            var completeTime = (int)(DateTime.UtcNow - liveOps.StateData.StartedAt).TotalMinutes;
+            LogFinish(liveOps.StateData.Id, liveOps.StateData.Inner, completeTime);
         }
 
         protected void LogStart(string id, params JProperty[] extra)

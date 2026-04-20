@@ -12,6 +12,9 @@ namespace TapEmpire.Services.LiveOps
         StateData StateData { get; }
         string Name { get; }
         Observable<StateData> OnDataChanged { get; }
+        Observable<ILiveOps> OnStarted { get; }
+        Observable<ILiveOps> OnStage { get; }
+        Observable<ILiveOps> OnFinished { get; }
 
         void Initialize(DiContainer diContainer, LiveOpsData settings);
         IDisposable CreateIcon(Transform parent);
