@@ -27,32 +27,25 @@ namespace TapEmpire.Services.LiveOps
 
         protected void LogStart(string id, params JProperty[] extra)
         {
-            var properties = new JObject(new JProperty("Id", id));
-            foreach (var property in extra)
-                properties.Add(property);
-            LogEvent("Start", properties);
+            LogEvent("Start", new JObject(new JProperty("Id", id), extra));
         }
 
         protected void LogStage(string id, int stage, int completeTime, params JProperty[] extra)
         {
-            var properties = new JObject(
+            LogEvent("Stage", new JObject(
                 new JProperty("Id", id),
                 new JProperty("Stage", stage),
-                new JProperty("CompleteTime", completeTime));
-            foreach (var property in extra)
-                properties.Add(property);
-            LogEvent("Stage", properties);
+                new JProperty("CompleteTime", completeTime),
+                extra));
         }
 
         protected void LogFinish(string id, int stage, int completeTime, params JProperty[] extra)
         {
-            var properties = new JObject(
+            LogEvent("End", new JObject(
                 new JProperty("Id", id),
                 new JProperty("Stage", stage),
-                new JProperty("CompleteTime", completeTime));
-            foreach (var property in extra)
-                properties.Add(property);
-            LogEvent("End", properties);
+                new JProperty("CompleteTime", completeTime),
+                extra));
         }
 
         protected void LogEvent(string eventType, JObject properties)
