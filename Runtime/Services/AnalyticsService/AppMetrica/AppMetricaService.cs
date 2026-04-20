@@ -76,8 +76,8 @@ namespace TapEmpire.Services
 
         public static void LogEventStatic(string eventName, Dictionary<string, object> details = null)
         {
-            // Amplitude amplitude = Amplitude.getInstance();
-            // amplitude.logEvent(eventName, details);
+            var json = JsonConvert.SerializeObject(details ?? new Dictionary<string, object>());
+            AppMetrica.ReportEvent(eventName, json);
         }
 
         public void LogAdjustEvent(IDictionary<string, object> properties)

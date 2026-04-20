@@ -6,7 +6,6 @@ using Cysharp.Threading.Tasks;
 using UnityEngine;
 using TapEmpire.Utility;
 using Zenject;
-using Object = UnityEngine.Object;
 using Sirenix.OdinInspector;
 using R3;
 using TapEmpire.Modules;
@@ -19,7 +18,6 @@ namespace TapEmpire.Services
         public ReadOnlyReactiveProperty<string> CampaignName => _campaignName;
 
         [field: SerializeField] public string AdjustEventToken { get; private set;}
-        private static readonly Dictionary<string, object> EmptyDictionary = new();
 
         [SerializeField]
         private AnalyticsType _analyticsType = AnalyticsType.Amplitude;
@@ -32,10 +30,6 @@ namespace TapEmpire.Services
         [ShowIf("@_analyticsType == AnalyticsType.Amplitude || _analyticsType == AnalyticsType.AppMetrica")]
         private bool _shouldEnableLogs = false;
 
-        // [SerializeField]
-        // [ShowIf("@_analyticsType == AnalyticsType.GameAnalytics")]
-        // private GameAnalyticsSDK.GameAnalytics _gameAnalyticsPrefab;
-
         private ReactiveProperty<string> _campaignName = new();
 
         private DiContainer _diContainer = null;
@@ -44,15 +38,11 @@ namespace TapEmpire.Services
 
         private bool _isInitialized = false;
         private List<Action> _delayedEvents = new();
-        private Adjust _adjust = null;
         private IAnalyticsService _innerService = null;
         private string _remoteConfigName = "default";
 
         private Dictionary<string, string> _globalParameters = new();
         private IDisposable _focusDisposable = null;
-
-        // [NonSerialized]
-        // private AnalyticsGlobalModule _globalModule;
 
         [Inject]
         private void Construct(DiContainer diContainer, IProgressService progressService, ISystemService systemService)
@@ -70,12 +60,8 @@ namespace TapEmpire.Services
             _innerService = CreateAnalyticsInternalService(_analyticsType);
 
             _innerService.InitializeAsync(cancellationToken);
-            _diContainer.Resolve<IABTestingService>().OnGroupAssigned += onGroupAssigned;
 
-            _adjust = Object.FindObjectOfType<Adjust>();
-
-            // _globalModule = new AnalyticsGlobalModule(_diContainer, LogGlobalEvent);
-            // _globalModule.Initialize();
+            InitializeDeferred();
 
             return UniTask.CompletedTask;
         }
@@ -86,17 +72,8 @@ namespace TapEmpire.Services
             _globalParameters.Clear();
 
             _focusDisposable?.Dispose();
-            
-            if (_diContainer != null) _diContainer.Resolve<IABTestingService>().OnGroupAssigned -= onGroupAssigned;
-
-            // AdsModule.OnRelease();
-
-            // if (_adjust != null)
-            //     _adjust.OnConfigChanged -= OnConfigChanged;
 
             _innerService?.Release();
-
-            //_globalModule = null;
         }
 
         public void LogEvent(string eventName, Dictionary<string, object> eventParams)
@@ -143,12 +120,6 @@ namespace TapEmpire.Services
             }
         }
 
-        private void onGroupAssigned()
-        {
-            _diContainer.Resolve<IABTestingService>().OnGroupAssigned -= onGroupAssigned;
-            InitializeDeferred();
-        }
-
         private IAnalyticsService CreateAnalyticsInternalService(AnalyticsType analyticsType)
         {
             switch (analyticsType)
@@ -166,26 +137,17 @@ namespace TapEmpire.Services
 
         private void InitializeDeferred()
         {
-            var (isFirstLaunch, launchDate) = PlayerPrefsUtility.GetFirstLaunch();
-
-            var daysAfterInstall = DateTime.UtcNow - launchDate;
+            var (isFirstLaunch, _) = PlayerPrefsUtility.GetFirstLaunch();
 
             var progressService = _diContainer.Resolve<IProgressService>();
-            var levelsCompleted = progressService.GetLevelProgress();
-            var cyclesCompleted = progressService.GetCyclesProgress();
-            var adsWatchedCount = progressService.GetAdsWatchedProgress();
+            // var levelsCompleted = progressService.GetLevelProgress();
+            // var cyclesCompleted = progressService.GetCyclesProgress();
             _remoteConfigName = progressService.GetRemoteConfigName();
 
             _innerService.SetUserProperties(new Dictionary<string, object>{
-                // { AnalyticsParameters.InstallYear, launchDate.Year },
-                // { AnalyticsParameters.InstallDate, launchDate.DayOfYear },
-                // { AnalyticsParameters.DaysAfterInstall, daysAfterInstall.Days },
-                // { AnalyticsParameters.AdjustAttribution, Adjust.GetAttribution()?.network},
                 { AnalyticsParameters.RemoteConfig, _remoteConfigName },
                 // { CoreGenericAnalyticsParameters.LevelsCompleted, levelsCompleted },
                 // { CoreGenericAnalyticsParameters.CyclesCompleted, cyclesCompleted },
-                // { AdsAnalyticsParameters.AdsWatched, adsWatchedCount }
-                //{ AnalyticsParameters.AbGroup1, _diContainer.Resolve<IABTestingService>().Group },
             });
 
             _globalParameters.Add(AnalyticsParameters.RemoteConfig, _remoteConfigName);
@@ -197,10 +159,6 @@ namespace TapEmpire.Services
                 _innerService.LogEvent(AnalyticsEvents.LaunchFirstTime, null);
                 _progressService.SetVersion();
             }
-
-            // AdsService.Initialize();
-
-            // _adjust.OnConfigChanged += OnConfigChanged;
 
             _focusDisposable?.Dispose();
             _focusDisposable = _systemService.OnApplicationFocusChanged.Subscribe(OnApplicationFocus);
@@ -248,8 +206,6 @@ namespace TapEmpire.Services
 
             _globalParameters.ForEach(pair => adjustEvent.AddCallbackParameter(pair.Key, pair.Value.ToString()));
 
-            // adjustEvent.AddCallbackParameter(AnalyticsParameters.RemoteConfig, _remoteConfigName);
-
             Adjust.TrackEvent(adjustEvent);
         }
 
@@ -259,11 +215,10 @@ namespace TapEmpire.Services
             _campaignName.Value = campaignName;
         }
 
-        /*public static void LogEventStatic(string eventName, Dictionary<string, object> details = null)
+        public static void LogEventStatic(string eventName, Dictionary<string, object> details = null)
         {
-            Amplitude amplitude = Amplitude.getInstance();
-            amplitude.logEvent(eventName, details ?? EmptyDictionary);
-        }*/
+            AppMetricaService.LogEventStatic(eventName, details);
+        }
 
         private void OnApplicationFocus(bool hasFocus)
         {
