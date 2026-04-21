@@ -7,6 +7,7 @@ using R3;
 using TapEmpire.Patterns.Strategy;
 using TapEmpire.UI;
 using UnityEngine;
+using TapEmpire.Utility;
 using Zenject;
 
 namespace TapEmpire.Services.LiveOps
@@ -64,34 +65,27 @@ namespace TapEmpire.Services.LiveOps
 
         public async UniTask UpdateLiveOps(List<Transform> placements = null, bool debug = false)
         {
-            var actions = _liveOps
-                .Select(liveOps => (LiveOps: liveOps, Action: liveOps.UpdatePrepare(debug)))
-                .ToList();
+            foreach (var liveOps in _liveOps)
+                liveOps.UpdatePrepare(debug);
+
+            var active = _liveOps.Where(liveOps => liveOps.StateData.State != State.NotStarted);
+            var inactive = _liveOps.Where(liveOps => liveOps.StateData.State == State.NotStarted);
 
             if (placements != null)
-            {
-                var placementIndex = 0;
-                foreach (var liveOps in _liveOps)
-                {
-                    if (liveOps.CreateIcon(placements[placementIndex]) != null)
-                        placementIndex++;
-                }
-            }
+                active.ForEach((liveOps, index) => liveOps.CreateIcon(placements[index]));
 
             await UniTask.WaitForSeconds(Settings.UpdateDelaySeconds, cancellationToken: default);
-            await UniTask.WhenAll(actions.Select(x => x.LiveOps.UpdateVisual(_resourceEmitter, debug)));
-            
-            foreach (var updateAction in Settings.ProcessingOrder)
+            await UniTask.WhenAll(active.Select(liveOps => liveOps.UpdateVisual(_resourceEmitter, debug)));
+
+            foreach (var liveOps in active)
+                await liveOps.UpdatePopups();
+
+            foreach (var liveOps in inactive)
             {
-                var group = actions
-                    .Where(x => x.Action == updateAction && x.Action != UpdateAction.None)
-                    .ToList();
+                await liveOps.UpdatePopups();
 
-                if (group.Count == 0)
-                    continue;
-
-                foreach (var tuple in group)
-                    await tuple.LiveOps.UpdatePopups();
+                if (placements != null && liveOps.StateData.State != State.NotStarted)
+                    liveOps.CreateIcon(placements[_liveOps.Count - 1]);
             }
         }
         
