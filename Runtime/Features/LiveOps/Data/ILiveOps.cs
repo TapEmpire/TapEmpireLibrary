@@ -21,11 +21,11 @@ namespace TapEmpire.Services.LiveOps
         void OpenView();
         void OpenTutorial();
 
-        UpdateAction CheckUpdateAction(bool debug = false); // return what action we should for updateVisual
+        UpdateAction UpdatePrepare(bool debug = false);
 
         void UpdateData(string placement); // Forward call. Try not to use.
-        UniTask UpdateVisual(Transform from, bool debug = false); // Flying step
-        UniTask UpdateState(); // Popup state
+        UniTask UpdateVisual(Transform from, bool debug = false);
+        UniTask UpdatePopups();
 
         void Save();
     }
