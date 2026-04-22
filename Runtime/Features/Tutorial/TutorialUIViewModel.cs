@@ -5,9 +5,9 @@ using TapEmpire.Services;
 using TapEmpire.UI;
 using Zenject;
 
-namespace TapEmpire.Services.LiveOps
+namespace TapEmpire.Feature.Tutorial
 {
-    public class LiveOpsTutorialViewModel : IUIViewModel, IInjectable
+    public class TutorialUIViewModel : IUIViewModel, IInjectable
     {
         public Subject<Unit> OnStepDone = new();
 
@@ -16,6 +16,15 @@ namespace TapEmpire.Services.LiveOps
         private IAdsService _adsService;
 
         private bool _areBannersShown = false;
+        
+        private readonly string _tutorialPostfix;
+        public bool IsSkippable { get; }
+
+        public TutorialUIViewModel(string tutorialPostfix = "", bool isSkippable = false)
+        {
+            _tutorialPostfix = tutorialPostfix;
+            IsSkippable = isSkippable;
+        }
 
         [Inject]
         private void Construct(IUIService uiService, IProgressService progressService, IAdsService adsService)
@@ -29,7 +38,7 @@ namespace TapEmpire.Services.LiveOps
 
         public void OnNextPressed()
         {
-            _progressService.SetTutorialProgress(1);
+            _progressService.SetTutorialProgress(_tutorialPostfix, 1);
             OnStepDone.OnNext(Unit.Default);
             _adsService.ShowBanners(_areBannersShown);
             _uiService.CloseViewAsync(this, CancellationToken.None).Forget();
