@@ -23,7 +23,6 @@ namespace TapEmpire.Services.LiveOps
 
         UpdateAction UpdatePrepare(bool debug = false);
 
-        void UpdateData(string placement); // Forward call. Try not to use.
         UniTask UpdateVisual(Transform from, bool debug = false);
         UniTask UpdatePopups();
 
@@ -46,6 +45,4 @@ namespace TapEmpire.Services.LiveOps
         Finish,
     }
 
-    // placement? или подписки? или подписка + messagebus?
-    // point of visual update
 }
