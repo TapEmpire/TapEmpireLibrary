@@ -58,6 +58,7 @@ namespace TapEmpire.Services
 
         private List<string> _restoredProducts = new();
         private HashSet<string> _grantedOrders = new();
+        private HashSet<string> _knownStoreIds = new();
 
         private readonly IProgressService _progressService;
         private bool _hasVerification = true;
@@ -78,6 +79,7 @@ namespace TapEmpire.Services
                 return;
 
             _hasVerification = hasVerification;
+            _knownStoreIds = new HashSet<string>(iapSettings.Select(offer => offer.GetStoreID()));
 
             try
             {
@@ -149,10 +151,17 @@ namespace TapEmpire.Services
         {
             foreach (var order in orders.ConfirmedOrders)
             {
-                if (!_grantedOrders.Contains(GetUniqueKey(order)))
+                if (_grantedOrders.Contains(GetUniqueKey(order)))
+                    continue;
+
+                var productId = order.CartOrdered.Items().FirstOrDefault()?.Product?.definition.id;
+                if (string.IsNullOrEmpty(productId) || !_knownStoreIds.Contains(productId))
                 {
-                    OnPurchasePending(new PendingOrder(order.CartOrdered, order.Info), true);
+                    Debug.Log($"IAP Skip restore of unknown product: {productId}");
+                    continue;
                 }
+
+                OnPurchasePending(new PendingOrder(order.CartOrdered, order.Info), true);
             }
         }
 
