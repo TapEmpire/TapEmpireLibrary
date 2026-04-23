@@ -4,14 +4,13 @@ namespace TapEmpire.Utility
 {
     public static class CountdownFormatUtility
     {
-        public static string Format(double remainingSeconds)
+        public static string Format(TimeSpan remaining)
         {
-            var span = TimeSpan.FromSeconds(Math.Max(0, remainingSeconds));
-            if (span.TotalDays >= 1)
-                return $"{(int)span.TotalDays}d {span.Hours}h";
-            if (span.TotalHours >= 1)
-                return $"{(int)span.TotalHours:D2}:{span.Minutes:D2}:{span.Seconds:D2}";
-            return $"{(int)span.TotalMinutes:D2}:{span.Seconds:D2}";
+            if (remaining.TotalDays >= 1)
+                return $"{(int)remaining.TotalDays}d {remaining.Hours}h";
+            if (remaining.TotalHours >= 1)
+                return $"{(int)remaining.TotalHours:D2}:{remaining.Minutes:D2}:{remaining.Seconds:D2}";
+            return $"{(int)remaining.TotalMinutes:D2}:{remaining.Seconds:D2}";
         }
     }
 }
