@@ -16,16 +16,16 @@ namespace TapEmpire.Services.LiveOps
         public Observable<ILiveOps> OnStarted => _onStarted;
         public Observable<ILiveOps> OnStage => _onStage;
         public Observable<ILiveOps> OnFinished => _onFinished;
-        public Observable<StateData> OnDataChanged => _onDataChanged;
+        public Observable<LiveOpsRuntime> OnDataChanged => _onDataChanged;
 
-        public abstract StateData Runtime { get; }
+        public abstract LiveOpsRuntime Runtime { get; }
         public string Name => _data.Name;
         public DateTime EndTime { get; protected set; }
 
         protected readonly Subject<ILiveOps> _onStarted = new();
         protected readonly Subject<ILiveOps> _onStage = new();
         protected readonly Subject<ILiveOps> _onFinished = new();
-        protected readonly Subject<StateData> _onDataChanged = new();
+        protected readonly Subject<LiveOpsRuntime> _onDataChanged = new();
         protected readonly CompositeDisposable _disposables = new();
 
         protected LiveOpsData _data;

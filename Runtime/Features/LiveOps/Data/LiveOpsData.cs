@@ -16,7 +16,7 @@ namespace TapEmpire.Services.LiveOps
         public abstract LiveOpsBase Create();
     }
 
-    public class StateData
+    public class LiveOpsRuntime
     {
         public string Id = null;
         public State State = State.NotStarted;
@@ -25,9 +25,9 @@ namespace TapEmpire.Services.LiveOps
         public int Addend = 0;
         public DateTime StartedAt;
 
-        public StateData() { }
+        public LiveOpsRuntime() { }
 
-        public StateData(string id)
+        public LiveOpsRuntime(string id)
         {
             Id = id;
             State = State.Active;

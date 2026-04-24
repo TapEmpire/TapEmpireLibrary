@@ -7,9 +7,9 @@ namespace TapEmpire.Services.LiveOps
     {
         private const string LiveOpsKey = "LiveOps";
 
-        public static T GetLiveOpsValue<T>(this IProgressService self, string postfix = "") where T : StateData, new() =>
+        public static T GetLiveOpsValue<T>(this IProgressService self, string postfix = "") where T : LiveOpsRuntime, new() =>
             self.GetSerializableObject<T>(GetLiveOpsKey(postfix));
-        public static void SetLiveOpsValue<T>(this IProgressService self, T value, string postfix = "") where T : StateData =>
+        public static void SetLiveOpsValue<T>(this IProgressService self, T value, string postfix = "") where T : LiveOpsRuntime =>
             self.SetSerializableObject(GetLiveOpsKey(postfix), value);
 
         // public static StateData GetLiveOpsValue(this IProgressService self, string postfix = "") =>
