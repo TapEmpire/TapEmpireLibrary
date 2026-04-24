@@ -43,7 +43,7 @@ namespace TapEmpire.LiveOps.UI
 
         protected virtual void OnButtonPressed()
         {
-            _liveOps.OpenView();
+            _liveOps.OpenView().Forget();
         }
 
         protected T LiveOps<T>() where T : ILiveOps => (T)_liveOps;

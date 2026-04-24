@@ -3,7 +3,6 @@ using System.Linq;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using R3;
-using TapEmpire.UI;
 using UnityEngine;
 using TapEmpire.Utility;
 using Zenject;
@@ -15,19 +14,15 @@ namespace TapEmpire.Services.LiveOps
         [field: SerializeField] public LiveOpsSettings Settings { get; private set; }
 
         private DiContainer _diContainer;
-        private IProgressService _progressService;
-        private IUIService _uiService;
-        
-        private List<ILiveOps> _liveOps = new();
+
+        private List<LiveOpsBase> _liveOps = new();
         private CompositeDisposable _disposables = new();
         private Transform _resourceEmitter = null;
 
         [Inject]
-        private void Construct(DiContainer diContainer, IProgressService progressService, IUIService uiService)
+        private void Construct(DiContainer diContainer)
         {
             _diContainer = diContainer;
-            _progressService = progressService;
-            _uiService = uiService;
         }
 
         protected override UniTask OnInitializeAsync(CancellationToken cancellationToken)
@@ -51,8 +46,6 @@ namespace TapEmpire.Services.LiveOps
         {
             return _liveOps.OfType<T>().FirstOrDefault();
         }
-
-        public List<ILiveOps> GetLiveOps() => _liveOps;
 
         public async UniTask UpdateLiveOps(List<Transform> placements = null, bool debug = false)
         {

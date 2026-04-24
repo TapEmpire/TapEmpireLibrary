@@ -1,9 +1,7 @@
 using System;
-using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using R3;
 using UnityEngine;
-using Zenject;
 
 namespace TapEmpire.Services.LiveOps
 {
@@ -16,17 +14,10 @@ namespace TapEmpire.Services.LiveOps
         Observable<ILiveOps> OnStage { get; }
         Observable<ILiveOps> OnFinished { get; }
 
-        void Initialize(DiContainer diContainer, LiveOpsData settings);
         IDisposable CreateIcon(Transform parent);
-        void OpenView();
-        void OpenTutorial();
-
-        UpdateAction UpdatePrepare(bool debug = false);
-
-        UniTask UpdateVisual(Transform from, bool debug = false);
-        UniTask UpdatePopups();
-
-        void Save();
+        UniTask OpenView();
+        UniTask OpenTutorial();
+        TimeSpan GetRemainingTime();
     }
 
     public enum State
