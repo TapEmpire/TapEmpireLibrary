@@ -20,7 +20,9 @@ namespace TapEmpire.Services.LiveOps
         public Observable<ILiveOps> OnFinished => _onFinished;
         public Observable<LiveOpsRuntime> OnDataChanged => _onDataChanged;
 
-        public LiveOpsRuntime Runtime => _runtime;
+        LiveOpsRuntime ILiveOps.Runtime => _runtime;
+        public TRuntime Runtime => _runtime;
+        public TData Data => _data;
         public string Name => _data.Name;
         public DateTime EndTime { get; protected set; }
 
@@ -48,8 +50,8 @@ namespace TapEmpire.Services.LiveOps
             _uiService = diContainer.Resolve<IUIService>();
 
             _runtime = _progressService.GetLiveOpsValue<TRuntime>(Name) ?? new TRuntime();
-            OnInitialize();
             EndTime = _data.GetEndTime(_runtime);
+            OnInitialize();
             _conditions = CreateConditions();
         }
 
