@@ -14,15 +14,6 @@ namespace TapEmpire.Services.LiveOps
         public TutorialUIView TutorialPrefab;
         public abstract string Name { get; }
         public abstract ILiveOps Create();
-        
-        //todo: possible future implementation 
-        // public abstract IReadOnlyList<ILiveOpsParams> AllParams { get; }
-        // public abstract ILiveOpsParams ActiveParams { get; }
-        // public abstract T GetLiveOpsParams<T>() where T : ILiveOpsParams;
-        // public abstract void SetActiveParamsById(string id);
-        // public abstract void SetActiveParamsByIndex(int index);
-        // public abstract ILiveOpsParams DeserializeParams(JToken token);
-        // public abstract void AddOrReplaceParams(ILiveOpsParams p);
     }
 
     public class StateData
