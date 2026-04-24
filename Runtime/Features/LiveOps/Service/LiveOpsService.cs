@@ -1,10 +1,8 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using R3;
-using TapEmpire.Patterns.Strategy;
 using TapEmpire.UI;
 using UnityEngine;
 using TapEmpire.Utility;
@@ -21,7 +19,6 @@ namespace TapEmpire.Services.LiveOps
         private IUIService _uiService;
         
         private List<ILiveOps> _liveOps = new();
-        private readonly Dictionary<Type, IHandler> _handlers = new();
         private CompositeDisposable _disposables = new();
         private Transform _resourceEmitter = null;
 
@@ -39,13 +36,7 @@ namespace TapEmpire.Services.LiveOps
             _liveOps = new();
 
             Settings.LiveOps.ForEach(InitializeAndRegisterLiveOps);
-            
-            foreach (var handler in Settings.ConditionHandlers)
-            {
-                handler.Initialize(_diContainer);
-                _handlers[handler.GetSubjectType()] = handler;
-            }
-            
+
             return base.OnInitializeAsync(cancellationToken);
         }
 
@@ -88,20 +79,6 @@ namespace TapEmpire.Services.LiveOps
                     liveOps.CreateIcon(placements[_liveOps.Count - 1]);
             }
         }
-        
-        public bool EvaluateConditions(LiveOpsData data)
-        {
-            foreach (var condition in data.Conditions)
-            {
-                var type = condition.GetType();
-                if (!_handlers.TryGetValue(type, out var handler) || !handler.CanHandle(condition)) 
-                    continue;
-                if (!handler.Handle(condition))
-                    return false;
-            }
-            return true;
-        }
-
         private void InitializeAndRegisterLiveOps(LiveOpsData data)
         {
             var liveOps = data.Create();

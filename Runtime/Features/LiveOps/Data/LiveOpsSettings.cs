@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using TapEmpire.Patterns.Strategy;
 using UnityEngine;
 
 namespace TapEmpire.Services.LiveOps
@@ -8,7 +7,6 @@ namespace TapEmpire.Services.LiveOps
     public class LiveOpsSettings : ScriptableObject
     {
         [SerializeReference] public List<LiveOpsData> LiveOps;
-        [SerializeReference] public List<IHandler> ConditionHandlers = new();
         [field: SerializeField] public List<UpdateAction> ProcessingOrder { get; private set; } = new()
         {
             UpdateAction.Finish,

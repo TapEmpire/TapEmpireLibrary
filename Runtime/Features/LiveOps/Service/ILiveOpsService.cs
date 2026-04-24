@@ -16,6 +16,5 @@ namespace TapEmpire.Services.LiveOps
         List<ILiveOps> GetLiveOps();
 
         UniTask UpdateLiveOps(List<Transform> placements = null, bool debug = false);
-        bool EvaluateConditions(LiveOpsData liveOpsData);
     }
 }
