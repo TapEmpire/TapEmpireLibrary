@@ -41,9 +41,7 @@ namespace TapEmpire.Services.LiveOps
             _progressService = diContainer.Resolve<IProgressService>();
             _uiService = diContainer.Resolve<IUIService>();
 
-            LoadState();
-            _conditions = CreateConditions();
-            OnInitialized();
+            OnInitialize();
         }
 
         public IDisposable CreateIcon(Transform parent)
@@ -59,22 +57,20 @@ namespace TapEmpire.Services.LiveOps
             return _uiService.OpenViewAwaitable(_data.LiveOpsPrefab, new LiveOpsViewModel(this), default);
         }
 
-        public virtual UniTask OpenTutorial()
+        public UniTask OpenTutorial(bool isSkippable = true)
         {
-            return _uiService.OpenViewAwaitable(_data.TutorialPrefab, new TutorialUIViewModel(Name), default);
+            return _uiService.OpenViewAwaitable(_data.TutorialPrefab, new TutorialUIViewModel(Name, isSkippable), default);
         }
 
         public abstract TimeSpan GetRemainingTime();
         public abstract void Save();
-        public abstract UpdateAction UpdatePrepare(bool debug = false);
+        public virtual void UpdatePrepare(bool debug = false) { }
         public abstract UniTask UpdateVisual(Transform from, bool debug = false);
         public abstract UniTask UpdatePopups();
 
         public void Dispose() => _disposables?.Dispose();
 
-        protected abstract void LoadState();
-        protected abstract ICondition[] CreateConditions();
-        protected virtual void OnInitialized() { }
+        protected abstract void OnInitialize();
         protected bool CanActivate() => _conditions.All(condition => condition.Evaluate());
     }
 }

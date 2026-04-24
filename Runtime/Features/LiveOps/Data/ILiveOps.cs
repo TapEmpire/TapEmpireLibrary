@@ -16,7 +16,7 @@ namespace TapEmpire.Services.LiveOps
 
         IDisposable CreateIcon(Transform parent);
         UniTask OpenView();
-        UniTask OpenTutorial();
+        UniTask OpenTutorial(bool isSkippable = true);
         TimeSpan GetRemainingTime();
     }
 
@@ -26,14 +26,6 @@ namespace TapEmpire.Services.LiveOps
         Starting,
         Active,
         Finished,
-    }
-
-    public enum UpdateAction
-    {
-        None,
-        Start,
-        Update,
-        Finish,
     }
 
 }
