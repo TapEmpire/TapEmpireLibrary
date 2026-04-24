@@ -52,8 +52,8 @@ namespace TapEmpire.Services.LiveOps
             foreach (var liveOps in _liveOps)
                 liveOps.UpdatePrepare(debug);
 
-            var active = _liveOps.Where(liveOps => liveOps.StateData.State != State.NotStarted);
-            var inactive = _liveOps.Where(liveOps => liveOps.StateData.State == State.NotStarted);
+            var active = _liveOps.Where(liveOps => liveOps.Runtime.State != State.NotStarted);
+            var inactive = _liveOps.Where(liveOps => liveOps.Runtime.State == State.NotStarted);
 
             if (placements != null)
                 active.ForEach((liveOps, index) => liveOps.CreateIcon(placements[index]));
@@ -68,7 +68,7 @@ namespace TapEmpire.Services.LiveOps
             {
                 await liveOps.UpdatePopups();
 
-                if (placements != null && liveOps.StateData.State != State.NotStarted)
+                if (placements != null && liveOps.Runtime.State != State.NotStarted)
                     liveOps.CreateIcon(placements[_liveOps.Count - 1]);
             }
         }

@@ -43,15 +43,15 @@ namespace TapEmpire.Services.LiveOps
 
         protected void LogStart(ILiveOps liveOps, params JProperty[] extra)
         {
-            LogEvent("Start", new JObject(new JProperty("Id", liveOps.StateData.Id), extra));
+            LogEvent("Start", new JObject(new JProperty("Id", liveOps.Runtime.Id), extra));
         }
 
         protected void LogStage(ILiveOps liveOps, params JProperty[] extra)
         {
             var completeTime = GetCompleteTime(liveOps);
             LogEvent("Stage", new JObject(
-                new JProperty("Id", liveOps.StateData.Id),
-                new JProperty("Stage", liveOps.StateData.Inner),
+                new JProperty("Id", liveOps.Runtime.Id),
+                new JProperty("Stage", liveOps.Runtime.Inner),
                 new JProperty("CompleteTime", completeTime),
                 extra));
         }
@@ -60,15 +60,15 @@ namespace TapEmpire.Services.LiveOps
         {
             var completeTime = GetCompleteTime(liveOps);
             LogEvent("End", new JObject(
-                new JProperty("Id", liveOps.StateData.Id),
-                new JProperty("Stage", liveOps.StateData.Inner),
+                new JProperty("Id", liveOps.Runtime.Id),
+                new JProperty("Stage", liveOps.Runtime.Inner),
                 new JProperty("CompleteTime", completeTime),
                 extra));
         }
 
         private int GetCompleteTime(ILiveOps liveOps)
         {
-            var elapsed = DateTime.UtcNow - liveOps.StateData.StartedAt;
+            var elapsed = DateTime.UtcNow - liveOps.Runtime.StartedAt;
             return _timeUnit switch
             {
                 LiveOpsTimeUnit.Minutes => (int)elapsed.TotalMinutes,

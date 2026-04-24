@@ -18,8 +18,9 @@ namespace TapEmpire.Services.LiveOps
         public Observable<ILiveOps> OnFinished => _onFinished;
         public Observable<StateData> OnDataChanged => _onDataChanged;
 
-        public abstract StateData StateData { get; }
+        public abstract StateData Runtime { get; }
         public string Name => _data.Name;
+        public DateTime EndTime { get; protected set; }
 
         protected readonly Subject<ILiveOps> _onStarted = new();
         protected readonly Subject<ILiveOps> _onStage = new();
@@ -32,7 +33,8 @@ namespace TapEmpire.Services.LiveOps
         protected IProgressService _progressService;
         protected IUIService _uiService;
         protected LiveOpsIcon _icon;
-        protected ICondition[] _conditions;
+
+        private ICondition[] _conditions;
 
         public void Initialize(DiContainer diContainer, LiveOpsData data)
         {
@@ -42,6 +44,7 @@ namespace TapEmpire.Services.LiveOps
             _uiService = diContainer.Resolve<IUIService>();
 
             OnInitialize();
+            _conditions = CreateConditions();
         }
 
         public IDisposable CreateIcon(Transform parent)
@@ -62,15 +65,21 @@ namespace TapEmpire.Services.LiveOps
             return _uiService.OpenViewAwaitable(_data.TutorialPrefab, new TutorialUIViewModel(Name, isSkippable), default);
         }
 
-        public abstract TimeSpan GetRemainingTime();
+        public TimeSpan GetRemainingTime()
+        {
+            var remaining = EndTime - DateTime.UtcNow;
+            return remaining > TimeSpan.Zero ? remaining : TimeSpan.Zero;
+        }
+
         public abstract void Save();
         public virtual void UpdatePrepare(bool debug = false) { }
         public abstract UniTask UpdateVisual(Transform from, bool debug = false);
         public abstract UniTask UpdatePopups();
 
-        public void Dispose() => _disposables?.Dispose();
+        public virtual void Dispose() => _disposables?.Dispose();
 
         protected abstract void OnInitialize();
+        protected abstract ICondition[] CreateConditions();
         protected bool CanActivate() => _conditions.All(condition => condition.Evaluate());
     }
 }
