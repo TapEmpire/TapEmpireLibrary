@@ -11,7 +11,9 @@ using Object = UnityEngine.Object;
 
 namespace TapEmpire.Services.LiveOps
 {
-    public abstract class LiveOpsBase<T> : ILiveOps where T : LiveOpsRuntime
+    public abstract class LiveOpsBase<TData, TRuntime> : ILiveOps
+        where TData : LiveOpsData
+        where TRuntime : LiveOpsRuntime, new()
     {
         public Observable<ILiveOps> OnStarted => _onStarted;
         public Observable<ILiveOps> OnStage => _onStage;
@@ -22,7 +24,8 @@ namespace TapEmpire.Services.LiveOps
         public string Name => _data.Name;
         public DateTime EndTime { get; protected set; }
 
-        protected T _runtime;
+        protected TData _data;
+        protected TRuntime _runtime;
 
         protected readonly Subject<ILiveOps> _onStarted = new();
         protected readonly Subject<ILiveOps> _onStage = new();
@@ -30,7 +33,6 @@ namespace TapEmpire.Services.LiveOps
         protected readonly Subject<LiveOpsRuntime> _onDataChanged = new();
         protected readonly CompositeDisposable _disposables = new();
 
-        protected LiveOpsData _data;
         protected DiContainer _diContainer;
         protected IProgressService _progressService;
         protected IUIService _uiService;
@@ -41,11 +43,13 @@ namespace TapEmpire.Services.LiveOps
         public void Initialize(DiContainer diContainer, LiveOpsData data)
         {
             _diContainer = diContainer;
-            _data = data;
+            _data = (TData)data;
             _progressService = diContainer.Resolve<IProgressService>();
             _uiService = diContainer.Resolve<IUIService>();
 
+            _runtime = _progressService.GetLiveOpsValue<TRuntime>(Name) ?? new TRuntime();
             OnInitialize();
+            EndTime = _data.GetEndTime(_runtime);
             _conditions = CreateConditions();
         }
 

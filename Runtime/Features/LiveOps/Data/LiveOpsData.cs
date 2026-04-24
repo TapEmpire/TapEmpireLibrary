@@ -14,6 +14,7 @@ namespace TapEmpire.Services.LiveOps
         public TutorialUIView TutorialPrefab;
         public abstract string Name { get; }
         public abstract ILiveOps Create();
+        public abstract DateTime GetEndTime(LiveOpsRuntime runtime);
     }
 
     public class LiveOpsRuntime
