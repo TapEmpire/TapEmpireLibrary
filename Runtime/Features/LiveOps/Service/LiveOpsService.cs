@@ -15,7 +15,7 @@ namespace TapEmpire.Services.LiveOps
 
         private DiContainer _diContainer;
 
-        private List<LiveOpsBase> _liveOps = new();
+        private List<ILiveOps> _liveOps = new();
         private CompositeDisposable _disposables = new();
         private Transform _resourceEmitter = null;
 

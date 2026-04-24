@@ -13,7 +13,7 @@ namespace TapEmpire.Services.LiveOps
         public LiveOpsView LiveOpsPrefab;
         public TutorialUIView TutorialPrefab;
         public abstract string Name { get; }
-        public abstract LiveOpsBase Create();
+        public abstract ILiveOps Create();
     }
 
     public class LiveOpsRuntime

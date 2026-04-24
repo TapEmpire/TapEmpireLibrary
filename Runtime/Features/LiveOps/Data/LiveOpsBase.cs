@@ -11,16 +11,18 @@ using Object = UnityEngine.Object;
 
 namespace TapEmpire.Services.LiveOps
 {
-    public abstract class LiveOpsBase : ILiveOps
+    public abstract class LiveOpsBase<T> : ILiveOps where T : LiveOpsRuntime
     {
         public Observable<ILiveOps> OnStarted => _onStarted;
         public Observable<ILiveOps> OnStage => _onStage;
         public Observable<ILiveOps> OnFinished => _onFinished;
         public Observable<LiveOpsRuntime> OnDataChanged => _onDataChanged;
 
-        public abstract LiveOpsRuntime Runtime { get; }
+        public LiveOpsRuntime Runtime => _runtime;
         public string Name => _data.Name;
         public DateTime EndTime { get; protected set; }
+
+        protected T _runtime;
 
         protected readonly Subject<ILiveOps> _onStarted = new();
         protected readonly Subject<ILiveOps> _onStage = new();
@@ -71,7 +73,11 @@ namespace TapEmpire.Services.LiveOps
             return remaining > TimeSpan.Zero ? remaining : TimeSpan.Zero;
         }
 
-        public abstract void Save();
+        public virtual void Save()
+        {
+            _progressService.SetLiveOpsValue(_runtime, Name);
+        }
+
         public virtual void UpdatePrepare(bool debug = false) { }
         public abstract UniTask UpdateVisual(Transform from, bool debug = false);
         public abstract UniTask UpdatePopups();
