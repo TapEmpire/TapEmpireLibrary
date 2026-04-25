@@ -2,6 +2,7 @@ using System;
 using TapEmpire.LiveOps.UI;
 using TapEmpire.Feature.Tutorial;
 using UnityEngine;
+using Zenject;
 
 namespace TapEmpire.Services.LiveOps
 {
@@ -13,7 +14,7 @@ namespace TapEmpire.Services.LiveOps
         public LiveOpsView LiveOpsPrefab;
         public TutorialUIView TutorialPrefab;
         public abstract string Name { get; }
-        public abstract ILiveOps Create();
+        public abstract ILiveOps Create(DiContainer container);
         public abstract DateTime GetEndTime(LiveOpsRuntime runtime);
     }
 

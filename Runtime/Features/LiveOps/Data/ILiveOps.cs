@@ -2,8 +2,6 @@ using System;
 using Cysharp.Threading.Tasks;
 using R3;
 using UnityEngine;
-using Zenject;
-
 namespace TapEmpire.Services.LiveOps
 {
     public interface ILiveOps : IDisposable
@@ -15,7 +13,6 @@ namespace TapEmpire.Services.LiveOps
         Observable<ILiveOps> OnStage { get; }
         Observable<ILiveOps> OnFinished { get; }
 
-        void Initialize(DiContainer diContainer, LiveOpsData data);
         IDisposable CreateIcon(Transform parent);
         UniTask OpenView();
         UniTask OpenTutorial(bool isSkippable = true);

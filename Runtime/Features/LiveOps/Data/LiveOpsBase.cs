@@ -40,18 +40,17 @@ namespace TapEmpire.Services.LiveOps
         protected IUIService _uiService;
         protected LiveOpsIcon _icon;
 
-        private ICondition[] _conditions;
+        protected ICondition[] _conditions;
 
-        public void Initialize(DiContainer diContainer, LiveOpsData data)
+        protected LiveOpsBase(DiContainer diContainer, TData data)
         {
             _diContainer = diContainer;
-            _data = (TData)data;
+            _data = data;
             _progressService = diContainer.Resolve<IProgressService>();
             _uiService = diContainer.Resolve<IUIService>();
 
             _runtime = _progressService.GetLiveOpsValue<TRuntime>(Name) ?? new TRuntime();
             EndTime = _data.GetEndTime(_runtime);
-            OnInitialize();
             _conditions = CreateConditions();
         }
 
@@ -92,7 +91,6 @@ namespace TapEmpire.Services.LiveOps
 
         public virtual void Dispose() => _disposables?.Dispose();
 
-        protected abstract void OnInitialize();
         protected abstract ICondition[] CreateConditions();
         protected bool CanActivate() => _conditions.All(condition => condition.Evaluate());
     }
