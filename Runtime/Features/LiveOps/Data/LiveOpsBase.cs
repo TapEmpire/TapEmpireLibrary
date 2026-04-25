@@ -84,6 +84,8 @@ namespace TapEmpire.Services.LiveOps
             _progressService.SetLiveOpsValue(_runtime, Name);
         }
 
+        public void BroadcastUpdate() => _onDataChanged.OnNext(_runtime);
+
         public virtual void UpdatePrepare(bool debug = false) { }
         public abstract UniTask UpdateVisual(Transform from, bool debug = false);
         public abstract UniTask UpdatePopups();
