@@ -12,6 +12,7 @@ namespace TapEmpire.Services.LiveOps
         Observable<ILiveOps> OnStarted { get; }
         Observable<ILiveOps> OnStage { get; }
         Observable<ILiveOps> OnFinished { get; }
+        Observable<ILiveOps> OnExpired { get; }
 
         IDisposable CreateIcon(Transform parent);
         UniTask OpenView();

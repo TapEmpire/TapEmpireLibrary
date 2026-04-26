@@ -18,6 +18,7 @@ namespace TapEmpire.Services.LiveOps
         public Observable<ILiveOps> OnStarted => _onStarted;
         public Observable<ILiveOps> OnStage => _onStage;
         public Observable<ILiveOps> OnFinished => _onFinished;
+        public Observable<ILiveOps> OnExpired => _onExpired;
         public Observable<LiveOpsRuntime> OnDataChanged => _onDataChanged;
 
         LiveOpsRuntime ILiveOps.Runtime => _runtime;
@@ -32,6 +33,7 @@ namespace TapEmpire.Services.LiveOps
         protected readonly Subject<ILiveOps> _onStarted = new();
         protected readonly Subject<ILiveOps> _onStage = new();
         protected readonly Subject<ILiveOps> _onFinished = new();
+        protected readonly Subject<ILiveOps> _onExpired = new();
         protected readonly Subject<LiveOpsRuntime> _onDataChanged = new();
         protected readonly CompositeDisposable _disposables = new();
 
@@ -52,6 +54,10 @@ namespace TapEmpire.Services.LiveOps
             _runtime = _progressService.GetLiveOpsValue<TRuntime>(Name) ?? new TRuntime();
             EndTime = _data.GetEndTime(_runtime);
             _conditions = CreateConditions();
+
+            diContainer.Resolve<ISystemService>().OnTick
+                .Subscribe(_ => OnTick())
+                .AddTo(_disposables);
         }
 
         public IDisposable CreateIcon(Transform parent)
@@ -71,6 +77,8 @@ namespace TapEmpire.Services.LiveOps
         {
             return _uiService.OpenViewAwaitable(_data.TutorialPrefab, new TutorialUIViewModel(Name, isSkippable), default);
         }
+
+        public bool IsExpired() => GetRemainingTime() <= TimeSpan.Zero;
 
         public TimeSpan GetRemainingTime()
         {
@@ -93,5 +101,11 @@ namespace TapEmpire.Services.LiveOps
 
         protected abstract ICondition[] CreateConditions();
         protected bool CanActivate() => _conditions.All(condition => condition.Evaluate());
+
+        private void OnTick()
+        {
+            if (_runtime.State == State.Active && IsExpired())
+                _onExpired.OnNext(this);
+        }
     }
 }

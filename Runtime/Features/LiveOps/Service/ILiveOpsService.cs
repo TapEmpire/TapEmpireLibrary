@@ -8,6 +8,8 @@ namespace TapEmpire.Services.LiveOps
     {
         LiveOpsSettings Settings { get; }
 
+        IReadOnlyList<ILiveOps> LiveOps { get; }
+
         T GetLiveOps<T>() where T : ILiveOps;
 
         UniTask UpdateLiveOps(List<Transform> placements = null, bool debug = false);
