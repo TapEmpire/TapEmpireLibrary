@@ -34,6 +34,7 @@ namespace TapEmpire.Build
             // NormalizeEntitlements(projectPath, pathToBuiltProject);
 #endif
             InjectToPlist(pathToBuiltProject);
+            PatchFacebookSwiftHeaderImport(pathToBuiltProject);
         }
 
 #if TEL_CLOUD_SAVE
@@ -168,6 +169,49 @@ namespace TapEmpire.Build
             rootDict.SetBoolean(encryptionKey, false);
 
             plist.WriteToFile(plistPath);
+        }
+
+        private static void PatchFacebookSwiftHeaderImport(string pathToBuiltProject)
+        {
+            string delegateHeaderPath = Path.Combine(
+                pathToBuiltProject,
+                "Libraries/FacebookSDK/SDK/Editor/iOS/FBUnitySDKDelegate.h");
+            string coreHapticsInterfacePath = Path.Combine(
+                pathToBuiltProject,
+                "Libraries/com.moremountains.nicevibrations/Plugins/NiceVibrations/Common/Plugins/iOS/Swift/MMNViOSCoreHapticsInterface.mm");
+
+            if (!File.Exists(delegateHeaderPath))
+            {
+                return;
+            }
+
+            const string swiftImport = "#import <UnityFramework/UnityFramework-Swift.h>";
+            const string coreHapticsSwiftImport = "UnityFramework/UnityFramework-Swift.h";
+            const string patchedSwiftImport = "// #import <UnityFramework/UnityFramework-Swift.h>";
+
+            if (!File.Exists(coreHapticsInterfacePath))
+            {
+                Debug.LogWarning("[IosPostProcessor] Skipped FBUnitySDKDelegate.h patch because MMNViOSCoreHapticsInterface.mm was not found.");
+                return;
+            }
+
+            string coreHapticsContents = File.ReadAllText(coreHapticsInterfacePath);
+            if (!coreHapticsContents.Contains(coreHapticsSwiftImport))
+            {
+                Debug.LogWarning("[IosPostProcessor] Skipped FBUnitySDKDelegate.h patch because MMNViOSCoreHapticsInterface.mm no longer imports UnityFramework-Swift.h.");
+                return;
+            }
+
+            string contents = File.ReadAllText(delegateHeaderPath);
+            if (!contents.Contains(swiftImport))
+            {
+                return;
+            }
+
+            contents = contents.Replace(swiftImport, patchedSwiftImport);
+            File.WriteAllText(delegateHeaderPath, contents);
+
+            Debug.Log("[IosPostProcessor] Patched FBUnitySDKDelegate.h to remove UnityFramework-Swift.h import.");
         }
     }
 }
