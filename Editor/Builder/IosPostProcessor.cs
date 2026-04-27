@@ -175,7 +175,7 @@ namespace TapEmpire.Build
         {
             string delegateHeaderPath = Path.Combine(
                 pathToBuiltProject,
-                "Libraries/FacebookSDK/SDK/Editor/iOS/FBUnitySDKDelegate.h");
+                    "Libraries/com.facebook.sdk/SDK/Editor/iOS/FBUnitySDKDelegate.h");
             string coreHapticsInterfacePath = Path.Combine(
                 pathToBuiltProject,
                 "Libraries/com.moremountains.nicevibrations/Plugins/NiceVibrations/Common/Plugins/iOS/Swift/MMNViOSCoreHapticsInterface.mm");
