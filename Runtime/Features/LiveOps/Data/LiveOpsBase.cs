@@ -60,9 +60,9 @@ namespace TapEmpire.Services.LiveOps
                 .AddTo(_disposables);
         }
 
-        public IDisposable CreateIcon(Transform parent)
+        public LiveOpsIcon CreateIcon()
         {
-            _icon = Object.Instantiate(_data.IconPrefab, parent);
+            _icon = Object.Instantiate(_data.IconPrefab);
             _diContainer.Inject(_icon);
             _icon.Initialize(this);
             return _icon;

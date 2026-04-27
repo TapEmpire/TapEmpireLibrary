@@ -1,6 +1,7 @@
 using System;
 using Cysharp.Threading.Tasks;
 using R3;
+using TapEmpire.LiveOps.UI;
 using UnityEngine;
 namespace TapEmpire.Services.LiveOps
 {
@@ -14,7 +15,7 @@ namespace TapEmpire.Services.LiveOps
         Observable<ILiveOps> OnFinished { get; }
         Observable<ILiveOps> OnExpired { get; }
 
-        IDisposable CreateIcon(Transform parent);
+        LiveOpsIcon CreateIcon();
         UniTask OpenView();
         UniTask OpenTutorial(bool isSkippable = true);
         TimeSpan GetRemainingTime();

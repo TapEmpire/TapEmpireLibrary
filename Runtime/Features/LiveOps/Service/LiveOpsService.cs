@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using R3;
+using TapEmpire.LiveOps.UI;
 using UnityEngine;
 using TapEmpire.Utility;
 using Zenject;
@@ -49,7 +50,7 @@ namespace TapEmpire.Services.LiveOps
             return _liveOps.OfType<T>().FirstOrDefault();
         }
 
-        public async UniTask UpdateLiveOps(List<Transform> placements = null, bool debug = false)
+        public async UniTask UpdateLiveOps(LiveOpsIconLayout layout = null, bool debug = false)
         {
             foreach (var liveOps in _liveOps)
                 liveOps.UpdatePrepare(debug);
@@ -57,8 +58,8 @@ namespace TapEmpire.Services.LiveOps
             var active = _liveOps.Where(liveOps => liveOps.Runtime.State != State.NotStarted);
             var inactive = _liveOps.Where(liveOps => liveOps.Runtime.State == State.NotStarted);
 
-            if (placements != null)
-                active.ForEach((liveOps, index) => liveOps.CreateIcon(placements[index]));
+            if (layout != null)
+                active.ForEach(liveOps => liveOps.CreateIcon().AddTo(layout));
 
             await UniTask.WaitForSeconds(Settings.UpdateDelaySeconds, cancellationToken: default);
             await UniTask.WhenAll(active.Select(liveOps => liveOps.UpdateVisual(_resourceEmitter, debug)));
@@ -70,8 +71,8 @@ namespace TapEmpire.Services.LiveOps
             {
                 await liveOps.UpdatePopups();
 
-                if (placements != null && liveOps.Runtime.State != State.NotStarted)
-                    liveOps.CreateIcon(placements[_liveOps.Count - 1]);
+                if (layout != null && liveOps.Runtime.State != State.NotStarted)
+                    liveOps.CreateIcon().AddTo(layout);
             }
         }
         private void InitializeAndRegisterLiveOps(LiveOpsData data)

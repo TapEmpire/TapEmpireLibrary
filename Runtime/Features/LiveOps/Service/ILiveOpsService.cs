@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
-using UnityEngine;
+using TapEmpire.LiveOps.UI;
 
 namespace TapEmpire.Services.LiveOps
 {
@@ -12,6 +12,6 @@ namespace TapEmpire.Services.LiveOps
 
         T GetLiveOps<T>() where T : ILiveOps;
 
-        UniTask UpdateLiveOps(List<Transform> placements = null, bool debug = false);
+        UniTask UpdateLiveOps(LiveOpsIconLayout layout = null, bool debug = false);
     }
 }
