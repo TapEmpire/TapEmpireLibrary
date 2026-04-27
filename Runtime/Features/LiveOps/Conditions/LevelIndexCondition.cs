@@ -1,29 +1,19 @@
-using System;
-using TapEmpire.Services.Offer;
-using Zenject;
-
 namespace TapEmpire.Services.LiveOps
 {
-    [Serializable]
     public class LevelIndexCondition : ICondition
     {
-        public int MinStartLevelIndex;
-    }
+        private readonly int _minStartLevelIndex;
+        private readonly IProgressService _progressService;
 
-    [Serializable]
-    public class LevelIndexConditionHandler : ConditionHandler<LevelIndexCondition>
-    {
-        private IProgressService _progressService;
-
-        public override void Initialize(DiContainer diContainer)
+        public LevelIndexCondition(int minStartLevelIndex, IProgressService progressService)
         {
-            _progressService = diContainer.Resolve<IProgressService>();
+            _minStartLevelIndex = minStartLevelIndex;
+            _progressService = progressService;
         }
 
-        public override bool Handle(LevelIndexCondition condition)
+        public bool Evaluate()
         {
-            var level = _progressService.GetLevelProgress();
-            return  level >= condition.MinStartLevelIndex;
+            return _progressService.GetLevelProgress() >= _minStartLevelIndex;
         }
     }
 }

@@ -23,6 +23,9 @@ namespace TapEmpire.LiveOps.UI
         protected ILiveOps _liveOps = null;
         protected CompositeDisposable _disposables = new();
 
+        public string Name => _liveOps.Name;
+        public Observable<ILiveOps> OnFinished => _liveOps.OnFinished;
+
         public virtual void Initialize(ILiveOps liveOps)
         {
             _liveOps = liveOps;
@@ -43,7 +46,7 @@ namespace TapEmpire.LiveOps.UI
 
         protected virtual void OnButtonPressed()
         {
-            _liveOps.OpenView();
+            _liveOps.OpenView().Forget();
         }
 
         protected T LiveOps<T>() where T : ILiveOps => (T)_liveOps;

@@ -1,12 +1,11 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using R3;
-using TapEmpire.Patterns.Strategy;
-using TapEmpire.UI;
+using TapEmpire.LiveOps.UI;
 using UnityEngine;
+using TapEmpire.Utility;
 using Zenject;
 
 namespace TapEmpire.Services.LiveOps
@@ -16,20 +15,17 @@ namespace TapEmpire.Services.LiveOps
         [field: SerializeField] public LiveOpsSettings Settings { get; private set; }
 
         private DiContainer _diContainer;
-        private IProgressService _progressService;
-        private IUIService _uiService;
-        
+
+        public IReadOnlyList<ILiveOps> LiveOps => _liveOps;
+
         private List<ILiveOps> _liveOps = new();
-        private readonly Dictionary<Type, IHandler> _handlers = new();
         private CompositeDisposable _disposables = new();
         private Transform _resourceEmitter = null;
 
         [Inject]
-        private void Construct(DiContainer diContainer, IProgressService progressService, IUIService uiService)
+        private void Construct(DiContainer diContainer)
         {
             _diContainer = diContainer;
-            _progressService = progressService;
-            _uiService = uiService;
         }
 
         protected override UniTask OnInitializeAsync(CancellationToken cancellationToken)
@@ -37,16 +33,8 @@ namespace TapEmpire.Services.LiveOps
             _disposables = new();
             _liveOps = new();
 
-            new LiveOpsAnalyticsModule(_diContainer).AddTo(_disposables);
-
             Settings.LiveOps.ForEach(InitializeAndRegisterLiveOps);
-            
-            foreach (var handler in Settings.ConditionHandlers)
-            {
-                handler.Initialize(_diContainer);
-                _handlers[handler.GetSubjectType()] = handler;
-            }
-            
+
             return base.OnInitializeAsync(cancellationToken);
         }
 
@@ -62,58 +50,34 @@ namespace TapEmpire.Services.LiveOps
             return _liveOps.OfType<T>().FirstOrDefault();
         }
 
-        public List<ILiveOps> GetLiveOps() => _liveOps;
-
-        public async UniTask UpdateLiveOps(List<Transform> placements = null, bool debug = false)
+        public async UniTask UpdateLiveOps(LiveOpsIconLayout layout = null, bool debug = false)
         {
-            var actions = _liveOps
-                .Select(liveOps => (LiveOps: liveOps, Action: liveOps.CheckUpdateAction(debug)))
-                .ToList();
+            foreach (var liveOps in _liveOps)
+                liveOps.UpdatePrepare(debug);
 
-            if (placements != null)
-            {
-                var placementIndex = 0;
-                foreach (var liveOps in _liveOps)
-                {
-                    if (liveOps.CreateIcon(placements[placementIndex]) != null)
-                        placementIndex++;
-                }
-            }
+            var active = _liveOps.Where(liveOps => liveOps.Runtime.State != State.NotStarted);
+            var inactive = _liveOps.Where(liveOps => liveOps.Runtime.State == State.NotStarted);
+
+            if (layout != null)
+                active.ForEach(liveOps => liveOps.CreateIcon().AddTo(layout));
 
             await UniTask.WaitForSeconds(Settings.UpdateDelaySeconds, cancellationToken: default);
-            await UniTask.WhenAll(actions.Select(x => x.LiveOps.UpdateVisual(_resourceEmitter, debug)));
-            
-            foreach (var updateAction in Settings.ProcessingOrder)
+            await UniTask.WhenAll(active.Select(liveOps => liveOps.UpdateVisual(_resourceEmitter, debug)));
+
+            foreach (var liveOps in active)
+                await liveOps.UpdatePopups();
+
+            foreach (var liveOps in inactive)
             {
-                var group = actions
-                    .Where(x => x.Action == updateAction && x.Action != UpdateAction.None)
-                    .ToList();
+                await liveOps.UpdatePopups();
 
-                if (group.Count == 0)
-                    continue;
-
-                foreach (var tuple in group)
-                    await tuple.LiveOps.UpdateState();
+                if (layout != null && liveOps.Runtime.State != State.NotStarted)
+                    liveOps.CreateIcon().AddTo(layout);
             }
         }
-        
-        public bool EvaluateConditions(LiveOpsData data)
-        {
-            foreach (var condition in data.Conditions)
-            {
-                var type = condition.GetType();
-                if (!_handlers.TryGetValue(type, out var handler) || !handler.CanHandle(condition)) 
-                    continue;
-                if (!handler.Handle(condition))
-                    return false;
-            }
-            return true;
-        }
-
         private void InitializeAndRegisterLiveOps(LiveOpsData data)
         {
-            var liveOps = data.Create();
-            liveOps.Initialize(_diContainer, data);
+            var liveOps = data.Create(_diContainer);
             liveOps.AddTo(_disposables);
             _liveOps.Add(liveOps);
         }

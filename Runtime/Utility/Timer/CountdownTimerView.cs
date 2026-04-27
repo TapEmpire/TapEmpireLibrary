@@ -12,12 +12,12 @@ namespace TapEmpire.Utility
 
         public Action OnExpired;
 
-        private Func<long> _getRemainingSeconds;
+        private Func<TimeSpan> _getRemainingTime;
         private IDisposable _subscription;
 
-        public IDisposable Initialize(Func<long> getRemainingSeconds, ISystemService systemService)
+        public IDisposable Initialize(Func<TimeSpan> getRemainingTime, ISystemService systemService)
         {
-            _getRemainingSeconds = getRemainingSeconds;
+            _getRemainingTime = getRemainingTime;
             UpdateTimer();
             _subscription = systemService.OnTick.Subscribe(_ => UpdateTimer());
             return this;
@@ -25,9 +25,11 @@ namespace TapEmpire.Utility
 
         private void UpdateTimer()
         {
-            var remaining = Math.Max(0, _getRemainingSeconds());
+            var remaining = _getRemainingTime();
+            if (remaining < TimeSpan.Zero)
+                remaining = TimeSpan.Zero;
             _text.text = CountdownFormatUtility.Format(remaining);
-            if (remaining <= 0)
+            if (remaining <= TimeSpan.Zero)
                 OnExpired?.Invoke();
         }
 

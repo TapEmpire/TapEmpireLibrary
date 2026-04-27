@@ -1,30 +1,28 @@
 using System;
-using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using R3;
+using TapEmpire.LiveOps.UI;
 using UnityEngine;
-using Zenject;
-
 namespace TapEmpire.Services.LiveOps
 {
     public interface ILiveOps : IDisposable
     {
-        StateData StateData { get; }
+        LiveOpsRuntime Runtime { get; }
         string Name { get; }
-        Observable<StateData> OnDataChanged { get; }
+        Observable<LiveOpsRuntime> OnDataChanged { get; }
+        Observable<ILiveOps> OnStarted { get; }
+        Observable<ILiveOps> OnStage { get; }
+        Observable<ILiveOps> OnFinished { get; }
+        Observable<ILiveOps> OnExpired { get; }
 
-        void Initialize(DiContainer diContainer, LiveOpsData settings);
-        IDisposable CreateIcon(Transform parent);
-        void OpenView();
-        void OpenTutorial();
-
-        UpdateAction CheckUpdateAction(bool debug = false); // return what action we should for updateVisual
-
-        void UpdateData(string placement); // Forward call. Try not to use.
-        UniTask UpdateVisual(Transform from, bool debug = false); // Flying step
-        UniTask UpdateState(); // Popup state
-
+        LiveOpsIcon CreateIcon();
+        UniTask OpenView();
+        UniTask OpenTutorial(bool isSkippable = true);
+        TimeSpan GetRemainingTime();
         void Save();
+        void UpdatePrepare(bool debug = false);
+        UniTask UpdateVisual(Transform from, bool debug = false);
+        UniTask UpdatePopups();
     }
 
     public enum State
@@ -35,14 +33,4 @@ namespace TapEmpire.Services.LiveOps
         Finished,
     }
 
-    public enum UpdateAction
-    {
-        None,
-        Start,
-        Update,
-        Finish,
-    }
-
-    // placement? или подписки? или подписка + messagebus?
-    // point of visual update
 }

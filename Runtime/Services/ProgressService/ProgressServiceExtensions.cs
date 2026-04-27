@@ -92,9 +92,14 @@ namespace TapEmpire.Services
             self.StringValuesDictionary.SetValue(key, dateTime.ToString());
         }
 
-        public static void CleanTimeStamp(this IProgressService self, string key)
+        public static void DeleteString(this IProgressService self, string key)
         {
             self.StringValuesDictionary.DeleteKey(key);
+        }
+
+        public static void CleanTimeStamp(this IProgressService self, string key)
+        {
+            self.DeleteString(key);
         }
 
         public static System.DateTime GetTimeStamp(this IProgressService self, string key)

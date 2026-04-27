@@ -1,21 +1,17 @@
-using System;
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
-using R3;
-using UnityEngine;
+using TapEmpire.LiveOps.UI;
 
 namespace TapEmpire.Services.LiveOps
 {
     public interface ILiveOpsService : IService
     {
-        // Subject<(OfferType OfferType, bool Autoshown, string Placement)> OnOfferShown { get; }
-
         LiveOpsSettings Settings { get; }
 
-        T GetLiveOps<T>() where T : ILiveOps;
-        List<ILiveOps> GetLiveOps();
+        IReadOnlyList<ILiveOps> LiveOps { get; }
 
-        UniTask UpdateLiveOps(List<Transform> placements = null, bool debug = false);
-        bool EvaluateConditions(LiveOpsData liveOpsData);
+        T GetLiveOps<T>() where T : ILiveOps;
+
+        UniTask UpdateLiveOps(LiveOpsIconLayout layout = null, bool debug = false);
     }
 }
