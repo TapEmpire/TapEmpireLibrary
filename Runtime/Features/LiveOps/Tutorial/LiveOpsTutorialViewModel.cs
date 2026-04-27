@@ -29,7 +29,7 @@ namespace TapEmpire.Services.LiveOps
 
         public void OnNextPressed()
         {
-            _progressService.SetTutorialProgress(1);
+            _progressService.SetTileStreakTutorialProgress(1);
             OnStepDone.OnNext(Unit.Default);
             _adsService.ShowBanners(_areBannersShown);
             _uiService.CloseViewAsync(this, CancellationToken.None).Forget();

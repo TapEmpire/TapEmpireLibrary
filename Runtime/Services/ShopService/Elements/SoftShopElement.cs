@@ -60,7 +60,7 @@ namespace TapEmpire.Services.Shop
                 _special.sprite = _shopSettings.InfoIcons[data.InfoType];
             }
 
-            _purchaseButton.enabled = HasAmount();
+            //_purchaseButton.enabled = HasAmount();
             _customButton?.SetActive(_purchaseButton.enabled);
 
             _resourcesService.GetResourceData(price.Resource).Amount.Subscribe(OnCoinsChanged).AddTo(_disposables);
@@ -80,7 +80,7 @@ namespace TapEmpire.Services.Shop
 
         protected virtual void OnCoinsChanged(int _)
         {
-            _purchaseButton.enabled = HasAmount();
+            //_purchaseButton.enabled = HasAmount();
             _customButton?.SetActive(_purchaseButton.enabled);
         }
 
