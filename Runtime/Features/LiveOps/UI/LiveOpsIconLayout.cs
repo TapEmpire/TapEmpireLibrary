@@ -8,7 +8,7 @@ namespace TapEmpire.LiveOps.UI
     {
         [SerializeField] private List<Transform> _placements;
         [SerializeField] private SerializableDictionary<string, int> _reservedPlacements = new();
-        [SerializeField] private int _firstGeneralIndex = 3;
+        [SerializeField] private int _firstCommonIndex = 3;
 
         private readonly List<LiveOpsIcon> _generalIcons = new();
         private readonly CompositeDisposable _disposables = new();
@@ -16,7 +16,7 @@ namespace TapEmpire.LiveOps.UI
         public void Add(LiveOpsIcon icon)
         {
             var index = GetPlacementIndex(icon);
-            if (index >= _firstGeneralIndex)
+            if (index >= _firstCommonIndex)
                 _generalIcons.Add(icon);
             icon.transform.SetParent(_placements[index], false);
             icon.OnFinished.Subscribe(_ => Remove(icon)).AddTo(_disposables);
@@ -30,7 +30,7 @@ namespace TapEmpire.LiveOps.UI
                 return;
 
             for (var i = 0; i < _generalIcons.Count; i++)
-                _generalIcons[i].transform.SetParent(_placements[_firstGeneralIndex + i], false);
+                _generalIcons[i].transform.SetParent(_placements[_firstCommonIndex + i], false);
         }
 
         private int GetPlacementIndex(LiveOpsIcon icon)
@@ -38,7 +38,7 @@ namespace TapEmpire.LiveOps.UI
             if (_reservedPlacements.TryGetValue(icon.Name, out var index))
                 return index;
 
-            return _firstGeneralIndex + _generalIcons.Count;
+            return _firstCommonIndex + _generalIcons.Count;
         }
 
         private void OnDestroy()
