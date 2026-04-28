@@ -130,8 +130,10 @@ namespace TapEmpire.Services
             GameObject.Instantiate(_adsManagerPrefab);
             // GameObject.Instantiate(_appMetricaPrefab);
 
+            _adjustPrefab.startManually = true;
             _adjustPrefab.environment = PlatformInfo.IsTestFlightOrSandboxReceipt() ? AdjustEnvironment.Sandbox : _adjustPrefab.environment;
             GameObject.Instantiate(_adjustPrefab);
+            InitializeAdjust(_adjustPrefab);
 
             new AdsAnalyticsModule(_diContainer).AddTo(_disposables);
             new AdsSignalsModule(_diContainer).AddTo(_disposables);
@@ -493,6 +495,30 @@ namespace TapEmpire.Services
             {
                 AdsManager.Instance.BannerPos = _pendingBannerPos.Value;
             }
+        }
+
+        private static void InitializeAdjust(Adjust adjustPrefab)
+        {
+            var adjustConfig = new AdjustConfig(
+                adjustPrefab.appToken,
+                adjustPrefab.environment,
+                adjustPrefab.logLevel == AdjustLogLevel.Suppress);
+            adjustConfig.LogLevel = adjustPrefab.logLevel;
+            adjustConfig.IsSendingInBackgroundEnabled = adjustPrefab.sendInBackground;
+            adjustConfig.IsDeferredDeeplinkOpeningEnabled = adjustPrefab.launchDeferredDeeplink;
+            adjustConfig.DefaultTracker = adjustPrefab.defaultTracker;
+            adjustConfig.IsCoppaComplianceEnabled = adjustPrefab.coppaCompliance;
+            adjustConfig.IsCostDataInAttributionEnabled = adjustPrefab.costDataInAttribution;
+            adjustConfig.IsPreinstallTrackingEnabled = adjustPrefab.preinstallTracking;
+            adjustConfig.PreinstallFilePath = adjustPrefab.preinstallFilePath;
+            adjustConfig.IsAdServicesEnabled = adjustPrefab.adServices;
+            adjustConfig.IsIdfaReadingEnabled = adjustPrefab.idfaReading;
+            adjustConfig.IsLinkMeEnabled = adjustPrefab.linkMe;
+            adjustConfig.IsSkanAttributionEnabled = adjustPrefab.skanAttribution;
+#if UNITY_IOS && !UNITY_EDITOR
+            adjustConfig.AttConsentWaitingInterval = 120;
+#endif
+            Adjust.InitSdk(adjustConfig);
         }
     }
 }
