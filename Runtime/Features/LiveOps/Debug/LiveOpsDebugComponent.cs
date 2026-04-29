@@ -66,7 +66,7 @@ namespace TapEmpire.Services.LiveOps
             _addend.text = runtime.Addend.ToString();
             _endTime.text = FormatEndTime();
 
-            _extension?.Read();
+            _extension?.Read(_liveOps);
         }
 
         private string FormatEndTime()
@@ -87,7 +87,7 @@ namespace TapEmpire.Services.LiveOps
             runtime.Value = int.TryParse(_value.text, out int value) ? value : runtime.Value;
             runtime.Addend = int.TryParse(_addend.text, out int addend) ? addend : runtime.Addend;
 
-            _extension?.Apply();
+            _extension?.Apply(_liveOps);
 
             _liveOps.Save();
         }
