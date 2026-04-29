@@ -96,7 +96,7 @@ namespace TapEmpire.Services.LiveOps
         public void BroadcastUpdate() => _onDataChanged.OnNext(_runtime);
 
         public virtual void UpdatePrepare(bool debug = false) { }
-        public abstract UniTask UpdateVisual(Transform from, bool debug = false);
+        public virtual UniTask UpdateVisual(Transform from, bool debug = false) => UniTask.CompletedTask;
         public abstract UniTask UpdatePopups();
 
         public virtual void Dispose() => _disposables?.Dispose();
