@@ -19,7 +19,7 @@ namespace TapEmpire.Services.LiveOps
         [SerializeField] private TMP_InputField _value;
         [SerializeField] private TMP_InputField _addend;
         [SerializeField] private TMP_InputField _endTime;
-        [SerializeField] private string _endTimeFormat = "yyyy-MM-dd HH:mm:ss";
+        [SerializeField] private LiveOpsTimeUnit _timeUnit = LiveOpsTimeUnit.Minutes;
 
         private ILiveOps _liveOps;
         private ILiveOpsDebugExtension _extension;
@@ -72,8 +72,9 @@ namespace TapEmpire.Services.LiveOps
         private string FormatEndTime()
         {
             var remaining = _liveOps.GetRemainingTime();
+            var format = _timeUnit == LiveOpsTimeUnit.Days ? "yyyy-MM-dd" : "yyyy-MM-dd HH:mm:ss";
             return remaining > TimeSpan.Zero && remaining.TotalDays < 365
-                ? (DateTime.UtcNow + remaining).ToString(_endTimeFormat, CultureInfo.InvariantCulture)
+                ? (DateTime.UtcNow + remaining).ToString(format, CultureInfo.InvariantCulture)
                 : string.Empty;
         }
 

@@ -7,12 +7,6 @@ using Zenject;
 
 namespace TapEmpire.Services.LiveOps
 {
-    public enum LiveOpsTimeUnit
-    {
-        Minutes,
-        Days,
-    }
-
     public class LiveOpsAnalyticsModule<T> : IDisposable where T : ILiveOps
     {
         protected readonly T _liveOps;
