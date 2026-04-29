@@ -7,6 +7,7 @@ namespace TapEmpire.Services.LiveOps
 {
     public interface ILiveOps : IDisposable
     {
+        LiveOpsData Data { get; }
         LiveOpsRuntime Runtime { get; }
         string Name { get; }
         Observable<LiveOpsRuntime> OnDataChanged { get; }

@@ -21,6 +21,7 @@ namespace TapEmpire.Services.LiveOps
         public Observable<ILiveOps> OnExpired => _onExpired;
         public Observable<LiveOpsRuntime> OnDataChanged => _onDataChanged;
 
+        LiveOpsData ILiveOps.Data => _data;
         LiveOpsRuntime ILiveOps.Runtime => _runtime;
         public TRuntime Runtime => _runtime;
         public TData Data => _data;
