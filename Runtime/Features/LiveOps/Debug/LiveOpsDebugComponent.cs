@@ -87,6 +87,9 @@ namespace TapEmpire.Services.LiveOps
             runtime.Value = int.TryParse(_value.text, out int value) ? value : runtime.Value;
             runtime.Addend = int.TryParse(_addend.text, out int addend) ? addend : runtime.Addend;
 
+            if (TryParseEndTime(out var endTime))
+                _liveOps.SetEndTime(endTime);
+
             _extension?.Apply(_liveOps);
 
             _liveOps.Save();

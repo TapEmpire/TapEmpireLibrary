@@ -20,6 +20,7 @@ namespace TapEmpire.Services.LiveOps
         UniTask OpenView();
         UniTask OpenTutorial(bool isSkippable = true);
         TimeSpan GetRemainingTime();
+        void SetEndTime(DateTime endTime);
         void Save();
         void UpdatePrepare(bool debug = false);
         UniTask UpdateVisual(Transform from, bool debug = false);

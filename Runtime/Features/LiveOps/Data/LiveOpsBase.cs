@@ -89,6 +89,13 @@ namespace TapEmpire.Services.LiveOps
             return remaining > TimeSpan.Zero ? remaining : TimeSpan.Zero;
         }
 
+        public virtual void SetEndTime(DateTime endTime)
+        {
+            var duration = EndTime - _runtime.StartedAt;
+            _runtime.StartedAt = endTime - duration;
+            EndTime = endTime;
+        }
+
         public virtual void Save()
         {
             _progressService.SetLiveOpsValue(_runtime, Name);
