@@ -111,7 +111,11 @@ namespace TapEmpire.LiveOps.UI
                 .SetEase(Ease.OutCubic)
                 .InsertTo(_animations, duration + index * 0.05f + 0.4f));
 
+            AppendAnimation(addend, debug);
+
             return _animations.AwaitForComplete();
         }
+
+        protected virtual void AppendAnimation(int addend, bool debug) { }
     }
 }
