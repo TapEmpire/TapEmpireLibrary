@@ -246,36 +246,45 @@ namespace TapEmpire.Services
 
             _floatUpPool ??= new ComponentPool<Transform>(_floatUpPrefab.GetComponent<Transform>(), _parent, MaxResourceAmount, MaxResourceAmount);
 
-            const float birthDuration = 0.2f;
-            const float floatDuration = 0.6f;
-            const float floatHeight = 80f;
-
             var sprite = _resourcesService.GetFlyingSprite(resourceType);
             var animationItem = _floatUpPool.Get();
-            var cg = animationItem.GetComponent<CanvasGroup>();
 
             ConfigureFloatUpRenderer(animationItem, sprite, amount);
 
-            animationItem.position = start;
-            animationItem.SetParent(target);
-            animationItem.localScale = Vector3.zero;
-            cg.alpha = 1f;
+            if (shouldAddResource)
+                _resourcesService.Add(resourceType, amount);
 
-            var floatTarget = start + Vector3.up * floatHeight;
-
-            var sequence = DOTween.Sequence();
-            sequence.Append(animationItem.DOScale(1f, birthDuration).SetEase(Ease.OutBack));
-            sequence.Append(animationItem.DOMove(floatTarget, floatDuration).SetEase(Ease.OutQuad));
-            sequence.Join(cg.DOFade(0f, floatDuration).SetEase(Ease.InQuad));
+            var sequence = FloatUp(animationItem, target, start);
             sequence.AppendCallback(() =>
             {
-                if (shouldAddResource)
-                    _resourcesService.Add(resourceType, amount);
-                cg.alpha = 1f;
                 animationItem.localScale = Vector3.one;
                 animationItem.SetParent(_parent);
                 _floatUpPool.Release(animationItem);
             });
+
+            return sequence;
+        }
+
+        public Sequence FloatUp(Transform item, Transform target, Vector3 start)
+        {
+            const float birthDuration = 0.2f;
+            const float floatDuration = 0.6f;
+            const float floatHeight = 80f;
+
+            var canvasGroup = item.GetComponent<CanvasGroup>();
+
+            item.position = start;
+            if (target != null)
+                item.SetParent(target);
+            item.localScale = Vector3.zero;
+            canvasGroup.alpha = 1f;
+
+            var floatTarget = start + Vector3.up * floatHeight;
+
+            var sequence = DOTween.Sequence();
+            sequence.Append(item.DOScale(1f, birthDuration).SetEase(Ease.OutBack));
+            sequence.Append(item.DOMove(floatTarget, floatDuration).SetEase(Ease.OutQuad));
+            sequence.Join(canvasGroup.DOFade(0f, floatDuration).SetEase(Ease.InQuad));
 
             return sequence;
         }
