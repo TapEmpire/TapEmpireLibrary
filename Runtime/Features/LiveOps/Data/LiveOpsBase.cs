@@ -109,7 +109,14 @@ namespace TapEmpire.Services.LiveOps
 
         public virtual void Dispose() => _disposables?.Dispose();
 
-        protected abstract ICondition[] CreateConditions();
+        protected virtual ICondition[] CreateConditions()
+        {
+            return new ICondition[]
+            {
+                new LevelIndexCondition(_data.MinStartLevelIndex, _progressService),
+            };
+        }
+
         protected bool CanActivate() => _conditions.All(condition => condition.Evaluate());
 
         private void OnTick()

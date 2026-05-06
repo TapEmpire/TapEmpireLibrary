@@ -9,6 +9,7 @@ namespace TapEmpire.Services.LiveOps
     [Serializable]
     public abstract class LiveOpsData
     {
+        public int MinStartLevelIndex;
         public LiveOpsIcon IconPrefab;
         public LiveOpsView LiveOpsPrefab;
         public TutorialUIView TutorialPrefab;
