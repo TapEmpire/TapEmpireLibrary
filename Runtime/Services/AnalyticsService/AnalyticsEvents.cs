@@ -15,6 +15,7 @@ namespace TapEmpire.Services
         public const string AdjustAttribution = "Attribution";
         public const string RemoteConfig = "RemoteConfig";
 
+        public const string AdjustAbTest = "AB_test";
         public const string AdjustAbGroup = "AB_group";
     }
 }

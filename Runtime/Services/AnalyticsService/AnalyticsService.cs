@@ -153,7 +153,10 @@ namespace TapEmpire.Services
             });
 
             _globalParameters.Add(AnalyticsParameters.RemoteConfig, _remoteConfigName);
-            _adjustParameters.Add(AnalyticsParameters.AdjustAbGroup, _remoteConfigName);
+
+            var (abTest, abGroup) = _remoteConfigName.SplitByLastOccurrence('_');
+            _adjustParameters.Add(AnalyticsParameters.AdjustAbTest, abTest);
+            _adjustParameters.Add(AnalyticsParameters.AdjustAbGroup, abGroup);
 
             Adjust.GetAttribution(attribution => OnConfigChanged(attribution));
 
