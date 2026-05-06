@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Sirenix.OdinInspector;
 using UnityEngine;
 
 namespace TapEmpire.Services.LiveOps
@@ -33,5 +34,8 @@ namespace TapEmpire.Services.LiveOps
                     liveOps => liveOps.Name,
                     liveOps => liveOps.MinStartLevelIndex));
         }
+
+        [Button("Serialize to console")]
+        private void SerializeToConsole() => Debug.Log(SerializeJson());
     }
 }
