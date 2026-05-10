@@ -1,4 +1,5 @@
 using System;
+using Cysharp.Threading.Tasks;
 using R3;
 using TapEmpire.Patterns.Strategy;
 
@@ -13,8 +14,8 @@ namespace TapEmpire.Services.Offer
 
         T GetHandler<T>() where T : IHandler;
 
-        bool ShowOffer(string placement);
-        void ShowOffer(OfferType type, Rarity rarity, string placement);
+        UniTask<bool> ShowOffer(string placement);
+        UniTask ShowOffer(OfferType type, Rarity rarity, string placement);
 
         (BaseOfferUIView View, OfferRuntimeData Data) GetOffer(OfferType type, Rarity rarity); // For debug purposes
     }
