@@ -20,7 +20,6 @@ namespace TapEmpire.Services
         private float _animationDurationPerFullProgress = 2f;
 
         [SerializeField] private float _initialProgress = 0.3f;
-        [SerializeField] private float _adsProgress = 0.8f;
         [SerializeField] private float _minDisplayTime = 1.5f; // Minimum time to show the progress bar
         [SerializeField] private float _initialProgressTime = 0.5f;
 
@@ -43,17 +42,6 @@ namespace TapEmpire.Services
         public async UniTask CreateLoadingScreen(CancellationToken cancellationToken, bool isLoadingVisible)
         {
             await CreateLoadingScreenInternal(_initialProgress, _initialProgressTime, isLoadingVisible, cancellationToken);
-            WaitAdsService(cancellationToken).Forget();
-        }
-
-        private async UniTask WaitAdsService(CancellationToken cancellationToken)
-        {
-            if (_adsService.MaxWaitingTime > float.Epsilon)
-            {
-                await UniTask.WaitForSeconds(_initialProgressTime, cancellationToken: cancellationToken);
-                _sceneLoadingUIViewModel?.SetProgressCallback(_adsProgress, _adsService.MaxWaitingTime);
-                _initialProgressDone = _adsProgress;
-            }
         }
 
         private async UniTask CreateLoadingScreenInternal(float initialProgress, float initialTime, bool isLoadingVisible,
@@ -104,16 +92,11 @@ namespace TapEmpire.Services
                 await UniTask.WaitForSeconds(duration, cancellationToken: cancellationToken);
             }
 
-            // await UniTask.WaitUntil(() => _adsService.ShouldWaitAppOpen == false);
-
             Action<AsyncOperation> onCompleted = manualLoadingClose ? (_) => { } :
                 (_) =>
                 {
-                    _adsService.ShowAppOpen(() =>
-                    {
-                        _uiService.TryCloseViewAsync<SceneLoadingUIViewModel>(cancellationToken).Forget();
-                        _sceneLoadingUIViewModel = null;
-                    });
+                    _uiService.TryCloseViewAsync<SceneLoadingUIViewModel>(cancellationToken).Forget();
+                    _sceneLoadingUIViewModel = null;
                 };
 
             sceneHandle.Result.ActivateAsync().completed += onCompleted;
