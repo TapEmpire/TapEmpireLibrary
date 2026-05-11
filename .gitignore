@@ -87,4 +87,5 @@ crashlytics-build.properties
 /Assets/Graphy - Ultimate Stats Monitor/Graphy_CustomizationScene.unitypackage
 
 # Reference-only Playgendary plugins (consulted during ads refactor; remove with the .gitignore lines at refactor end)
-/Runtime/Services/AdsService/_FromPlaygendary/
+# Folder name ends with ~ so Unity skips importing/compiling it
+/Runtime/Services/AdsService/_FromPlaygendary~/
