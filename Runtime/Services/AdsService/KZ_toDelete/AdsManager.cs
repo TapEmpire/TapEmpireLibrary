@@ -46,7 +46,6 @@ public class AdsManager : MonoBehaviour
     [Header("Settings")]
     public bool IsForFamily = false;
     public bool TestAds = false;
-    public bool EnableAppOpen = true;
     public bool EnableBanner = true;
 
     [Header("References")]
@@ -55,7 +54,7 @@ public class AdsManager : MonoBehaviour
 
     [Header("Admob IDs")]
     public string AppID;
-    public string BannerID, MrecID, InterstitialID, RewardedID, AppOpenID;
+    public string BannerID, MrecID, InterstitialID, RewardedID;
 
     [Header("AppLovin IDs")]
     public string MaxSDKKey;
@@ -105,15 +104,12 @@ public class AdsManager : MonoBehaviour
 
     public static bool IsAdmobInitSuccess { get; private set; }
     public static bool IsApplovinInitSuccess { get; private set; }
-    public bool ShowAppOpenOnLoad => Admob.ShowAppOpenOnLoad;
-    public ReactiveProperty<bool> ShouldWaitAppOpen => Admob.ShouldWaitAppOpen;
 
     private AdsSettings _adsSettings = null;
     private AdsRuntimeScenario _adsRuntimeScenario;
     private bool _canEnableBanners = false;
 
     Action OnRewardComplete;
-    private System.Action OnAppOpenShown = null;
 
     public AdsSettings AdsSettings => _adsSettings;
     public bool IsMeticaEnabled => Applovin.IsMeticaAdsEnabled;
@@ -180,9 +176,8 @@ public class AdsManager : MonoBehaviour
 
         PassAdjustConsentParameters();
 
-        await Admob.Initialize(_adsRuntimeScenario.ShouldWaitAppOpen);
+        await Admob.Initialize();
         await UniTask.WaitUntil(() => IsAdmobInitSuccess);
-        await UniTask.WaitUntil(() => !ShouldWaitAppOpen.Value);
 
         await InitializeApplovin();
 
@@ -463,7 +458,6 @@ public class AdsManager : MonoBehaviour
     {
         if (!AreAdsRemoved && HasInterstitial)
         {
-            ExtendAppOpenTime();
             ExtendInterstitialTime();
 
             if (Applovin.HasInterstitial(true)) { Applovin.ShowInterstitial(); }
@@ -491,7 +485,6 @@ public class AdsManager : MonoBehaviour
         {
             if (Admob.HasInterstitial(true))
             {
-                ExtendAppOpenTime();
                 ExtendInterstitialTime();
                 Admob.ShowInterstitial();
             }
@@ -505,7 +498,6 @@ public class AdsManager : MonoBehaviour
 
         if (!AreAdsRemoved && Admob.HasInterstitial(true))
         {
-            ExtendAppOpenTime();
             ExtendInterstitialTime();
             Admob.ShowInterstitial();
         }
@@ -528,15 +520,9 @@ public class AdsManager : MonoBehaviour
         AnalyticsManager.PlacementName = placementName;
         // AnalyticsManager.OnAdPayed?.Invoke(placementName, "Debug", "Debug", AdFormat.Rewarded, 0.25);
 
-        if (Applovin.HasRewarded(true)) { ExtendAppOpenTime(); ExtendInterstitialTime(); Applovin.ShowRewardedAd(); }
-        else if (Admob.HasRewarded(true)) { ExtendAppOpenTime(); ExtendInterstitialTime(); Admob.ShowRewardedAd(); }
+        if (Applovin.HasRewarded(true)) { ExtendInterstitialTime(); Applovin.ShowRewardedAd(); }
+        else if (Admob.HasRewarded(true)) { ExtendInterstitialTime(); Admob.ShowRewardedAd(); }
         else ShowInterstitial(UserReward, placementName);
-    }
-
-    public void AppOpenShown()
-    {
-        OnAppOpenShown?.Invoke();
-        OnAppOpenShown = null;
     }
 
     public void InvokeReward()
@@ -544,43 +530,6 @@ public class AdsManager : MonoBehaviour
         OnRewardComplete?.Invoke();
         OnRewardComplete = null;
     }
-    #endregion
-
-    #region AppOpen
-
-    float AppOpenTimer = 0;
-    int NextAppOpenDelay = 5;
-
-    public void SetAppOpenAutoShow(bool value)
-    {
-        Admob.ShowAppOpenOnLoad = value;
-    }
-
-    public void ExtendAppOpenTime()
-    {
-        AppOpenTimer = Time.time + NextAppOpenDelay;
-    }
-
-    public void OnAppStateChanged(AppState state)
-    {
-        if (EnableAppOpen && state == AppState.Foreground)
-            ThreadDispatcher.Enqueue(() => ShowAppOpen());
-    }
-
-    public void ShowAppOpen(System.Action action = null)
-    {
-        if (!AreAdsRemoved && !IsForFamily && Time.time > AppOpenTimer && Admob.CanShowAppOpen && EnableAppOpen)
-        {
-            AnalyticsManager.PlacementName = AdType_New.AppOpen.ToString();
-            OnAppOpenShown = action;
-            ExtendAppOpenTime();
-            Admob.ShowAppOpen();
-            return;
-        }
-
-        action?.Invoke();
-    }
-
     #endregion
 
     #region Consent
@@ -600,8 +549,6 @@ public class AdsManager : MonoBehaviour
 
     public void VisitPrivacyPolicy()
     {
-        ExtendAppOpenTime();
-
         if (string.IsNullOrEmpty(PrivacyPolicy)) MobileToast.Show("PrivacyPolicy is missing!", false);
         else Application.OpenURL(PrivacyPolicy);
     }

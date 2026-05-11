@@ -63,12 +63,7 @@ namespace TapEmpire.Services
 
         public bool AdsDisabled => _adsDisabled;
         public bool AdsDisabledDebug { get; set; } = false;
-        public float MaxWaitingTime => _adsSettings.ShouldWaitAppOpen ? _adsSettings.AppOpenWaitTime : 0.0f;
 
-        private CancellationTokenSource _cancellationTokenSource;
-
-        private ReactiveProperty<bool> _shouldWaitAppOpen = null;
-        public ReadOnlyReactiveProperty<bool> ShouldWaitAppOpen { get; private set; } = new ReactiveProperty<bool>(true);
         public AdsSettings Settings => _adsSettings;
         public bool IsMeticaEnabled => global::AdsManager.Instance.IsMeticaEnabled;
 
@@ -96,8 +91,6 @@ namespace TapEmpire.Services
             if (_adsDisabled)
             {
                 _adsRuntimeScenario.IsEnabled = false;
-                _adsRuntimeScenario.EnableAppOpen = false;
-                _adsRuntimeScenario.ShouldWaitAppOpen = false;
                 _adsRuntimeScenario.InterstitialAfterLevels = new List<int>();
                 _adsRuntimeScenario.ShowBanner = false;
                 _adsRuntimeScenario.ShowMrec = false;
@@ -106,8 +99,6 @@ namespace TapEmpire.Services
             else
             {
                 _adsRuntimeScenario.IsEnabled = true;
-                _adsRuntimeScenario.EnableAppOpen = _adsSettings.EnableAppOpen;
-                _adsRuntimeScenario.ShouldWaitAppOpen = _adsSettings.ShouldWaitAppOpen;
                 _adsRuntimeScenario.InterstitialAfterLevels = _adsSettings.InterstitialAfterLevels;
                 _adsRuntimeScenario.ShowBanner = _adsSettings.EnableBanners && !AdsDisabledDebug;
                 _adsRuntimeScenario.ShowMrec = _adsSettings.EnableMrec && !AdsDisabledDebug;
@@ -140,28 +131,12 @@ namespace TapEmpire.Services
 
             // global::AdsManager.Instance.OnInitialized += OnInitialized;
             ApplyPendingBannerSettings();
-            global::AdsManager.Instance.EnableAppOpen = _adsRuntimeScenario.EnableAppOpen;
-            global::AdsManager.Instance.SetAppOpenAutoShow(true);
             global::AdsManager.Instance.OnConsentObtained += OnConsentObtained;
             global::AdsManager.Instance.Initialize_AdNetworks(_adsSettings, _adsRuntimeScenario, canEnableBanners)
                 .ContinueWith(() => PeriodicAdCheck()).Forget();
 
-            _shouldWaitAppOpen = new ReactiveProperty<bool>(_adsRuntimeScenario.ShouldWaitAppOpen);
-
-            ShouldWaitAppOpen = _shouldWaitAppOpen.CombineLatest(global::AdsManager.Instance.ShouldWaitAppOpen,
-                (timer, appOpen) => timer && appOpen).ToReadOnlyReactiveProperty();
-
             _isInitialized = true;
 
-            _cancellationTokenSource = new CancellationTokenSource();
-            UniTaskUtility.ExecuteAfterSeconds(MaxWaitingTime,
-                () =>
-                {
-                    _shouldWaitAppOpen.Value = false;
-                    global::AdsManager.Instance.ShouldWaitAppOpen.Value = false;
-                }, _cancellationTokenSource.Token);
-
-            await UniTask.WaitUntil(() => ShouldWaitAppOpen.CurrentValue == false, cancellationToken: cancellationToken);
             await base.OnInitializeAsync(cancellationToken);
         }
 
@@ -172,9 +147,6 @@ namespace TapEmpire.Services
             _currentAdPlacement = "";
 
             _disposables.Dispose();
-
-            _cancellationTokenSource?.Cancel();
-            _cancellationTokenSource = null;
 
 #if TEL_META
             _facebookModule = null;
@@ -291,17 +263,6 @@ namespace TapEmpire.Services
             ShowRewarded(placement);
         }
 
-        public void ShowAppOpen(System.Action action)
-        {
-            if (AdsDisabledDebug)
-            {
-                action?.Invoke();
-                return;
-            }
-
-            AdsManager.Instance.ShowAppOpen(action);
-        }
-
         public bool ShowBanners(bool shouldShow)
         {
             if (_adsRuntimeScenario.IsEnabled && _adsSettings.EnableBanners)
@@ -378,8 +339,6 @@ namespace TapEmpire.Services
             _adsDisabled = shouldDisable;
             _progressService.SetBoolProp(ProgressBoolProp.DisableAds, _adsDisabled);
             _adsRuntimeScenario.IsEnabled = false;
-            _adsRuntimeScenario.EnableAppOpen = false;
-            _adsRuntimeScenario.ShouldWaitAppOpen = false;
             _adsRuntimeScenario.InterstitialAfterLevels = new List<int>();
             _adsRuntimeScenario.ShowBanner = false;
             _adsRuntimeScenario.ShowMrec = false;
@@ -388,7 +347,6 @@ namespace TapEmpire.Services
             {
                 AdsManager.Instance.DestroyBanner();
                 AdsManager.Instance.DestroyMREC();
-                AdsManager.Instance.SetAppOpenAutoShow(false);
             }
 
             _adsEnabled.Value = !_adsDisabled;

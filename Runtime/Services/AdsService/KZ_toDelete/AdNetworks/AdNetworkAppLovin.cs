@@ -24,7 +24,7 @@ public class AdNetworkAppLovin : AdNetworkBase
     private bool _isMeticaSdkEnabled = false;
 
     #region SDK Initialize
-    public override async UniTask Initialize(bool shouldWaitAppOpen = false)
+    public override async UniTask Initialize()
     {
         if (AdsManager.Instance.TestAds)
         {

@@ -7,49 +7,33 @@ using Firebase.Crashlytics;
 
 public class AdNetworkAdmob : AdNetworkBase
 {
-    public ReactiveProperty<bool> ShouldWaitAppOpen = new ReactiveProperty<bool>(true);
-    public bool CanShowAppOpen => isInitialized && !m_IsShowingAppOpenAd && appOpenAd != null;
-
     #region Fields & Properties
     BannerView bannerView, mrecView;
     InterstitialAd interstitialAd;
     RewardedAd rewardedAd;
-    AppOpenAd appOpenAd;
 
-    bool m_IsShowingAppOpenAd;
     bool BannerStatus;
 
-    bool LoadingAppOpen;
-    [System.NonSerialized] public bool ShowAppOpenOnLoad;
-    AdImpressionData bannerImp, mrecImp, interImp, rewardedImp, appOpenImp;
+    AdImpressionData bannerImp, mrecImp, interImp, rewardedImp;
 
     string interAdUnitId;
     string rewardAdUnitId;
 
-    private IDisposable _subscription = null;
-
     #endregion
 
     #region SDK Initialize
-    public override async UniTask Initialize(bool shouldWaitAppOpen = false)
+    public override async UniTask Initialize()
     {
-        if (ShouldWaitAppOpen.Value == true)
-        {
-            ShouldWaitAppOpen.Value = shouldWaitAppOpen;
-        }
         MobileAds.SetiOSAppPauseOnBackground(true);
         //SetConfigurations();
         MobileAds.RaiseAdEventsOnUnityMainThread = false;
         MobileAds.Initialize(HandleInitCompleteAction);
-        AppStateEventNotifier.AppStateChanged += AdsManager.Instance.OnAppStateChanged;
 
         await UniTask.CompletedTask;
     }
 
     public void OnRelease()
     {
-        AppStateEventNotifier.AppStateChanged -= AdsManager.Instance.OnAppStateChanged;
-        _subscription?.Dispose();
     }
 
 
@@ -74,26 +58,7 @@ public class AdNetworkAdmob : AdNetworkBase
 
     private void RequestAds()
     {
-        // Probably issues with threads, but the callback is launched before the _subscription is assigned.
-        bool shouldCleanupSubscription = false;
-        _subscription = ShouldWaitAppOpen.Subscribe(value =>
-        {
-            if (!value && !shouldCleanupSubscription)
-            {
-                RequestVideoAds();
-                shouldCleanupSubscription = true;
-
-                _subscription?.Dispose();
-                _subscription = null;
-                //Весь код вставлять выше _subscription.Dispose(); все, что ниже не работает
-            }
-        });
-
-        if (!AdsManager.Instance.AreAdsRemoved && !AdsManager.Instance.IsForFamily)
-        {
-            RequestAppOpenAd();
-        }
-
+        RequestVideoAds();
         AdsManager.OnAdmobInitSuccess?.Invoke();
     }
 
@@ -470,108 +435,6 @@ public class AdNetworkAdmob : AdNetworkBase
         {
             AdsManager.Instance.InvokeReward();
         });
-    }
-
-    #endregion
-
-    #region AppOpen
-
-    public void RequestAppOpenAd()
-    {
-        string adUnitId = AdsManager.Instance.TestAds ? AdConstants.GetAdmobTestID(AdFormat.AppOpen) : AdsManager.Instance.AppOpenID;
-        if (string.IsNullOrEmpty(adUnitId)) return;
-
-        LoadingAppOpen = true;
-        appOpenImp = new AdImpressionData(adUnitId, AdFormat.AppOpen);
-        if (appOpenAd != null)
-            appOpenAd.Destroy();
-
-        // AppOpenAd.Load(adUnitId, Screen.orientation, CreateAdRequest(), AppOpenResponse);
-        AppOpenAd.Load(adUnitId, CreateAdRequest(), AppOpenResponse);
-    }
-
-    public void AppOpenResponse(AppOpenAd ad, LoadAdError error)
-    {
-        ThreadDispatcher.Enqueue(() =>
-        {
-            LoadingAppOpen = false;
-            if (error == null && ad != null)
-            {
-                appOpenAd = ad;
-                appOpenAd.OnAdFullScreenContentOpened += AppOpenAd_OnAdFullScreenContentOpened;
-                appOpenAd.OnAdFullScreenContentClosed += AppOpenAd_OnAdFullScreenContentClosed;
-                appOpenAd.OnAdFullScreenContentFailed += AppOpenAd_OnAdFullScreenContentFailed;
-                appOpenAd.OnAdPaid += AppOpenAd_OnAdPaid;
-                // GameAnalyticsILRD.SubscribeAdMobImpressions(AdsManager.Instance.AppOpenID, appOpenAd);
-
-                ShouldWaitAppOpen.Value = false;
-
-                // if (ShowAppOpenOnLoad)
-                // {
-                //     ShowAppOpenOnLoad = false;
-                //     ShowAppOpen();
-                // }
-            }
-            else
-                DestroyAppOpen();
-        });
-    }
-
-    private void AppOpenAd_OnAdFullScreenContentOpened()
-    {
-        ThreadDispatcher.Enqueue(() =>
-        {
-            m_IsShowingAppOpenAd = true;
-        });
-    }
-
-    private void AppOpenAd_OnAdFullScreenContentClosed()
-    {
-        ThreadDispatcher.Enqueue(() =>
-        {
-            DestroyAppOpen();
-            RequestAppOpenAd();
-
-            AdsManager.Instance.ResumeAllBanners();
-            AdsManager.Instance.AppOpenShown();
-        });
-    }
-
-    private void AppOpenAd_OnAdFullScreenContentFailed(AdError obj)
-    {
-        ThreadDispatcher.Enqueue(DestroyAppOpen);
-    }
-
-    private void AppOpenAd_OnAdPaid(AdValue value)
-    {
-        ThreadDispatcher.Enqueue(() =>
-        {
-            AnalyticsManager.ReportRevenue_Admob(value, appOpenImp);
-        });
-    }
-
-    public void ShowAppOpen()
-    {
-        if (!isInitialized || m_IsShowingAppOpenAd) return;
-
-        if (appOpenAd != null)
-        {
-            AdsManager.Instance.HideAllBanners();
-            appOpenAd.Show();
-        }
-        else if (!LoadingAppOpen)
-            RequestAppOpenAd();
-    }
-
-    void DestroyAppOpen()
-    {
-        m_IsShowingAppOpenAd = false;
-
-        if (appOpenAd != null)
-        {
-            appOpenAd.Destroy();
-            appOpenAd = null;
-        }
     }
 
     #endregion

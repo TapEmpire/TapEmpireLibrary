@@ -226,8 +226,6 @@ public static class AnalyticsManager
                 return AdType.Rewarded;
             case AdFormat.Banner:
                 return AdType.Banner;
-            case AdFormat.AppOpen:
-                return AdType.Mrec;
             default:
                 return AdType.Other;
         }
@@ -360,4 +358,4 @@ public static class AnalyticsManager
 
 public enum AnalyticsType { Extras, GameData }
 public enum AdNetwork { Admob, Applovin, ironSource }
-public enum AdFormat { Banner, MREC, Interstitial, Rewarded, AppOpen, NativeAd, RewardedInt }
+public enum AdFormat { Banner, MREC, Interstitial, Rewarded, NativeAd, RewardedInt }

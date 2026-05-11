@@ -7,7 +7,6 @@ namespace TapEmpire.Build
     public class AdsData
     {
         public string AppKey; // might be appId or sdkId
-        public string AppOpenId;
         public string BannerId;
         public string MrecId;
         public string InterstitialId;

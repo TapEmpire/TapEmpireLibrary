@@ -131,7 +131,6 @@ namespace TapEmpire.Build
             var adsManager = AssetDatabase.LoadAssetAtPath<AdsManager>($"{_projectPathSettings.DefaultServicesPath}/AdsManager Variant.prefab");
 
             adsManager.AppID = platformData.GoogleAds.AppKey;
-            adsManager.AppOpenID = platformData.GoogleAds.AppOpenId;
             adsManager.BannerID = platformData.GoogleAds.BannerId;
             adsManager.MrecID = platformData.GoogleAds.MrecId;
             adsManager.InterstitialID = platformData.GoogleAds.InterstitialId;

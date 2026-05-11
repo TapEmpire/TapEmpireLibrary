@@ -7,6 +7,5 @@ namespace TapEmpire.Services
         Rewarded,
         Banner,
         Mrec,
-        AppOpen,
     }
 }

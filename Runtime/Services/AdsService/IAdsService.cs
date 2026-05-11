@@ -23,7 +23,6 @@ namespace TapEmpire.Services
         void ShowRewarded(string adType);
         void DisableAds(bool shouldDisable);
         void ShowInterstitialByTimer();
-        void ShowAppOpen(System.Action action);
 
         bool ShowInterstitial(System.Action action, string placement = "");
         void ShowRewarded(string placement, System.Action action);
@@ -35,9 +34,7 @@ namespace TapEmpire.Services
         bool ShowMrec(bool shouldShow, int x, int y);
         bool AdsDisabled { get; }
         bool AdsDisabledDebug { get; set; }
-        float MaxWaitingTime { get; }
         bool IsMeticaEnabled { get; }
-        ReadOnlyReactiveProperty<bool> ShouldWaitAppOpen { get; }
 
         AdsSettings Settings { get; }
         void SetBannerSettings(BannerWidth bannerSize, GoogleMobileAds.Api.AdPosition bannerPos);

@@ -20,11 +20,8 @@ namespace TapEmpire.Services
             public bool EnableATT = true;
             public bool EnableMetica = true;
             public bool EnableMeta = true;
-            public bool EnableAppOpen = false;
             public bool EnableBanners = true;
             public bool EnableMrec = true;
-            public bool ShouldWaitAppOpen = false;
-            public float AppOpenWaitTime = 10.0f;
             public List<int> InterstitialAfterLevels = new();
             public int FromLevel = 1;
             public int BannerFromLevel = 0;
@@ -38,11 +35,8 @@ namespace TapEmpire.Services
                 EnableUMP = settings.EnableUMP;
                 EnableATT = settings.EnableATT;
                 EnableMetica = settings.EnableMetica;
-                EnableAppOpen = settings.EnableAppOpen;
                 EnableBanners = settings.EnableBanners;
                 EnableMrec = settings.EnableMrec;
-                ShouldWaitAppOpen = settings.ShouldWaitAppOpen;
-                AppOpenWaitTime = settings.AppOpenWaitTime;
                 InterstitialAfterLevels = settings.InterstitialAfterLevels.ToList();
                 FromLevel = settings.FromLevel;
                 BannerFromLevel = settings.BannerFromLevel;
@@ -59,11 +53,8 @@ namespace TapEmpire.Services
             _adsSettings.EnableUMP = model.EnableUMP;
             _adsSettings.EnableATT = model.EnableATT;
             _adsSettings.EnableMetica = model.EnableMetica;
-            _adsSettings.EnableAppOpen = model.EnableAppOpen;
             _adsSettings.EnableBanners = model.EnableBanners;
             _adsSettings.EnableMrec = model.EnableMrec;
-            _adsSettings.ShouldWaitAppOpen = model.ShouldWaitAppOpen;
-            _adsSettings.AppOpenWaitTime = model.AppOpenWaitTime;
             _adsSettings.InterstitialAfterLevels = model.InterstitialAfterLevels;
             _adsSettings.FromLevel = model.FromLevel;
             _adsSettings.BannerFromLevel = model.BannerFromLevel;
