@@ -7,7 +7,6 @@ using System.Linq;
 using Zenject;
 using TapEmpire.Utility;
 using R3;
-using AdjustSdk;
 #if TEL_METICA
 using Metica.Unity;
 #endif
@@ -35,9 +34,6 @@ namespace TapEmpire.Services
 
         [SerializeField]
         private AdsManager _adsManagerPrefab = null;
-
-        [SerializeField]
-        private Adjust _adjustPrefab = null;
 
 #if TEL_METICA
         [SerializeField]
@@ -119,12 +115,6 @@ namespace TapEmpire.Services
 #endif
 
             GameObject.Instantiate(_adsManagerPrefab);
-            // GameObject.Instantiate(_appMetricaPrefab);
-
-            _adjustPrefab.startManually = true;
-            _adjustPrefab.environment = PlatformInfo.IsTestFlightOrSandboxReceipt() ? AdjustEnvironment.Sandbox : _adjustPrefab.environment;
-            GameObject.Instantiate(_adjustPrefab);
-            InitializeAdjust(_adjustPrefab);
 
             new AdsAnalyticsModule(_diContainer).AddTo(_disposables);
             new AdsSignalsModule(_diContainer).AddTo(_disposables);
@@ -455,28 +445,5 @@ namespace TapEmpire.Services
             }
         }
 
-        private static void InitializeAdjust(Adjust adjustPrefab)
-        {
-            var adjustConfig = new AdjustConfig(
-                adjustPrefab.appToken,
-                adjustPrefab.environment,
-                adjustPrefab.logLevel == AdjustLogLevel.Suppress);
-            adjustConfig.LogLevel = adjustPrefab.logLevel;
-            adjustConfig.IsSendingInBackgroundEnabled = adjustPrefab.sendInBackground;
-            adjustConfig.IsDeferredDeeplinkOpeningEnabled = adjustPrefab.launchDeferredDeeplink;
-            adjustConfig.DefaultTracker = adjustPrefab.defaultTracker;
-            adjustConfig.IsCoppaComplianceEnabled = adjustPrefab.coppaCompliance;
-            adjustConfig.IsCostDataInAttributionEnabled = adjustPrefab.costDataInAttribution;
-            adjustConfig.IsPreinstallTrackingEnabled = adjustPrefab.preinstallTracking;
-            adjustConfig.PreinstallFilePath = adjustPrefab.preinstallFilePath;
-            adjustConfig.IsAdServicesEnabled = adjustPrefab.adServices;
-            adjustConfig.IsIdfaReadingEnabled = adjustPrefab.idfaReading;
-            adjustConfig.IsLinkMeEnabled = adjustPrefab.linkMe;
-            adjustConfig.IsSkanAttributionEnabled = adjustPrefab.skanAttribution;
-#if UNITY_IOS && !UNITY_EDITOR
-            adjustConfig.AttConsentWaitingInterval = 120;
-#endif
-            Adjust.InitSdk(adjustConfig);
-        }
     }
 }
