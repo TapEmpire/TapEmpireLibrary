@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
-using AdjustSdk;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using TapEmpire.Utility;
@@ -46,6 +45,7 @@ namespace TapEmpire.Services
         private Dictionary<string, string> _globalParameters = new();
         private Dictionary<string, string> _adjustParameters = new();
         private IDisposable _focusDisposable = null;
+        private IDisposable _campaignNameDisposable = null;
 
         [Inject]
         private void Construct(
@@ -81,6 +81,7 @@ namespace TapEmpire.Services
             _adjustParameters.Clear();
 
             _focusDisposable?.Dispose();
+            _campaignNameDisposable?.Dispose();
 
             _innerService?.Release();
         }
@@ -165,7 +166,10 @@ namespace TapEmpire.Services
             _adjustParameters.Add(AnalyticsParameters.AdjustAbTest, abTest);
             _adjustParameters.Add(AnalyticsParameters.AdjustAbGroup, abGroup);
 
-            Adjust.GetAttribution(attribution => OnConfigChanged(attribution));
+            _campaignNameDisposable?.Dispose();
+            _campaignNameDisposable = _attributionService.CampaignName
+                .Where(x => !string.IsNullOrEmpty(x))
+                .Subscribe(OnConfigChanged);
 
             if (isFirstLaunch)
             {
@@ -182,11 +186,11 @@ namespace TapEmpire.Services
             _delayedEvents.Clear();
         }
 
-        private void OnConfigChanged(AdjustAttribution attribution)
+        private void OnConfigChanged(string campaign)
         {
-            _innerService.SetUserProperty(AnalyticsParameters.AdjustAttribution, attribution.Campaign);
-            _progressService.SetCampaignName(attribution.Campaign);
-            _campaignName.Value = attribution.Campaign;
+            _innerService.SetUserProperty(AnalyticsParameters.AdjustAttribution, campaign);
+            _progressService.SetCampaignName(campaign);
+            _campaignName.Value = campaign;
         }
 
         public void logEventDelayed(string eventName, Dictionary<string, object> parameters = null)
