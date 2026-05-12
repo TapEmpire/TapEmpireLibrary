@@ -15,7 +15,6 @@ namespace TapEmpire.LiveOps.UI
     public class LiveOpsIcon : MonoBehaviour, IDisposable
     {
         [SerializeField] protected Button _button;
-        [SerializeField] protected TMP_Text _timer;
         [SerializeField] protected TMP_Text _counter;
         [SerializeField] protected GameObject _indicator;
         [SerializeField] protected Image _progress;

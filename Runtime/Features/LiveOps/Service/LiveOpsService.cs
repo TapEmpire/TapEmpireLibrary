@@ -59,7 +59,7 @@ namespace TapEmpire.Services.LiveOps
             var inactive = _liveOps.Where(liveOps => liveOps.Runtime.State == State.NotStarted);
 
             if (layout != null)
-                active.ForEach(liveOps => liveOps.CreateIcon().AddTo(layout));
+                active.ForEach(liveOps => liveOps.CreateIcon()?.AddTo(layout));
 
             await UniTask.WaitForSeconds(Settings.UpdateDelaySeconds, cancellationToken: default);
             await UniTask.WhenAll(active.Select(liveOps => liveOps.UpdateVisual(_resourceEmitter, debug)));
@@ -72,7 +72,7 @@ namespace TapEmpire.Services.LiveOps
                 await liveOps.UpdatePopups();
 
                 if (layout != null && liveOps.Runtime.State != State.NotStarted)
-                    liveOps.CreateIcon().AddTo(layout);
+                    liveOps.CreateIcon()?.AddTo(layout);
             }
         }
         private void InitializeAndRegisterLiveOps(LiveOpsData data)

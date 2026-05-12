@@ -63,5 +63,13 @@ namespace TapEmpire.Utility
         {
             return string.Format(str, amount > 1 ? "s" : "");
         }
+
+        public static (string left, string right) SplitByLastOccurrence(this string str, char separator)
+        {
+            var lastIndex = str.LastIndexOf(separator);
+            return lastIndex >= 0
+                ? (str[..lastIndex], str[(lastIndex + 1)..])
+                : (str, "");
+        }
     }
 }

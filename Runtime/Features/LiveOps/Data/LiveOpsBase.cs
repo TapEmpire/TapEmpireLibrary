@@ -21,6 +21,7 @@ namespace TapEmpire.Services.LiveOps
         public Observable<ILiveOps> OnExpired => _onExpired;
         public Observable<LiveOpsRuntime> OnDataChanged => _onDataChanged;
 
+        LiveOpsData ILiveOps.Data => _data;
         LiveOpsRuntime ILiveOps.Runtime => _runtime;
         public TRuntime Runtime => _runtime;
         public TData Data => _data;
@@ -62,6 +63,8 @@ namespace TapEmpire.Services.LiveOps
 
         public LiveOpsIcon CreateIcon()
         {
+            if (_data.IconPrefab == null)
+                return null;
             _icon = Object.Instantiate(_data.IconPrefab);
             _diContainer.Inject(_icon);
             _icon.Initialize(this);
@@ -86,6 +89,13 @@ namespace TapEmpire.Services.LiveOps
             return remaining > TimeSpan.Zero ? remaining : TimeSpan.Zero;
         }
 
+        public virtual void SetEndTime(DateTime endTime)
+        {
+            var duration = EndTime - _runtime.StartedAt;
+            _runtime.StartedAt = endTime - duration;
+            EndTime = endTime;
+        }
+
         public virtual void Save()
         {
             _progressService.SetLiveOpsValue(_runtime, Name);
@@ -94,12 +104,19 @@ namespace TapEmpire.Services.LiveOps
         public void BroadcastUpdate() => _onDataChanged.OnNext(_runtime);
 
         public virtual void UpdatePrepare(bool debug = false) { }
-        public abstract UniTask UpdateVisual(Transform from, bool debug = false);
+        public virtual UniTask UpdateVisual(Transform from, bool debug = false) => UniTask.CompletedTask;
         public abstract UniTask UpdatePopups();
 
         public virtual void Dispose() => _disposables?.Dispose();
 
-        protected abstract ICondition[] CreateConditions();
+        protected virtual ICondition[] CreateConditions()
+        {
+            return new ICondition[]
+            {
+                new LevelIndexCondition(_data.MinStartLevelIndex, _progressService),
+            };
+        }
+
         protected bool CanActivate() => _conditions.All(condition => condition.Evaluate());
 
         private void OnTick()

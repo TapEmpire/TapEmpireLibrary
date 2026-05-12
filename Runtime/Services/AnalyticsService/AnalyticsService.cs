@@ -42,6 +42,7 @@ namespace TapEmpire.Services
         private string _remoteConfigName = "default";
 
         private Dictionary<string, string> _globalParameters = new();
+        private Dictionary<string, string> _adjustParameters = new();
         private IDisposable _focusDisposable = null;
 
         [Inject]
@@ -70,6 +71,7 @@ namespace TapEmpire.Services
         {
             _isInitialized = false;
             _globalParameters.Clear();
+            _adjustParameters.Clear();
 
             _focusDisposable?.Dispose();
 
@@ -152,6 +154,10 @@ namespace TapEmpire.Services
 
             _globalParameters.Add(AnalyticsParameters.RemoteConfig, _remoteConfigName);
 
+            var (abTest, abGroup) = _remoteConfigName.SplitByLastOccurrence('_');
+            _adjustParameters.Add(AnalyticsParameters.AdjustAbTest, abTest);
+            _adjustParameters.Add(AnalyticsParameters.AdjustAbGroup, abGroup);
+
             Adjust.GetAttribution(attribution => OnConfigChanged(attribution));
 
             if (isFirstLaunch)
@@ -204,7 +210,7 @@ namespace TapEmpire.Services
                 adjustEvent.AddCallbackParameter(pair.Key, pair.Value.ToString());
             }
 
-            _globalParameters.ForEach(pair => adjustEvent.AddCallbackParameter(pair.Key, pair.Value.ToString()));
+            _adjustParameters.ForEach(pair => adjustEvent.AddCallbackParameter(pair.Key, pair.Value.ToString()));
 
             Adjust.TrackEvent(adjustEvent);
         }

@@ -9,9 +9,11 @@ namespace TapEmpire.Services.LiveOps
     [Serializable]
     public abstract class LiveOpsData
     {
+        public int MinStartLevelIndex;
         public LiveOpsIcon IconPrefab;
         public LiveOpsView LiveOpsPrefab;
         public TutorialUIView TutorialPrefab;
+        public LiveOpsDebugComponent DebugComponent;
         public abstract string Name { get; }
         public abstract ILiveOps Create(DiContainer container);
         public abstract DateTime GetEndTime(LiveOpsRuntime runtime);

@@ -7,6 +7,7 @@ namespace TapEmpire.Services.LiveOps
 {
     public interface ILiveOps : IDisposable
     {
+        LiveOpsData Data { get; }
         LiveOpsRuntime Runtime { get; }
         string Name { get; }
         Observable<LiveOpsRuntime> OnDataChanged { get; }
@@ -19,6 +20,7 @@ namespace TapEmpire.Services.LiveOps
         UniTask OpenView();
         UniTask OpenTutorial(bool isSkippable = true);
         TimeSpan GetRemainingTime();
+        void SetEndTime(DateTime endTime);
         void Save();
         void UpdatePrepare(bool debug = false);
         UniTask UpdateVisual(Transform from, bool debug = false);
