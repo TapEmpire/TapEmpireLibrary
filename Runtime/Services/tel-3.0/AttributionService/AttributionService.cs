@@ -16,28 +16,21 @@ namespace TapEmpire.Experimental
         [SerializeField] private AttributionSettings _settings;
 
         private readonly ReactiveProperty<string> _campaignName = new(string.Empty);
+        private readonly CompositeDisposable _disposables = new();
 
         public ReadOnlyReactiveProperty<string> CampaignName => _campaignName;
 
         protected override UniTask OnInitializeAsync(CancellationToken cancellationToken)
         {
+            SubscribeDeepLinks();
             Adjust.InitSdk(BuildConfig());
             Adjust.GetAttribution(OnAttribution);
-#if UNITY_ANDROID
-            Application.deepLinkActivated += OnDeeplink;
-            if (!string.IsNullOrEmpty(Application.absoluteURL))
-            {
-                OnDeeplink(Application.absoluteURL);
-            }
-#endif
             return UniTask.CompletedTask;
         }
 
         protected override void OnRelease()
         {
-#if UNITY_ANDROID
-            Application.deepLinkActivated -= OnDeeplink;
-#endif
+            _disposables.Dispose();
             base.OnRelease();
         }
 
@@ -85,21 +78,20 @@ namespace TapEmpire.Experimental
             var config = new AdjustConfig(
                 _settings.AppToken,
                 environment,
-                _settings.LogLevel == AdjustLogLevel.Suppress)
-            {
-                LogLevel = _settings.LogLevel,
-                IsSendingInBackgroundEnabled = _settings.SendInBackground,
-                IsDeferredDeeplinkOpeningEnabled = _settings.LaunchDeferredDeeplink,
-                DefaultTracker = _settings.DefaultTracker,
-                IsCoppaComplianceEnabled = _settings.CoppaCompliance,
-                IsCostDataInAttributionEnabled = _settings.CostDataInAttribution,
-                IsPreinstallTrackingEnabled = _settings.PreinstallTracking,
-                PreinstallFilePath = _settings.PreinstallFilePath,
-                IsAdServicesEnabled = _settings.AdServices,
-                IsIdfaReadingEnabled = _settings.IdfaReading,
-                IsLinkMeEnabled = _settings.LinkMe,
-                IsSkanAttributionEnabled = _settings.SkanAttribution,
-            };
+                _settings.LogLevel == AdjustLogLevel.Suppress);
+
+            config.LogLevel = _settings.LogLevel;
+            config.IsSendingInBackgroundEnabled = _settings.SendInBackground;
+            config.IsDeferredDeeplinkOpeningEnabled = _settings.LaunchDeferredDeeplink;
+            config.DefaultTracker = _settings.DefaultTracker;
+            config.IsCoppaComplianceEnabled = _settings.CoppaCompliance;
+            config.IsCostDataInAttributionEnabled = _settings.CostDataInAttribution;
+            config.IsPreinstallTrackingEnabled = _settings.PreinstallTracking;
+            config.PreinstallFilePath = _settings.PreinstallFilePath;
+            config.IsAdServicesEnabled = _settings.AdServices;
+            config.IsIdfaReadingEnabled = _settings.IdfaReading;
+            config.IsLinkMeEnabled = _settings.LinkMe;
+            config.IsSkanAttributionEnabled = _settings.SkanAttribution;
 #if UNITY_IOS && !UNITY_EDITOR
             config.AttConsentWaitingInterval = 120;
 #endif
@@ -112,6 +104,7 @@ namespace TapEmpire.Experimental
             {
                 return;
             }
+
             foreach (var pair in parameters)
             {
                 evt.AddCallbackParameter(pair.Key, pair.Value);
@@ -123,11 +116,19 @@ namespace TapEmpire.Experimental
             _campaignName.Value = attribution?.Campaign ?? string.Empty;
         }
 
-#if UNITY_ANDROID
-        private static void OnDeeplink(string url)
+        private void SubscribeDeepLinks()
         {
-            Adjust.ProcessDeeplink(new AdjustDeeplink(url));
-        }
+#if UNITY_ANDROID
+            Action<string> onDeepLink = url => Adjust.ProcessDeeplink(new AdjustDeeplink(url));
+            
+            Application.deepLinkActivated += onDeepLink;
+            Disposable.Create(() => Application.deepLinkActivated -= onDeepLink).AddTo(_disposables);
+
+            if (!string.IsNullOrEmpty(Application.absoluteURL))
+            {
+                onDeepLink(Application.absoluteURL);
+            }
 #endif
+        }
     }
 }
