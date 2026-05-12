@@ -1,4 +1,5 @@
 ﻿using System;
+using R3;
 using UnityEngine.Events;
 
 namespace TapEmpire.Utility
@@ -25,14 +26,13 @@ namespace TapEmpire.Utility
             return new UnityEventSubscription<T>(self, action);
         }
 
-        public static IDisposable Subscribe<T>(this Action<T> self, Action<T> action)
+        public static IDisposable BindEvent<T>(
+            Action<Action<T>> subscribe,
+            Action<Action<T>> unsubscribe,
+            Action<T> handler)
         {
-            if (self == null || action == null)
-            {
-                throw new ArgumentNullException($"Invalid subscription {nameof(self)} {nameof(action)}");
-            }
-
-            return new EventSubscription<T>(self, action);
+            subscribe(handler);
+            return Disposable.Create(() => unsubscribe(handler));
         }
 
         private class UnityEventSubscription : IDisposable
@@ -83,28 +83,5 @@ namespace TapEmpire.Utility
             }
         }
 
-        private class EventSubscription<T> : IDisposable
-        {
-            private event Action<T> _event;
-            private Action<T> _action;
-            private bool _isDisposed = false;
-
-            public EventSubscription(Action<T> unityEvent, Action<T> action)
-            {
-                _event = unityEvent;
-                _action = action;
-
-                _event += _action;
-            }
-
-            public void Dispose()
-            {
-                if (!_isDisposed)
-                {
-                    _event -= _action;
-                    _isDisposed = true;
-                }
-            }
-        }
     }
 }

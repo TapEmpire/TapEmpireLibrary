@@ -67,23 +67,23 @@ namespace TapEmpire.Services.Offer
             return _handlers.Values.OfType<T>().FirstOrDefault();
         }
 
-        public bool ShowOffer(string placement)
+        public async UniTask<bool> ShowOffer(string placement)
         {
             var offerData = FindOffer(placement);
             if (offerData != null)
             {
                 var rarity = _currentRarity.Add(_rarityRandomizer.GetRandomElement());
                 _progressService.SetRaritySequence(_rarityRandomizer.CurrentElements);
-                ShowOfferInternal(offerData, rarity, placement, true);
+                await ShowOfferInternal(offerData, rarity, placement, true);
             }
 
             return offerData != null;
         }
 
-        public void ShowOffer(OfferType type, Rarity rarity, string placement)
+        public async UniTask ShowOffer(OfferType type, Rarity rarity, string placement)
         {
             var offerData = Settings.Offers[type];
-            ShowOfferInternal(offerData, rarity, placement, false);
+            await ShowOfferInternal(offerData, rarity, placement, false);
         }
 
         public (BaseOfferUIView, OfferRuntimeData) GetOffer(OfferType type, Rarity rarity)
@@ -92,14 +92,15 @@ namespace TapEmpire.Services.Offer
             return (offerData.Element, offerData.ToRuntime(rarity));
         }
 
-        private void ShowOfferInternal(OfferData data, Rarity rarity, string placement, bool autoshown)
+        private UniTask ShowOfferInternal(OfferData data, Rarity rarity, string placement, bool autoshown)
         {
             _progressService.SetPendingOffer(false);
             var model = new OfferViewModel(data.ToRuntime(rarity), placement);
             model.OnViewClosed.Take(1).Subscribe(_ => OnOfferClosed.OnNext(data.Type));
-            _uiService.OpenViewAsync(data.Element, model, default).Forget();
-            
+
+            var viewTask = _uiService.OpenViewAwaitable(data.Element, model, default);
             OnOfferShown.OnNext((data.Type, autoshown, placement));
+            return viewTask;
         }
 
         private bool VerifyCondition(ICondition condition)
