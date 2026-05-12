@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using AdjustSdk;
 using Firebase.Analytics;
 using Io.AppMetrica;
 using Newtonsoft.Json.Linq;
@@ -158,20 +157,6 @@ namespace TapEmpire.Services
             {
                 { NoAdsPopupViewModel.IapKey, new JObject(new JProperty("Shown", model.Placement)) }
             });
-        }
-
-        private void SetupVerificationData(AdjustEvent adjustEvent, Product product)
-        {
-#if UNITY_EDITOR || IGNORE_VERIFICATION
-            return;
-#elif UNITY_ANDROID
-            var unityReceipt = JsonUtility.FromJson<UnityReceipt>(product.receipt);
-            var googleReceiptJson = JsonUtility.FromJson<GooglePlayReceiptJson>(unityReceipt.Payload);
-            var googleReceipt = JsonUtility.FromJson<GooglePlayReceiptFixed>(googleReceiptJson.json);
-            adjustEvent.PurchaseToken = googleReceipt.purchaseToken;
-#elif UNITY_IOS
-            adjustEvent.TransactionId = product.transactionID;
-#endif
         }
 
         private void SaveSpend(decimal price, string isoCode)
