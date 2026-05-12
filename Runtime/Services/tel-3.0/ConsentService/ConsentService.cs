@@ -21,9 +21,9 @@ namespace TapEmpire.Experimental
         [SerializeField] private ConsentSettings _settings;
 
         private readonly ReactiveProperty<bool> _isResolved = new(false);
-        private readonly ReactiveProperty<bool> _isPersonalized = new(true);
+        private readonly ReactiveProperty<bool> _isPersonalized = new(false);
         private readonly ReactiveProperty<bool> _isEurArea = new(false);
-        private readonly ReactiveProperty<bool> _isAttGranted = new(true);
+        private readonly ReactiveProperty<bool> _isAttGranted = new(false);
 
         public ReadOnlyReactiveProperty<bool> IsResolved => _isResolved;
         public ReadOnlyReactiveProperty<bool> IsPersonalized => _isPersonalized;
