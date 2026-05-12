@@ -34,7 +34,7 @@ namespace TapEmpire.Experimental
             base.OnRelease();
         }
 
-        public void TrackEvent(string eventToken, IReadOnlyDictionary<string, string> callbackParameters = null)
+        public static void TrackEvent(string eventToken, IReadOnlyDictionary<string, string> callbackParameters = null)
         {
             var evt = new AdjustEvent(eventToken);
             AppendParameters(evt, callbackParameters);

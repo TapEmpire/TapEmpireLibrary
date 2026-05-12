@@ -9,8 +9,6 @@ namespace TapEmpire.Experimental
     {
         ReadOnlyReactiveProperty<string> CampaignName { get; }
 
-        void TrackEvent(string eventToken, IReadOnlyDictionary<string, string> callbackParameters = null);
-
         void TrackRevenue(
             string eventToken,
             double revenue,

@@ -214,7 +214,7 @@ namespace TapEmpire.Services
             var callbackParams = new Dictionary<string, string>();
             properties.ForEach(pair => callbackParams[pair.Key] = pair.Value.ToString());
             _adjustParameters.ForEach(pair => callbackParams[pair.Key] = pair.Value);
-            _attributionService.TrackEvent(AdjustEventToken, callbackParams);
+            AttributionService.TrackEvent(AdjustEventToken, callbackParams);
         }
 
         public void SetCampaignName(string campaignName)
