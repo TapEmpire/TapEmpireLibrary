@@ -44,8 +44,7 @@ namespace TapEmpire.Services
 
         private Dictionary<string, string> _globalParameters = new();
         private Dictionary<string, string> _adjustParameters = new();
-        private IDisposable _focusDisposable = null;
-        private IDisposable _campaignNameDisposable = null;
+        private CompositeDisposable _disposables = new();
 
         [Inject]
         private void Construct(
@@ -80,8 +79,7 @@ namespace TapEmpire.Services
             _globalParameters.Clear();
             _adjustParameters.Clear();
 
-            _focusDisposable?.Dispose();
-            _campaignNameDisposable?.Dispose();
+            _disposables.Dispose();
 
             _innerService?.Release();
         }
@@ -166,10 +164,10 @@ namespace TapEmpire.Services
             _adjustParameters.Add(AnalyticsParameters.AdjustAbTest, abTest);
             _adjustParameters.Add(AnalyticsParameters.AdjustAbGroup, abGroup);
 
-            _campaignNameDisposable?.Dispose();
-            _campaignNameDisposable = _attributionService.CampaignName
+            _attributionService.CampaignName
                 .Where(x => !string.IsNullOrEmpty(x))
-                .Subscribe(OnConfigChanged);
+                .Subscribe(OnConfigChanged)
+                .AddTo(_disposables);
 
             if (isFirstLaunch)
             {
@@ -177,8 +175,7 @@ namespace TapEmpire.Services
                 _progressService.SetVersion();
             }
 
-            _focusDisposable?.Dispose();
-            _focusDisposable = _systemService.OnApplicationFocusChanged.Subscribe(OnApplicationFocus);
+            _systemService.OnApplicationFocusChanged.Subscribe(OnApplicationFocus).AddTo(_disposables);
             OnApplicationFocus(true); // Hack
 
             _isInitialized = true;
