@@ -5,6 +5,7 @@ using System.Threading;
 using Cysharp.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using R3;
+using TapEmpire.Experimental;
 using TapEmpire.UI;
 using UnityEngine;
 using UnityEngine.Purchasing;
@@ -28,6 +29,7 @@ namespace TapEmpire.Services
 
         private IPurchasingModule _purchasingModule;
         private IAdsService _adsService;
+        private IAttributionService _attributionService;
         private IProgressService _progressService;
         private IUIService _uiService;
         private DiContainer _diContainer;
@@ -52,9 +54,15 @@ namespace TapEmpire.Services
         private string _placement = null;
 
         [Inject]
-        private void Construct(DiContainer diContainer, IProgressService progressService, IAdsService adsService, IUIService uiService)
+        private void Construct(
+            DiContainer diContainer,
+            IProgressService progressService,
+            IAdsService adsService,
+            IAttributionService attributionService,
+            IUIService uiService)
         {
             _adsService = adsService;
+            _attributionService = attributionService;
             _progressService = progressService;
             _uiService = uiService;
             _diContainer = diContainer;
@@ -64,7 +72,7 @@ namespace TapEmpire.Services
         {
             _disposables = new();
 
-            _purchasingModule = new UnityPurchasingModule(_progressService);
+            _purchasingModule = new UnityPurchasingModule(_progressService, _attributionService);
             _purchasingModule.OnPurchaseSuccess.Subscribe(OnProductPurchaseSuccess).AddTo(_disposables);
             _purchasingModule.OnProductPurchaseFailed.Subscribe(OnProductPurchaseFailed).AddTo(_disposables);
             _purchasingModule.OnPurchaseRestored.Subscribe(OnProductPurchaseRestored).AddTo(_disposables);
