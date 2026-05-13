@@ -55,14 +55,26 @@ namespace TapEmpire.Services.LiveOps
             foreach (var liveOps in _liveOps)
                 liveOps.UpdatePrepare(debug);
 
-            var active = _liveOps.Where(liveOps => liveOps.Runtime.State != State.NotStarted);
+            var active = _liveOps.Where(liveOps => liveOps.Runtime.State != State.NotStarted).ToList();
             var inactive = _liveOps.Where(liveOps => liveOps.Runtime.State == State.NotStarted);
 
             if (layout != null)
                 active.ForEach(liveOps => liveOps.CreateIcon()?.AddTo(layout));
 
             await UniTask.WaitForSeconds(Settings.UpdateDelaySeconds, cancellationToken: default);
-            await UniTask.WhenAll(active.Select(liveOps => liveOps.UpdateVisual(_resourceEmitter, debug)));
+            
+            if (active.Count > 0)
+            {
+                await active[0].UpdateVisual(_resourceEmitter, debug);
+                var tasks = new List<UniTask>(active.Count - 1);
+                for (var i = 1; i < active.Count; i++)
+                {
+                    await UniTask.WaitForSeconds(Settings.UpdateVisualIntervalSeconds, cancellationToken: default);
+                    tasks.Add(active[i].UpdateVisual(_resourceEmitter, debug));
+                }
+                if (tasks.Count > 0)
+                    await UniTask.WhenAll(tasks);
+            }
 
             foreach (var liveOps in active)
                 await liveOps.UpdatePopups();
