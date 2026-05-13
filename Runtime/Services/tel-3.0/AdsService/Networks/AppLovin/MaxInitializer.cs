@@ -13,7 +13,6 @@ namespace TapEmpire.Experimental
         public async UniTask Initialize(
             bool isPersonalized,
             bool testMode = false,
-            bool verboseLogging = false,
             CancellationToken cancellationToken = default)
         {
             if (_isInitialized.Value)
@@ -21,21 +20,13 @@ namespace TapEmpire.Experimental
                 return;
             }
 
-            if (verboseLogging)
-            {
-                MaxSdk.SetVerboseLogging(true);
-            }
-
-            MaxSdk.SetHasUserConsent(isPersonalized);
-
             if (testMode)
             {
-                var gaid = await AdvertisingId.Get(cancellationToken);
-                if (!string.IsNullOrEmpty(gaid))
-                {
-                    MaxSdk.SetTestDeviceAdvertisingIdentifiers(new[] { gaid });
-                }
+                await SetTestDeviceIds(cancellationToken);
             }
+
+            MaxSdk.SetVerboseLogging(testMode);
+            MaxSdk.SetHasUserConsent(isPersonalized);
 
             var completion = new UniTaskCompletionSource();
 
@@ -50,6 +41,15 @@ namespace TapEmpire.Experimental
 
             await completion.Task.AttachExternalCancellation(cancellationToken);
             _isInitialized.Value = true;
+        }
+
+        private static async UniTask SetTestDeviceIds(CancellationToken cancellationToken)
+        {
+            var gaid = await AdvertisingId.Get(cancellationToken);
+            if (!string.IsNullOrEmpty(gaid))
+            {
+                MaxSdk.SetTestDeviceAdvertisingIdentifiers(new[] { gaid });
+            }
         }
     }
 }
