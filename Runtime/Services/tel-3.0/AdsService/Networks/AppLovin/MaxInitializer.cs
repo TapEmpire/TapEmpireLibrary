@@ -12,8 +12,8 @@ namespace TapEmpire.Experimental
 
         public async UniTask Initialize(
             bool isPersonalized,
+            bool testMode = false,
             bool verboseLogging = false,
-            string testDeviceId = null,
             CancellationToken cancellationToken = default)
         {
             if (_isInitialized.Value)
@@ -28,9 +28,13 @@ namespace TapEmpire.Experimental
 
             MaxSdk.SetHasUserConsent(isPersonalized);
 
-            if (!string.IsNullOrEmpty(testDeviceId))
+            if (testMode)
             {
-                MaxSdk.SetTestDeviceAdvertisingIdentifiers(new[] { testDeviceId });
+                var gaid = await AdvertisingId.Get(cancellationToken);
+                if (!string.IsNullOrEmpty(gaid))
+                {
+                    MaxSdk.SetTestDeviceAdvertisingIdentifiers(new[] { gaid });
+                }
             }
 
             var completion = new UniTaskCompletionSource();
