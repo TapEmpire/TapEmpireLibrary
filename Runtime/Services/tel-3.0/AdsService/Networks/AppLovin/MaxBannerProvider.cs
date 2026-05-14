@@ -12,14 +12,15 @@ namespace TapEmpire.Experimental
 
         private readonly string _adUnitId;
 
-        public MaxBannerProvider(string adUnitId, MaxSdkBase.BannerPosition position, int width = 0)
+        public MaxBannerProvider(string adUnitId, AdPosition position, int width = 0)
         {
             _adUnitId = adUnitId;
 
-            MaxSdk.CreateBanner(_adUnitId, position);
+            var configuration = new MaxSdkBase.AdViewConfiguration(position.ToMaxPosition());
+            configuration.IsAdaptive = false;
+            MaxSdk.CreateBanner(_adUnitId, configuration);
             MaxSdk.StartBannerAutoRefresh(_adUnitId);
 
-            MaxSdk.SetBannerExtraParameter(_adUnitId, "adaptive_banner", "false");
             MaxSdk.SetBannerExtraParameter(_adUnitId, "collapsible", "none");
             MaxSdk.SetBannerBackgroundColor(_adUnitId, Color.black);
 

@@ -10,11 +10,11 @@ namespace TapEmpire.Experimental
 
         private readonly string _adUnitId;
 
-        public MaxMrecProvider(string adUnitId, MaxSdkBase.AdViewPosition position)
+        public MaxMrecProvider(string adUnitId, AdPosition position)
         {
             _adUnitId = adUnitId;
 
-            var configuration = new MaxSdkBase.AdViewConfiguration(position);
+            var configuration = new MaxSdkBase.AdViewConfiguration(position.ToMaxPosition());
             MaxSdk.CreateMRec(_adUnitId, configuration);
 
             MaxSdkCallbacks.MRec.OnAdLoadedEvent += OnAdLoaded;
