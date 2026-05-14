@@ -4,10 +4,8 @@ namespace TapEmpire.Experimental
 {
     public interface IMrec
     {
-        ReadOnlyReactiveProperty<bool> IsLoaded { get; }
-
-        Observable<AdImpressionData> OnImpression { get; }
-        Observable<AdError> OnFailed { get; }
+        ReactiveProperty<bool> IsLoaded { get; }
+        Subject<AdImpressionData> OnImpression { get; }
 
         void Show();
         void Show(int x, int y);
