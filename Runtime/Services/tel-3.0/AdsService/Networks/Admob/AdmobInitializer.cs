@@ -53,5 +53,13 @@ namespace TapEmpire.Experimental
                 ? new List<string>()
                 : new List<string> { gaid };
         }
+
+        // Unused scaffold: legacy AdsManager.IsForFamily drove TagForUnderAgeOfConsent; call after `new RequestConfiguration { ... }` when wiring back.
+        private static void ApplyIsForFamily(RequestConfiguration configuration, bool isForFamily)
+        {
+            configuration.TagForUnderAgeOfConsent = isForFamily
+                ? TagForUnderAgeOfConsent.True
+                : TagForUnderAgeOfConsent.False;
+        }
     }
 }
