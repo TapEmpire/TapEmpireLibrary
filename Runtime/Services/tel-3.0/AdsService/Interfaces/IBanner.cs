@@ -5,11 +5,9 @@ namespace TapEmpire.Experimental
 {
     public interface IBanner
     {
-        ReadOnlyReactiveProperty<bool> IsLoaded { get; }
-        ReadOnlyReactiveProperty<Vector2> Layout { get; }
-
-        Observable<AdImpressionData> OnImpression { get; }
-        Observable<AdError> OnFailed { get; }
+        ReactiveProperty<bool> IsLoaded { get; }
+        ReactiveProperty<Vector2> Layout { get; }
+        Subject<AdImpressionData> OnImpression { get; }
 
         void Show();
         void Hide();
