@@ -6,11 +6,9 @@ namespace TapEmpire.Experimental
 {
     public class MaxInterstitialProvider : IInterstitial, IDisposable
     {
-        public Observable<AdImpressionData> OnImpression => _onImpression;
-        public Observable<Unit> OnReward => _onReward;
+        public Subject<AdImpressionData> OnImpression { get; } = new();
+        public Subject<Unit> OnReward { get; } = new();
 
-        private readonly Subject<AdImpressionData> _onImpression = new();
-        private readonly Subject<Unit> _onReward = new();
         private readonly string _adUnitId;
 
         private CancellableTask _retryDisposable;
@@ -77,13 +75,13 @@ namespace TapEmpire.Experimental
 
         private void OnAdHidden(string adUnitId, MaxSdkBase.AdInfo adInfo)
         {
-            _onReward.OnNext(Unit.Default);
+            OnReward.OnNext(Unit.Default);
             LoadInterstitial();
         }
 
         private void OnAdRevenuePaid(string adUnitId, MaxSdkBase.AdInfo adInfo)
         {
-            _onImpression.OnNext(new AdImpressionData(
+            OnImpression.OnNext(new AdImpressionData(
                 AdNetwork.Max,
                 adInfo.NetworkName,
                 adUnitId,

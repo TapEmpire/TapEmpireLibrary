@@ -1,16 +1,14 @@
-using System.Threading;
-using Cysharp.Threading.Tasks;
 using R3;
 
 namespace TapEmpire.Experimental
 {
     public interface IRewarded
     {
-        ReadOnlyReactiveProperty<bool> IsLoaded { get; }
+        Subject<AdImpressionData> OnImpression { get; }
+        Subject<Unit> OnReward { get; }
 
-        Observable<AdImpressionData> OnImpression { get; }
-        Observable<AdError> OnFailed { get; }
+        bool HasRewarded(bool doRequest = false);
 
-        UniTask<AdRewardEvent?> ShowAsync(string placement, CancellationToken cancellationToken = default);
+        void Show(string placement);
     }
 }
