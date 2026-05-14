@@ -11,90 +11,85 @@ namespace TapEmpire.Experimental
         public Subject<AdImpressionData> OnImpression { get; } = new();
         public Subject<Unit> OnReward { get; } = new();
 
-        private readonly string _adUnitId;
+        private readonly string _interstitialAdUnitId;
 
-        private InterstitialAd _ad;
+        private InterstitialAd _interstitialAd;
+        private IDisposable _adDisposable;
         private CancellableTask _retryDisposable;
         private int _retryAttempt;
 
         public AdmobInterstitialProvider(string adUnitId)
         {
-            _adUnitId = adUnitId;
-            Load();
+            _interstitialAdUnitId = adUnitId;
+            LoadInterstitial();
         }
 
         public bool HasInterstitial(bool doRequest = false)
         {
-            bool isReady = _ad != null && _ad.CanShowAd();
+            bool isReady = _interstitialAd?.CanShowAd() ?? false;
             if (!isReady && doRequest)
             {
-                Load();
+                LoadInterstitial();
             }
             return isReady;
         }
 
         public void Show(string placement)
         {
-            _ad?.Show();
+            _interstitialAd?.Show();
         }
 
         public void Dispose()
         {
-            DetachAdHandlers();
-            _ad?.Destroy();
-            _ad = null;
+            _adDisposable?.Dispose();
             _retryDisposable?.Dispose();
         }
 
-        private void Load()
+        private void LoadInterstitial()
         {
-            DetachAdHandlers();
-            _ad?.Destroy();
-            _ad = null;
-
-            InterstitialAd.Load(_adUnitId, new AdRequest(), OnLoadCallback);
+            _adDisposable?.Dispose();
+            InterstitialAd.Load(_interstitialAdUnitId, new AdRequest(), OnLoadCallback);
         }
 
         private void OnLoadCallback(InterstitialAd ad, LoadAdError error)
         {
             if (error != null || ad == null)
             {
-                _retryAttempt++;
-                var seconds = (float)Math.Pow(2, Math.Min(6, _retryAttempt));
-                _retryDisposable?.Dispose();
-                _retryDisposable = UniTaskUtility.Delay(seconds, Load);
+                OnLoadFailed();
                 return;
             }
 
             _retryAttempt = 0;
-            _ad = ad;
+            _interstitialAd = ad;
 
-            _ad.OnAdPaid += OnAdPaid;
-            _ad.OnAdFullScreenContentClosed += OnAdClosed;
-            _ad.OnAdFullScreenContentFailed += OnAdShowFailed;
+            ad.OnAdPaid += OnAdPaid;
+            ad.OnAdFullScreenContentClosed += OnAdClosed;
+            ad.OnAdFullScreenContentFailed += OnAdShowFailed;
+
+            _adDisposable = Disposable.Create(() =>
+            {
+                ad.Destroy();
+                _interstitialAd = null;
+            });
         }
 
-        private void DetachAdHandlers()
+        private void OnLoadFailed()
         {
-            if (_ad == null)
-            {
-                return;
-            }
-
-            _ad.OnAdPaid -= OnAdPaid;
-            _ad.OnAdFullScreenContentClosed -= OnAdClosed;
-            _ad.OnAdFullScreenContentFailed -= OnAdShowFailed;
+            _retryAttempt++;
+            var seconds = (float)Math.Pow(2, Math.Min(6, _retryAttempt));
+            _retryDisposable?.Dispose();
+            _retryDisposable = UniTaskUtility.Delay(seconds, LoadInterstitial);
         }
 
         private void OnAdClosed()
         {
             OnReward.OnNext(Unit.Default);
-            Load();
+            LoadInterstitial();
         }
 
         private void OnAdShowFailed(AdmobAdError _)
         {
-            Load();
+            LoadInterstitial();
         }
 
         private void OnAdPaid(AdValue value)
@@ -102,7 +97,7 @@ namespace TapEmpire.Experimental
             OnImpression.OnNext(new AdImpressionData(
                 AdNetwork.Admob,
                 "AdMob",
-                _adUnitId,
+                _interstitialAdUnitId,
                 string.Empty,
                 value.Value / 1_000_000d,
                 value.CurrencyCode,

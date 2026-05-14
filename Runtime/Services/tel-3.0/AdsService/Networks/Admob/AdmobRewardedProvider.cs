@@ -11,89 +11,84 @@ namespace TapEmpire.Experimental
         public Subject<AdImpressionData> OnImpression { get; } = new();
         public Subject<Unit> OnReward { get; } = new();
 
-        private readonly string _adUnitId;
+        private readonly string _rewardedAdUnitId;
 
-        private RewardedAd _ad;
+        private RewardedAd _rewardedAd;
+        private IDisposable _adDisposable;
         private CancellableTask _retryDisposable;
         private int _retryAttempt;
 
         public AdmobRewardedProvider(string adUnitId)
         {
-            _adUnitId = adUnitId;
-            Load();
+            _rewardedAdUnitId = adUnitId;
+            LoadRewarded();
         }
 
         public bool HasRewarded(bool doRequest = false)
         {
-            bool isReady = _ad != null && _ad.CanShowAd();
+            bool isReady = _rewardedAd?.CanShowAd() ?? false;
             if (!isReady && doRequest)
             {
-                Load();
+                LoadRewarded();
             }
             return isReady;
         }
 
         public void Show(string placement)
         {
-            _ad?.Show(_ => OnReward.OnNext(Unit.Default));
+            _rewardedAd?.Show(_ => OnReward.OnNext(Unit.Default));
         }
 
         public void Dispose()
         {
-            DetachAdHandlers();
-            _ad?.Destroy();
-            _ad = null;
+            _adDisposable?.Dispose();
             _retryDisposable?.Dispose();
         }
 
-        private void Load()
+        private void LoadRewarded()
         {
-            DetachAdHandlers();
-            _ad?.Destroy();
-            _ad = null;
-
-            RewardedAd.Load(_adUnitId, new AdRequest(), OnLoadCallback);
+            _adDisposable?.Dispose();
+            RewardedAd.Load(_rewardedAdUnitId, new AdRequest(), OnLoadCallback);
         }
 
         private void OnLoadCallback(RewardedAd ad, LoadAdError error)
         {
             if (error != null || ad == null)
             {
-                _retryAttempt++;
-                var seconds = (float)Math.Pow(2, Math.Min(6, _retryAttempt));
-                _retryDisposable?.Dispose();
-                _retryDisposable = UniTaskUtility.Delay(seconds, Load);
+                OnLoadFailed();
                 return;
             }
 
             _retryAttempt = 0;
-            _ad = ad;
+            _rewardedAd = ad;
 
-            _ad.OnAdPaid += OnAdPaid;
-            _ad.OnAdFullScreenContentClosed += OnAdClosed;
-            _ad.OnAdFullScreenContentFailed += OnAdShowFailed;
+            ad.OnAdPaid += OnAdPaid;
+            ad.OnAdFullScreenContentClosed += OnAdClosed;
+            ad.OnAdFullScreenContentFailed += OnAdShowFailed;
+
+            _adDisposable = Disposable.Create(() =>
+            {
+                ad.Destroy();
+                _rewardedAd = null;
+            });
         }
 
-        private void DetachAdHandlers()
+        private void OnLoadFailed()
         {
-            if (_ad == null)
-            {
-                return;
-            }
-
-            _ad.OnAdPaid -= OnAdPaid;
-            _ad.OnAdFullScreenContentClosed -= OnAdClosed;
-            _ad.OnAdFullScreenContentFailed -= OnAdShowFailed;
+            _retryAttempt++;
+            var seconds = (float)Math.Pow(2, Math.Min(6, _retryAttempt));
+            _retryDisposable?.Dispose();
+            _retryDisposable = UniTaskUtility.Delay(seconds, LoadRewarded);
         }
 
         private void OnAdClosed()
         {
-            Load();
+            LoadRewarded();
         }
 
         private void OnAdShowFailed(AdmobAdError _)
         {
-            Load();
+            LoadRewarded();
         }
 
         private void OnAdPaid(AdValue value)
@@ -101,7 +96,7 @@ namespace TapEmpire.Experimental
             OnImpression.OnNext(new AdImpressionData(
                 AdNetwork.Admob,
                 "AdMob",
-                _adUnitId,
+                _rewardedAdUnitId,
                 string.Empty,
                 value.Value / 1_000_000d,
                 value.CurrencyCode,
