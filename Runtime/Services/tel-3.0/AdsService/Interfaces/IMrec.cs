@@ -10,6 +10,5 @@ namespace TapEmpire.Experimental
         void Show();
         void Show(int x, int y);
         void Hide();
-        void Destroy();
     }
 }

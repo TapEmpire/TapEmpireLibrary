@@ -39,19 +39,14 @@ namespace TapEmpire.Experimental
             MaxSdk.HideMRec(_adUnitId);
         }
 
-        public void Destroy()
-        {
-            MaxSdk.DestroyMRec(_adUnitId);
-            IsLoaded.Value = false;
-        }
-
         public void Dispose()
         {
             MaxSdkCallbacks.MRec.OnAdLoadedEvent -= OnAdLoaded;
             MaxSdkCallbacks.MRec.OnAdLoadFailedEvent -= OnAdLoadFailed;
             MaxSdkCallbacks.MRec.OnAdRevenuePaidEvent -= OnAdRevenuePaid;
 
-            Destroy();
+            MaxSdk.DestroyMRec(_adUnitId);
+            IsLoaded.Value = false;
         }
 
         private void OnAdLoaded(string adUnitId, MaxSdkBase.AdInfo adInfo)
