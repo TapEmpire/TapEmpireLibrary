@@ -83,7 +83,12 @@ namespace TapEmpire.Services.LiveOps
             {
                 await liveOps.UpdatePopups();
 
-                if (layout != null && liveOps.Runtime.State != State.NotStarted)
+                if (layout == null)
+                    continue;
+
+                var becameActive = liveOps.Runtime.State != State.NotStarted;
+                var showFinished = liveOps.Data.StayVisibleAfterFinished && liveOps.Runtime.StartedAt != default;
+                if (becameActive || showFinished)
                     liveOps.CreateIcon()?.AddTo(layout);
             }
         }

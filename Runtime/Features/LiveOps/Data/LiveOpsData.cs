@@ -14,6 +14,7 @@ namespace TapEmpire.Services.LiveOps
         public LiveOpsView LiveOpsPrefab;
         public TutorialUIView TutorialPrefab;
         public LiveOpsDebugComponent DebugComponent;
+        public virtual bool StayVisibleAfterFinished => false;
         public abstract string Name { get; }
         public abstract ILiveOps Create(DiContainer container);
         public abstract DateTime GetEndTime(LiveOpsRuntime runtime);
