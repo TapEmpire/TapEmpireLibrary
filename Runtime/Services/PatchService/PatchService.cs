@@ -54,7 +54,7 @@ namespace TapEmpire.Services
             if (patches == null || patches.Count == 0)
             {
                 Debug.Log("[PlayerPatch] No patch entries. Fetching IDs in background.");
-                FetchIdsInBackgroundAsync(cancellationToken).Forget();
+                FetchIdsInBackgroundAsync(CancellationToken.None).Forget();
                 return;
             }
 
