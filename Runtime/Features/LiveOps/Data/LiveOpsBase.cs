@@ -71,6 +71,16 @@ namespace TapEmpire.Services.LiveOps
             return _icon;
         }
 
+        public LiveOpsIcon CreateAnnounceIcon()
+        {
+            if (_data.AnnounceIconPrefab == null)
+                return null;
+            var icon = Object.Instantiate(_data.AnnounceIconPrefab);
+            _diContainer.Inject(icon);
+            icon.Initialize(this);
+            return icon;
+        }
+
         public UniTask OpenView()
         {
             return _uiService.OpenViewAwaitable(_data.LiveOpsPrefab, new LiveOpsViewModel(this), default);

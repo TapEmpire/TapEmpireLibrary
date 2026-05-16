@@ -21,8 +21,7 @@ namespace TapEmpire.LiveOps.UI
             if (index >= _firstCommonIndex)
                 _generalIcons.Add(icon);
             icon.transform.SetParent(_placements[index], false);
-            if (!icon.StayVisibleAfterFinished)
-                icon.OnFinished.Subscribe(_ => Remove(icon)).AddTo(_disposables);
+            icon.OnFinished.Subscribe(_ => Remove(icon)).AddTo(_disposables);
 
             if (index == PreOfferButtonIndex)
                 _hasIconBeforeOffer = true;

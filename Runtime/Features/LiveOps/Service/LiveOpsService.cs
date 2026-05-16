@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -56,13 +57,27 @@ namespace TapEmpire.Services.LiveOps
                 liveOps.UpdatePrepare(debug);
 
             var active = _liveOps.Where(liveOps => liveOps.Runtime.State != State.NotStarted).ToList();
-            var inactive = _liveOps.Where(liveOps => liveOps.Runtime.State == State.NotStarted);
+
+            // Finished events with announce icon: timer still running (can't restart yet), previously started.
+            var lockedVisible = _liveOps
+                .Where(liveOps => liveOps.Runtime.State == State.NotStarted &&
+                                  liveOps.Data.HasAnnounceIcon &&
+                                  liveOps.Runtime.StartedAt != default &&
+                                  liveOps.GetRemainingTime() > TimeSpan.Zero)
+                .ToList();
+
+            var inactive = _liveOps
+                .Where(liveOps => liveOps.Runtime.State == State.NotStarted && !lockedVisible.Contains(liveOps))
+                .ToList();
 
             if (layout != null)
+            {
                 active.ForEach(liveOps => liveOps.CreateIcon()?.AddTo(layout));
+                lockedVisible.ForEach(liveOps => liveOps.CreateAnnounceIcon()?.AddTo(layout));
+            }
 
             await UniTask.WaitForSeconds(Settings.UpdateDelaySeconds, cancellationToken: default);
-            
+
             if (active.Count > 0)
             {
                 await active[0].UpdateVisual(_resourceEmitter, debug);
@@ -86,12 +101,11 @@ namespace TapEmpire.Services.LiveOps
                 if (layout == null)
                     continue;
 
-                var becameActive = liveOps.Runtime.State != State.NotStarted;
-                var showFinished = liveOps.Data.StayVisibleAfterFinished && liveOps.Runtime.StartedAt != default;
-                if (becameActive || showFinished)
+                if (liveOps.Runtime.State != State.NotStarted)
                     liveOps.CreateIcon()?.AddTo(layout);
             }
         }
+
         private void InitializeAndRegisterLiveOps(LiveOpsData data)
         {
             var liveOps = data.Create(_diContainer);
