@@ -49,7 +49,8 @@ namespace TapEmpire.Services
             var patches = GetPatchEntries();
             if (patches == null || patches.Count == 0)
             {
-                Debug.Log("[PlayerPatch] No patch entries. Skipping.");
+                Debug.Log("[PlayerPatch] No patch entries. Fetching IDs in background.");
+                GetPlayerIdAsync(cancellationToken).Forget();
                 return;
             }
             
