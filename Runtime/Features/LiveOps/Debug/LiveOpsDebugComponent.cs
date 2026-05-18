@@ -18,6 +18,7 @@ namespace TapEmpire.Services.LiveOps
         [SerializeField] private TMP_InputField _inner;
         [SerializeField] private TMP_InputField _value;
         [SerializeField] private TMP_InputField _addend;
+        [SerializeField] private TMP_InputField _lastSeenValue;
         [SerializeField] private TMP_InputField _endTime;
         [SerializeField] private LiveOpsTimeUnit _timeUnit = LiveOpsTimeUnit.Minutes;
 
@@ -64,6 +65,7 @@ namespace TapEmpire.Services.LiveOps
             _inner.text = runtime.Inner.ToString();
             _value.text = runtime.Value.ToString();
             _addend.text = runtime.Addend.ToString();
+            _lastSeenValue.text = runtime.LastSeenValue.ToString();
             _endTime.text = FormatEndTime();
 
             _extension?.Read(_liveOps);
@@ -86,6 +88,7 @@ namespace TapEmpire.Services.LiveOps
             runtime.Inner = int.TryParse(_inner.text, out int inner) ? inner : runtime.Inner;
             runtime.Value = int.TryParse(_value.text, out int value) ? value : runtime.Value;
             runtime.Addend = int.TryParse(_addend.text, out int addend) ? addend : runtime.Addend;
+            runtime.LastSeenValue = int.TryParse(_lastSeenValue.text, out int lastSeenValue) ? lastSeenValue : runtime.LastSeenValue;
 
             if (TryParseEndTime(out var endTime))
                 _liveOps.SetEndTime(endTime);
