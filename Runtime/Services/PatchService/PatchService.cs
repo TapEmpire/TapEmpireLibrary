@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using Io.AppMetrica;
+using R3;
 using UnityEngine;
 using Zenject;
 
@@ -16,6 +17,9 @@ namespace TapEmpire.Services
         public const string DeviceIdProgressKey = "AppMetricaDeviceId";
         public const string UuidProgressKey = "AppMetricaUuid";
         public const string DeviceIdHashProgressKey = "AppMetricaDeviceIdHash";
+
+        private readonly Subject<Unit> _idsUpdated = new();
+        public Observable<Unit> IdsUpdated => _idsUpdated;
         
         private const string PatchVersionProgressKey = "PlayerPatchVersion";
         private const int RequestTimeoutMs = 5000;
@@ -49,11 +53,13 @@ namespace TapEmpire.Services
             var patches = GetPatchEntries();
             if (patches == null || patches.Count == 0)
             {
-                Debug.Log("[PlayerPatch] No patch entries. Skipping.");
+                Debug.Log("[PlayerPatch] No patch entries. Fetching IDs in background.");
+                FetchIdsInBackgroundAsync(CancellationToken.None).Forget();
                 return;
             }
-            
+
             var (deviceId, uuid, deviceIdHash) = await GetPlayerIdAsync(cancellationToken);
+            _idsUpdated.OnNext(Unit.Default);
 
             var entry = patches.FirstOrDefault(p => MatchesPlayer(p, deviceId, uuid, deviceIdHash));
             if (entry == null)
@@ -80,6 +86,12 @@ namespace TapEmpire.Services
 #endif
         }
         
+        private async UniTaskVoid FetchIdsInBackgroundAsync(CancellationToken cancellationToken)
+        {
+            await GetPlayerIdAsync(cancellationToken);
+            _idsUpdated.OnNext(Unit.Default);
+        }
+
         private async UniTask<(string deviceId, string uuid, string deviceIdHash)> GetPlayerIdAsync(CancellationToken cancellationToken)
         {
             var (deviceId, uuid, deviceIdHash) = await RequestIdsAsync(cancellationToken);
