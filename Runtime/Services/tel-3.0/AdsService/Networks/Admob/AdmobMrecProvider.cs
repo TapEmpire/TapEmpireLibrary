@@ -23,20 +23,14 @@ namespace TapEmpire.Experimental
 
         public void Show()
         {
-            if (_mrecView == null)
-            {
-                Attach(new BannerView(_adUnitId, Size, _position.ToAdmobPosition()));
-            }
-            _mrecView.Show();
+            Teardown();
+            Attach(new BannerView(_adUnitId, Size, _position.ToAdmobPosition()));
         }
 
         public void Show(int x, int y)
         {
-            if (_mrecView == null)
-            {
-                Attach(new BannerView(_adUnitId, Size, x, y));
-            }
-            _mrecView.Show();
+            Teardown();
+            Attach(new BannerView(_adUnitId, Size, x, y));
         }
 
         public void Hide()
@@ -45,6 +39,11 @@ namespace TapEmpire.Experimental
         }
 
         public void Dispose()
+        {
+            Teardown();
+        }
+
+        private void Teardown()
         {
             Detach();
             _mrecView?.Destroy();
