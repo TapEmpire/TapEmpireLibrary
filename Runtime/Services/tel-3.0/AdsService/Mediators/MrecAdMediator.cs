@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using R3;
@@ -6,7 +5,7 @@ using UnityEngine;
 
 namespace TapEmpire.Experimental
 {
-    public class MrecAdMediator : IMrec, IDisposable
+    public class MrecAdMediator : IMrec
     {
         public ReactiveProperty<bool> IsLoaded { get; } = new(false);
         public Subject<AdImpressionData> OnImpression { get; } = new();

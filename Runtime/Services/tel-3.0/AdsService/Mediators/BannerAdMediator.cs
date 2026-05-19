@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using R3;
@@ -6,7 +5,7 @@ using UnityEngine;
 
 namespace TapEmpire.Experimental
 {
-    public class BannerAdMediator : IBanner, IDisposable
+    public class BannerAdMediator : IBanner
     {
         public ReactiveProperty<bool> IsLoaded { get; } = new(false);
         public ReactiveProperty<Vector2> Layout { get; } = new(Vector2.zero);

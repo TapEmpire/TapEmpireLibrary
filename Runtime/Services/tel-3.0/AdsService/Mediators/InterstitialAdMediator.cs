@@ -1,12 +1,12 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using R3;
 
 namespace TapEmpire.Experimental
 {
-    public class InterstitialAdMediator : IInterstitial, IDisposable
+    public class InterstitialAdMediator : IInterstitial
     {
+        public ReactiveProperty<bool> IsLoaded { get; } = new(false);
         public Subject<AdImpressionData> OnImpression { get; } = new();
         public Subject<Unit> OnReward { get; } = new();
 
@@ -20,6 +20,9 @@ namespace TapEmpire.Experimental
             {
                 provider.OnImpression.Subscribe(OnImpression.OnNext).AddTo(_disposables);
                 provider.OnReward.Subscribe(OnReward.OnNext).AddTo(_disposables);
+                provider.IsLoaded
+                    .Subscribe(_ => IsLoaded.Value = _providers.Any(provider => provider.IsLoaded.Value))
+                    .AddTo(_disposables);
             }
         }
 
