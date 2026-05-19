@@ -6,8 +6,9 @@ using AdmobAdError = GoogleMobileAds.Api.AdError;
 
 namespace TapEmpire.Experimental
 {
-    public class AdmobRewardedProvider : IRewarded, IDisposable
+    public class AdmobRewardedProvider : IRewarded
     {
+        public ReactiveProperty<bool> IsLoaded { get; } = new(false);
         public Subject<AdImpressionData> OnImpression { get; } = new();
         public Subject<Unit> OnReward { get; } = new();
 
@@ -71,10 +72,13 @@ namespace TapEmpire.Experimental
                 ad.Destroy();
                 _rewardedAd = null;
             });
+
+            IsLoaded.Value = true;
         }
 
         private void OnLoadFailed()
         {
+            IsLoaded.Value = false;
             _retryAttempt++;
             var seconds = (float)Math.Pow(2, Math.Min(6, _retryAttempt));
             _retryDisposable?.Dispose();
@@ -83,11 +87,13 @@ namespace TapEmpire.Experimental
 
         private void OnAdClosed()
         {
+            IsLoaded.Value = false;
             LoadRewarded();
         }
 
         private void OnAdShowFailed(AdmobAdError _)
         {
+            IsLoaded.Value = false;
             LoadRewarded();
         }
 

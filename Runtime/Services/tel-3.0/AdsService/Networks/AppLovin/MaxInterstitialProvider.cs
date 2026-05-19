@@ -4,8 +4,9 @@ using TapEmpire.Utility;
 
 namespace TapEmpire.Experimental
 {
-    public class MaxInterstitialProvider : IInterstitial, IDisposable
+    public class MaxInterstitialProvider : IInterstitial
     {
+        public ReactiveProperty<bool> IsLoaded { get; } = new(false);
         public Subject<AdImpressionData> OnImpression { get; } = new();
         public Subject<Unit> OnReward { get; } = new();
 
@@ -58,10 +59,12 @@ namespace TapEmpire.Experimental
         private void OnAdLoaded(string adUnitId, MaxSdkBase.AdInfo adInfo)
         {
             _retryAttempt = 0;
+            IsLoaded.Value = true;
         }
 
         private void OnAdLoadFailed(string adUnitId, MaxSdkBase.ErrorInfo errorInfo)
         {
+            IsLoaded.Value = false;
             _retryAttempt++;
             var seconds = (float)Math.Pow(2, Math.Min(6, _retryAttempt));
             _retryDisposable?.Dispose();
@@ -70,11 +73,13 @@ namespace TapEmpire.Experimental
 
         private void OnAdDisplayFailed(string adUnitId, MaxSdkBase.ErrorInfo errorInfo, MaxSdkBase.AdInfo adInfo)
         {
+            IsLoaded.Value = false;
             LoadInterstitial();
         }
 
         private void OnAdHidden(string adUnitId, MaxSdkBase.AdInfo adInfo)
         {
+            IsLoaded.Value = false;
             OnReward.OnNext(Unit.Default);
             LoadInterstitial();
         }

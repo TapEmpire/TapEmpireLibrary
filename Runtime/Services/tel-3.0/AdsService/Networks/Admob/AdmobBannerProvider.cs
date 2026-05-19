@@ -1,11 +1,10 @@
-using System;
 using GoogleMobileAds.Api;
 using R3;
 using UnityEngine;
 
 namespace TapEmpire.Experimental
 {
-    public class AdmobBannerProvider : IBanner, IDisposable
+    public class AdmobBannerProvider : IBanner
     {
         public ReactiveProperty<bool> IsLoaded { get; } = new(false);
         public ReactiveProperty<Vector2> Layout { get; } = new(Vector2.zero);

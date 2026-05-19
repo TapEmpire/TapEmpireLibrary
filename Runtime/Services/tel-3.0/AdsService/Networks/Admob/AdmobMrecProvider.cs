@@ -1,10 +1,9 @@
-using System;
 using GoogleMobileAds.Api;
 using R3;
 
 namespace TapEmpire.Experimental
 {
-    public class AdmobMrecProvider : IMrec, IDisposable
+    public class AdmobMrecProvider : IMrec
     {
         public ReactiveProperty<bool> IsLoaded { get; } = new(false);
         public Subject<AdImpressionData> OnImpression { get; } = new();

@@ -1,10 +1,9 @@
-using System;
 using R3;
 using UnityEngine;
 
 namespace TapEmpire.Experimental
 {
-    public class MaxBannerProvider : IBanner, IDisposable
+    public class MaxBannerProvider : IBanner
     {
         public ReactiveProperty<bool> IsLoaded { get; } = new(false);
         public ReactiveProperty<Vector2> Layout { get; } = new(Vector2.zero);

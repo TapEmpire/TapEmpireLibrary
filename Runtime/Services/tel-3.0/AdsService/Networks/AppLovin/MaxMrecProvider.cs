@@ -1,9 +1,8 @@
-using System;
 using R3;
 
 namespace TapEmpire.Experimental
 {
-    public class MaxMrecProvider : IMrec, IDisposable
+    public class MaxMrecProvider : IMrec
     {
         public ReactiveProperty<bool> IsLoaded { get; } = new(false);
         public Subject<AdImpressionData> OnImpression { get; } = new();
