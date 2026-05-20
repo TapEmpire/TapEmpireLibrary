@@ -21,7 +21,7 @@ namespace TapEmpire.Experimental
         private readonly ReactiveProperty<bool> _adsEnabled = new(true);
         private readonly CompositeDisposable _disposables = new();
         private readonly CompositeDisposable _paidAdsDisposable = new();
-        private readonly SerialDisposable _pendingReward = new();
+        private readonly SerialDisposable _pendingCallback = new();
 
         private IBanner _banner;
         private IInterstitial _interstitial;
@@ -31,6 +31,9 @@ namespace TapEmpire.Experimental
         public Subject<Unit> OnInitialized { get; } = new();
         public Subject<Unit> OnReceivedReward { get; } = new();
         public Subject<string> OnAdClicked { get; } = new();
+        public Subject<bool> OnInterstitialAttempt { get; } = new();
+
+        public AdsSettings Settings => _settings;
 
         public ReadOnlyReactiveProperty<bool> AdsEnabled => _adsEnabled;
         public ReadOnlyReactiveProperty<bool> IsInterstitialReady => _interstitial?.IsLoaded ?? _notReady;
@@ -38,6 +41,10 @@ namespace TapEmpire.Experimental
         public bool CanShowRewarded =>
             _progressService.GetCyclesProgress() > 0 ||
             _progressService.GetLevelProgress() + 1 >= _settings.RewardedFromLevel;
+
+        public bool CanShowInterstitial =>
+            _progressService.GetCyclesProgress() > 0 ||
+            _progressService.GetLevelProgress() + 1 >= _settings.FromLevel;
 
         public bool SkipAds { get; set; }
 
@@ -60,13 +67,31 @@ namespace TapEmpire.Experimental
         public void ShowBanner() => _banner?.Show();
         public void HideBanner() => _banner?.Hide();
 
-        public void ShowInterstitial(string placement) => _interstitial?.Show(placement);
+        public void ShowInterstitial(string placement, Action onClose, bool skip = false)
+        {
+            var hasInterstitial = _interstitial?.HasInterstitial(false) == true;
+            OnInterstitialAttempt.OnNext(hasInterstitial);
+
+            if (skip || SkipAds || !hasInterstitial)
+            {
+                onClose?.Invoke();
+                return;
+            }
+
+            _pendingCallback.Disposable = _interstitial.OnReward.Take(1).Subscribe(_ => onClose?.Invoke());
+            _interstitial.Show(placement);
+        }
+
+        public void ShowInterstitial(int level, string placement, Action onClose)
+        {
+            ShowInterstitial(placement, onClose, skip: level < _settings.FromLevel);
+        }
 
         public void ShowRewarded(string placement, Action onRewardCallback)
         {
             OnAdClicked.OnNext(placement);
 
-            _pendingReward.Disposable = OnReceivedReward.Take(1).Subscribe(_ => onRewardCallback?.Invoke());
+            _pendingCallback.Disposable = OnReceivedReward.Take(1).Subscribe(_ => onRewardCallback?.Invoke());
 
             if (SkipAds)
             {
@@ -120,7 +145,7 @@ namespace TapEmpire.Experimental
                 new AdmobRewardedProvider(_settings.Config.Admob.RewardedId),
             });
             _rewarded.AddTo(_disposables);
-            _pendingReward.AddTo(_disposables);
+            _pendingCallback.AddTo(_disposables);
             _rewarded.OnReward.Subscribe(OnReceivedReward.OnNext).AddTo(_disposables);
             Disposable.Create(() => _rewarded = null).AddTo(_disposables);
         }

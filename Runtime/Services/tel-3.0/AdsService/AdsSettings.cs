@@ -26,8 +26,6 @@ namespace TapEmpire.Experimental
         public int RewardedFromLevel = 0;
 
         [Header("Interstitial scheduling")]
-        public float InterstitialDelay = 30f;
-        public List<int> InterstitialAfterLevels = new();
         public List<TimerData> TimerData = new();
 
         [Header("Scene settings")]
