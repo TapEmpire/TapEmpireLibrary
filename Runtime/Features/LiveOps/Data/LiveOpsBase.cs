@@ -65,8 +65,7 @@ namespace TapEmpire.Services.LiveOps
         {
             if (_data.IconPrefab == null)
                 return null;
-            _icon = Object.Instantiate(_data.IconPrefab);
-            _diContainer.Inject(_icon);
+            _icon = _diContainer.InstantiatePrefabForComponent<LiveOpsIcon>(_data.IconPrefab);
             _icon.Initialize(this);
             return _icon;
         }
@@ -75,8 +74,7 @@ namespace TapEmpire.Services.LiveOps
         {
             if (_data.AnnounceIconPrefab == null)
                 return null;
-            var icon = Object.Instantiate(_data.AnnounceIconPrefab);
-            _diContainer.Inject(icon);
+            var icon = _diContainer.InstantiatePrefabForComponent<LiveOpsIcon>(_data.AnnounceIconPrefab);
             icon.Initialize(this);
             return icon;
         }
