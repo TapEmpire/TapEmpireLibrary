@@ -80,12 +80,16 @@ namespace TapEmpire.Services.LiveOps
 
             if (active.Count > 0)
             {
-                await active[0].UpdateVisual(_resourceEmitter, debug);
-                var tasks = new List<UniTask>(active.Count - 1);
-                for (var i = 1; i < active.Count; i++)
+                var skipCount = active[0] == _liveOps[0] ? 1 : 0;
+                if (skipCount > 0)
+                    await active[0].UpdateVisual(_resourceEmitter, debug);
+
+                var tasks = new List<UniTask>(active.Count);
+                foreach (var liveOps in active.Skip(skipCount))
                 {
-                    await UniTask.WaitForSeconds(Settings.UpdateVisualIntervalSeconds, cancellationToken: default);
-                    tasks.Add(active[i].UpdateVisual(_resourceEmitter, debug));
+                    if (tasks.Count > 0)
+                        await UniTask.WaitForSeconds(Settings.UpdateVisualIntervalSeconds, cancellationToken: default);
+                    tasks.Add(liveOps.UpdateVisual(_resourceEmitter, debug));
                 }
                 if (tasks.Count > 0)
                     await UniTask.WhenAll(tasks);
