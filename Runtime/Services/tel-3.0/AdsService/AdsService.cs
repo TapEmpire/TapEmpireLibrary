@@ -19,21 +19,27 @@ namespace TapEmpire.Experimental
         [Inject] private IProgressService _progressService;
 
         private readonly ReactiveProperty<bool> _adsEnabled = new(true);
-        private readonly Subject<Unit> _onInitialized = new();
         private readonly CompositeDisposable _disposables = new();
-
         private readonly CompositeDisposable _paidAdsDisposable = new();
+        private readonly SerialDisposable _pendingReward = new();
 
         private IBanner _banner;
         private IInterstitial _interstitial;
         private IRewarded _rewarded;
         private IMrec _mrec;
 
-        public Observable<Unit> OnInitialized => _onInitialized;
+        public Subject<Unit> OnInitialized { get; } = new();
+        public Subject<Unit> OnReceivedReward { get; } = new();
+        public Subject<string> OnAdClicked { get; } = new();
 
         public ReadOnlyReactiveProperty<bool> AdsEnabled => _adsEnabled;
         public ReadOnlyReactiveProperty<bool> IsInterstitialReady => _interstitial?.IsLoaded ?? _notReady;
         public ReadOnlyReactiveProperty<bool> IsRewardedReady => _rewarded?.IsLoaded ?? _notReady;
+        public bool CanShowRewarded =>
+            _progressService.GetCyclesProgress() > 0 ||
+            _progressService.GetLevelProgress() + 1 >= _settings.RewardedFromLevel;
+
+        public bool SkipAds { get; set; }
 
         protected override UniTask OnInitializeAsync(CancellationToken cancellationToken)
         {
@@ -56,10 +62,24 @@ namespace TapEmpire.Experimental
 
         public void ShowInterstitial(string placement) => _interstitial?.Show(placement);
 
-        public void ShowRewarded(string placement, Action onReward)
+        public void ShowRewarded(string placement, Action onRewardCallback)
         {
-            if (_rewarded == null) return;
-            _rewarded.OnReward.Take(1).Subscribe(_ => onReward?.Invoke());
+            OnAdClicked.OnNext(placement);
+
+            _pendingReward.Disposable = OnReceivedReward.Take(1).Subscribe(_ => onRewardCallback?.Invoke());
+
+            if (SkipAds)
+            {
+                OnReceivedReward.OnNext(Unit.Default);
+                return;
+            }
+
+            if (Application.internetReachability == NetworkReachability.NotReachable)
+            {
+                MobileToast.Show("Sorry, No Internet Connection!", true);
+                return;
+            }
+
             _rewarded.Show(placement);
         }
 
@@ -89,7 +109,7 @@ namespace TapEmpire.Experimental
             BuildRewarded();
             if (_adsEnabled.Value) BuildPaidMediators();
 
-            _onInitialized.OnNext(Unit.Default);
+            OnInitialized.OnNext(Unit.Default);
         }
 
         private void BuildRewarded()
@@ -100,6 +120,8 @@ namespace TapEmpire.Experimental
                 new AdmobRewardedProvider(_settings.Config.Admob.RewardedId),
             });
             _rewarded.AddTo(_disposables);
+            _pendingReward.AddTo(_disposables);
+            _rewarded.OnReward.Subscribe(OnReceivedReward.OnNext).AddTo(_disposables);
             Disposable.Create(() => _rewarded = null).AddTo(_disposables);
         }
 
