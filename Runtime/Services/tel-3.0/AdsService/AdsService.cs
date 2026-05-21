@@ -24,6 +24,7 @@ namespace TapEmpire.Experimental
         private readonly SerialDisposable _pendingCallback = new();
 
         private IBanner _banner;
+        private bool _shouldShowBanner = false;
         private IInterstitial _interstitial;
         private IRewarded _rewarded;
         private IMrec _mrec;
@@ -46,6 +47,10 @@ namespace TapEmpire.Experimental
             _progressService.GetCyclesProgress() > 0 ||
             _progressService.GetLevelProgress() + 1 >= _settings.FromLevel;
 
+        private bool CanShowBanner =>
+            _progressService.GetCyclesProgress() > 0 ||
+            _progressService.GetLevelProgress() + 1 >= _settings.BannerFromLevel;
+
         public bool SkipAds { get; set; }
 
         protected override UniTask OnInitializeAsync(CancellationToken cancellationToken)
@@ -64,8 +69,20 @@ namespace TapEmpire.Experimental
             base.OnRelease();
         }
 
-        public void ShowBanner() => _banner?.Show();
-        public void HideBanner() => _banner?.Hide();
+        public bool ShowBanner(bool shouldShow)
+        {
+            var hasBanner = _shouldShowBanner;
+            _shouldShowBanner = shouldShow && CanShowBanner;
+            if (_shouldShowBanner) _banner?.Show();
+            else _banner?.Hide();
+            return hasBanner;
+        }
+
+        public void DisableBanner()
+        {
+            _banner?.Dispose();
+            _banner = null;
+        }
 
         public void ShowInterstitial(string placement, Action onClose, bool skip = false)
         {
@@ -170,7 +187,7 @@ namespace TapEmpire.Experimental
             _banner.AddTo(_paidAdsDisposable);
             Disposable.Create(() => _banner = null).AddTo(_paidAdsDisposable);
 
-            _banner.Show();
+            ShowBanner(true);
         }
 
         private void BuildInterstitial()

@@ -20,8 +20,8 @@ namespace TapEmpire.Experimental
 
         bool SkipAds { get; set; }
 
-        void ShowBanner();
-        void HideBanner();
+        bool ShowBanner(bool shouldShow);
+        void DisableBanner();
         void ShowInterstitial(string placement, Action onClose, bool skip = false);
         // level is 1-indexed
         void ShowInterstitial(int level, string placement, Action onClose);
