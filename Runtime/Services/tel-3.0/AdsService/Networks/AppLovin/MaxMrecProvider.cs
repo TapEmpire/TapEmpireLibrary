@@ -60,14 +60,7 @@ namespace TapEmpire.Experimental
 
         private void OnAdRevenuePaid(string adUnitId, MaxSdkBase.AdInfo adInfo)
         {
-            OnImpression.OnNext(new AdImpressionData(
-                AdNetwork.Max,
-                adInfo.NetworkName,
-                adUnitId,
-                adInfo.Placement,
-                adInfo.Revenue,
-                "USD",
-                adInfo.RevenuePrecision));
+            OnImpression.OnNext(MaxImpressionData.Create(adInfo, AdFormat.Mrec));
         }
 
         private static (int x, int y) ConvertToDp(int pixelX, int pixelY)

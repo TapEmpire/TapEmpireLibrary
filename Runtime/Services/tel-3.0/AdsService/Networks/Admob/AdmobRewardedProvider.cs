@@ -99,14 +99,7 @@ namespace TapEmpire.Experimental
 
         private void OnAdPaid(AdValue value)
         {
-            OnImpression.OnNext(new AdImpressionData(
-                AdNetwork.Admob,
-                "AdMob",
-                _rewardedAdUnitId,
-                string.Empty,
-                value.Value / 1_000_000d,
-                value.CurrencyCode,
-                value.Precision.ToString()));
+            OnImpression.OnNext(AdmobImpressionData.Create(value, AdFormat.Rewarded, _rewardedAdUnitId));
         }
     }
 }

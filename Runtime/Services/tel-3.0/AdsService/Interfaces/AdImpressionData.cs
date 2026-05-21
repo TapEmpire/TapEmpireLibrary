@@ -2,8 +2,9 @@ namespace TapEmpire.Experimental
 {
     public readonly struct AdImpressionData
     {
-        public readonly AdNetwork Network;
-        public readonly string Mediation;
+        public readonly AdNetwork Mediation;
+        public readonly AdFormat Format;
+        public readonly string Network;
         public readonly string AdUnitId;
         public readonly string Placement;
         public readonly double Revenue;
@@ -11,16 +12,18 @@ namespace TapEmpire.Experimental
         public readonly string Precision;
 
         public AdImpressionData(
-            AdNetwork network,
-            string mediation,
+            AdNetwork mediation,
+            AdFormat format,
+            string network,
             string adUnitId,
             string placement,
             double revenue,
             string currency,
             string precision)
         {
-            Network = network;
             Mediation = mediation;
+            Format = format;
+            Network = network;
             AdUnitId = adUnitId;
             Placement = placement;
             Revenue = revenue;
