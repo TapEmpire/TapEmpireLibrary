@@ -161,6 +161,7 @@ namespace TapEmpire.Experimental
             new AdsFirebaseModule(this).AddTo(_disposables);
             new AdsAdjustModule(this).AddTo(_disposables);
             new AdsMetricaModule(this).AddTo(_disposables);
+            new AdsFirebaseSignalsModule(this, _progressService).AddTo(_disposables);
         }
 
         private void BuildRewarded()

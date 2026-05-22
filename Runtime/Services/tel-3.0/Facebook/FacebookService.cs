@@ -1,0 +1,65 @@
+#if TEL_META
+using System;
+using System.Threading;
+using Cysharp.Threading.Tasks;
+using Facebook.Unity;
+using R3;
+using TapEmpire.Services;
+using UnityEngine;
+using Zenject;
+
+namespace TapEmpire.Experimental
+{
+    [Serializable]
+    public class FacebookService : Initializable
+    {
+        [Inject] private IConsentService _consentService;
+        [Inject] private IAdsService _adsService;
+        [Inject] private IProgressService _progressService;
+        [Inject] private IIapService _iapService;
+
+        private readonly CompositeDisposable _disposables = new();
+
+        protected override async UniTask OnInitializeAsync(CancellationToken cancellationToken)
+        {
+            if (!_adsService.Settings.AdsAnalyticsSettings.EnableMeta) return;
+
+            await _consentService.IsResolved
+                .Where(resolved => resolved)
+                .FirstAsync(cancellationToken: cancellationToken);
+
+            var isPersonalized = _consentService.IsPersonalized.CurrentValue;
+            await InitializeFacebook(isPersonalized, cancellationToken);
+
+            new FacebookAdsModule(_adsService).AddTo(_disposables);
+            new FacebookAdsSignalsModule(_adsService, _progressService, _iapService).AddTo(_disposables);
+        }
+
+        protected override void OnRelease()
+        {
+            _disposables.Dispose();
+            base.OnRelease();
+        }
+
+        private static async UniTask InitializeFacebook(bool isPersonalized, CancellationToken cancellationToken)
+        {
+            if (!FB.IsInitialized)
+            {
+                var completion = new UniTaskCompletionSource();
+                FB.Init(() => completion.TrySetResult(), OnHideUnity);
+                await completion.Task.AttachExternalCancellation(cancellationToken);
+            }
+            FB.ActivateApp();
+
+#if UNITY_IOS && !UNITY_EDITOR
+            FB.Mobile.SetAdvertiserTrackingEnabled(isPersonalized);
+#endif
+        }
+
+        private static void OnHideUnity(bool isGameShown)
+        {
+            Time.timeScale = isGameShown ? 1 : 0;
+        }
+    }
+}
+#endif
