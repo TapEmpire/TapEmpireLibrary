@@ -10,7 +10,7 @@ namespace TapEmpire.Experimental
             string adUnitId,
             string placement = "")
         {
-            if (string.IsNullOrEmpty(placement)) placement = format.ToString();
+            placement = string.IsNullOrEmpty(placement) ? format.ToString() : placement;
             return new AdImpressionData(
                 AdNetwork.Admob,
                 format,

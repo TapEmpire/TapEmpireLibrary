@@ -9,6 +9,7 @@ namespace TapEmpire.Experimental
         Subject<Unit> OnReceivedReward { get; }
         Subject<string> OnAdClicked { get; }
         Subject<bool> OnInterstitialAttempt { get; }
+        Subject<AdImpressionData> OnImpression { get; }
 
         AdsSettings Settings { get; }
 

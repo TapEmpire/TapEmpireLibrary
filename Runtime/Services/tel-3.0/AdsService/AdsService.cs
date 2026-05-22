@@ -33,6 +33,7 @@ namespace TapEmpire.Experimental
         public Subject<Unit> OnReceivedReward { get; } = new();
         public Subject<string> OnAdClicked { get; } = new();
         public Subject<bool> OnInterstitialAttempt { get; } = new();
+        public Subject<AdImpressionData> OnImpression { get; } = new();
 
         public AdsSettings Settings => _settings;
 
@@ -150,8 +151,16 @@ namespace TapEmpire.Experimental
 
             BuildRewarded();
             if (_adsEnabled.Value) BuildPaidMediators();
+            BuildModules();
 
             OnInitialized.OnNext(Unit.Default);
+        }
+
+        private void BuildModules()
+        {
+            new AdsFirebaseModule(this).AddTo(_disposables);
+            new AdsAdjustModule(this).AddTo(_disposables);
+            new AdsMetricaModule(this).AddTo(_disposables);
         }
 
         private void BuildRewarded()
@@ -164,6 +173,7 @@ namespace TapEmpire.Experimental
             _rewarded.AddTo(_disposables);
             _pendingCallback.AddTo(_disposables);
             _rewarded.OnReward.Subscribe(OnReceivedReward.OnNext).AddTo(_disposables);
+            _rewarded.OnImpression.Subscribe(OnImpression.OnNext).AddTo(_disposables);
             Disposable.Create(() => _rewarded = null).AddTo(_disposables);
         }
 
@@ -185,6 +195,7 @@ namespace TapEmpire.Experimental
                 new AdmobBannerProvider(config.Admob.BannerId, _settings.BannerPosition, bannerWidth),
             });
             _banner.AddTo(_paidAdsDisposable);
+            _banner.OnImpression.Subscribe(OnImpression.OnNext).AddTo(_paidAdsDisposable);
             Disposable.Create(() => _banner = null).AddTo(_paidAdsDisposable);
 
             ShowBanner(true);
@@ -199,6 +210,7 @@ namespace TapEmpire.Experimental
                 new AdmobInterstitialProvider(config.Admob.InterstitialId),
             });
             _interstitial.AddTo(_paidAdsDisposable);
+            _interstitial.OnImpression.Subscribe(OnImpression.OnNext).AddTo(_paidAdsDisposable);
             Disposable.Create(() => _interstitial = null).AddTo(_paidAdsDisposable);
         }
 
@@ -211,6 +223,7 @@ namespace TapEmpire.Experimental
                 new AdmobMrecProvider(config.Admob.MrecId, _settings.MrecPosition),
             });
             _mrec.AddTo(_paidAdsDisposable);
+            _mrec.OnImpression.Subscribe(OnImpression.OnNext).AddTo(_paidAdsDisposable);
             Disposable.Create(() => _mrec = null).AddTo(_paidAdsDisposable);
         }
     }

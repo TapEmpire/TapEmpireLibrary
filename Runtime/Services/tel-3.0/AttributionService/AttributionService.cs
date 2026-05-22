@@ -37,7 +37,7 @@ namespace TapEmpire.Experimental
         public static void TrackEvent(string eventToken, IReadOnlyDictionary<string, string> callbackParameters = null)
         {
             var evt = new AdjustEvent(eventToken);
-            AppendParameters(evt, callbackParameters);
+            AppendCallbackParameters(evt, callbackParameters);
             Adjust.TrackEvent(evt);
         }
 
@@ -51,8 +51,24 @@ namespace TapEmpire.Experimental
             var evt = new AdjustEvent(eventToken);
             evt.SetRevenue(revenue, isoCurrency);
             evt.ProductId = productId;
-            AppendParameters(evt, callbackParameters);
+            AppendCallbackParameters(evt, callbackParameters);
             Adjust.TrackEvent(evt);
+        }
+
+        public static void TrackAdRevenue(
+            string source,
+            double revenue,
+            string currency,
+            string network = null,
+            string adRevenueUnit = null,
+            IReadOnlyDictionary<string, string> partnerParameters = null)
+        {
+            var adRevenue = new AdjustAdRevenue(source);
+            adRevenue.SetRevenue(revenue, currency);
+            adRevenue.AdRevenueNetwork = network;
+            adRevenue.AdRevenueUnit = adRevenueUnit;
+            AppendPartnerParameters(adRevenue, partnerParameters);
+            Adjust.TrackAdRevenue(adRevenue);
         }
 
         public void VerifyAndroidPurchase(string productId, string purchaseToken, Action<bool> callback)
@@ -98,7 +114,17 @@ namespace TapEmpire.Experimental
             return config;
         }
 
-        private static void AppendParameters(AdjustEvent evt, IReadOnlyDictionary<string, string> parameters)
+        private static void AppendPartnerParameters(AdjustAdRevenue adRevenue, IReadOnlyDictionary<string, string> parameters)
+        {
+            if (parameters == null) return;
+
+            foreach (var pair in parameters)
+            {
+                adRevenue.AddPartnerParameter(pair.Key, pair.Value);
+            }
+        }
+
+        private static void AppendCallbackParameters(AdjustEvent evt, IReadOnlyDictionary<string, string> parameters)
         {
             if (parameters == null)
             {
@@ -120,7 +146,7 @@ namespace TapEmpire.Experimental
         {
 #if UNITY_ANDROID
             Action<string> onDeepLink = url => Adjust.ProcessDeeplink(new AdjustDeeplink(url));
-            
+
             Application.deepLinkActivated += onDeepLink;
             Disposable.Create(() => Application.deepLinkActivated -= onDeepLink).AddTo(_disposables);
 
