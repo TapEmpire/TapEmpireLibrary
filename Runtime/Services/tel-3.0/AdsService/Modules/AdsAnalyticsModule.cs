@@ -62,6 +62,8 @@ namespace TapEmpire.Experimental
                 { "format", data.Format.ToString() },
                 { "level", level },
             });
+
+            _lastRewardImpression = default;
         }
 
         private void OnImpression(AdImpressionData data)
