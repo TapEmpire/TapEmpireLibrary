@@ -42,6 +42,7 @@ namespace TapEmpire.Experimental
 
         private IConsentService _consentService;
         private IProgressService _progressService;
+        private IAnalyticsService _analyticsService;
 
         private IBanner _banner;
         private IInterstitial _interstitial;
@@ -54,10 +55,11 @@ namespace TapEmpire.Experimental
         private readonly SerialDisposable _pendingCallback = new();
 
         [Inject]
-        private void Construct(IConsentService consentService, IProgressService progressService)
+        private void Construct(IConsentService consentService, IProgressService progressService, IAnalyticsService analyticsService)
         {
             _consentService = consentService;
             _progressService = progressService;
+            _analyticsService = analyticsService;
         }
 
         protected override UniTask OnInitializeAsync(CancellationToken cancellationToken)
@@ -167,6 +169,7 @@ namespace TapEmpire.Experimental
             new AdsFirebaseModule(this).AddTo(_disposables);
             new AdsAdjustModule(this).AddTo(_disposables);
             new AdsMetricaModule(this).AddTo(_disposables);
+            new AdsAnalyticsModule(this, _analyticsService, _progressService).AddTo(_disposables);
             new AdsFirebaseSignalsModule(this, _progressService).AddTo(_disposables);
         }
 
