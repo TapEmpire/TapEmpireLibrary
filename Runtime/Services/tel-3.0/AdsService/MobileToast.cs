@@ -15,15 +15,14 @@ namespace TapEmpire.Experimental
                 using var toastClass = new AndroidJavaClass("android.widget.Toast");
                 using var unityPlayer = new AndroidJavaClass("com.unity3d.player.UnityPlayer");
                 using var context = unityPlayer.GetStatic<AndroidJavaObject>("currentActivity");
-                if (context == null) return;
-                var duration = toastClass.GetStatic<int>(isLong ? "LENGTH_LONG" : "LENGTH_SHORT");
-                using var toast = toastClass.CallStatic<AndroidJavaObject>("makeText", context, message, duration);
-                toast.Call("show");
+                if (context != null)
+                {
+                    var duration = toastClass.GetStatic<int>(isLong ? "LENGTH_LONG" : "LENGTH_SHORT");
+                    using var toast = toastClass.CallStatic<AndroidJavaObject>("makeText", context, message, duration);
+                    toast.Call("show");
+                }
             }
-            catch
-            {
-                // Best-effort; toast failures are non-fatal.
-            }
+            catch { }
 #elif UNITY_IOS
             showToast(message, isLong);
 #endif
