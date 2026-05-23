@@ -11,23 +11,7 @@ namespace TapEmpire.Experimental
     [Serializable]
     public class AdsService : Initializable, IAdsService
     {
-        private static readonly ReactiveProperty<bool> _notReady = new(false);
-
         [SerializeField] private AdsSettings _settings;
-
-        [Inject] private IConsentService _consentService;
-        [Inject] private IProgressService _progressService;
-
-        private readonly ReactiveProperty<bool> _adsEnabled = new(true);
-        private readonly CompositeDisposable _disposables = new();
-        private readonly CompositeDisposable _paidAdsDisposable = new();
-        private readonly SerialDisposable _pendingCallback = new();
-
-        private IBanner _banner;
-        private bool _shouldShowBanner = false;
-        private IInterstitial _interstitial;
-        private IRewarded _rewarded;
-        private IMrec _mrec;
 
         public Subject<Unit> OnInitialized { get; } = new();
         public Subject<Unit> OnReceivedReward { get; } = new();
@@ -36,10 +20,11 @@ namespace TapEmpire.Experimental
         public Subject<AdImpressionData> OnImpression { get; } = new();
 
         public AdsSettings Settings => _settings;
-
         public ReadOnlyReactiveProperty<bool> AdsEnabled => _adsEnabled;
         public ReadOnlyReactiveProperty<bool> IsInterstitialReady => _interstitial?.IsLoaded ?? _notReady;
         public ReadOnlyReactiveProperty<bool> IsRewardedReady => _rewarded?.IsLoaded ?? _notReady;
+        public bool SkipAds { get; set; }
+
         public bool CanShowRewarded =>
             _progressService.GetCyclesProgress() > 0 ||
             _progressService.GetLevelProgress() + 1 >= _settings.RewardedFromLevel;
@@ -52,7 +37,28 @@ namespace TapEmpire.Experimental
             _progressService.GetCyclesProgress() > 0 ||
             _progressService.GetLevelProgress() + 1 >= _settings.BannerFromLevel;
 
-        public bool SkipAds { get; set; }
+        private readonly ReactiveProperty<bool> _notReady = new(false);
+        private readonly ReactiveProperty<bool> _adsEnabled = new(true);
+
+        private IConsentService _consentService;
+        private IProgressService _progressService;
+
+        private IBanner _banner;
+        private IInterstitial _interstitial;
+        private IRewarded _rewarded;
+        private IMrec _mrec;
+        private bool _shouldShowBanner = false;
+
+        private readonly CompositeDisposable _disposables = new();
+        private readonly CompositeDisposable _removableAdsDisposable = new();
+        private readonly SerialDisposable _pendingCallback = new();
+
+        [Inject]
+        private void Construct(IConsentService consentService, IProgressService progressService)
+        {
+            _consentService = consentService;
+            _progressService = progressService;
+        }
 
         protected override UniTask OnInitializeAsync(CancellationToken cancellationToken)
         {
@@ -65,7 +71,7 @@ namespace TapEmpire.Experimental
 
         protected override void OnRelease()
         {
-            _paidAdsDisposable.Dispose();
+            _removableAdsDisposable.Dispose();
             _disposables.Dispose();
             base.OnRelease();
         }
@@ -134,7 +140,7 @@ namespace TapEmpire.Experimental
         {
             _progressService.SetAdsDisabled(shouldDisable);
             _adsEnabled.Value = !shouldDisable;
-            if (shouldDisable) _paidAdsDisposable.Dispose();
+            if (shouldDisable) _removableAdsDisposable.Dispose();
         }
 
         private async UniTask InitializeNetworksAsync(CancellationToken cancellationToken)
@@ -150,7 +156,7 @@ namespace TapEmpire.Experimental
             await new MaxInitializer().Initialize(isPersonalized, testMode, cancellationToken);
 
             BuildRewarded();
-            if (_adsEnabled.Value) BuildPaidMediators();
+            if (_adsEnabled.Value) BuildRemovableAds();
             BuildModules();
 
             OnInitialized.OnNext(Unit.Default);
@@ -162,6 +168,13 @@ namespace TapEmpire.Experimental
             new AdsAdjustModule(this).AddTo(_disposables);
             new AdsMetricaModule(this).AddTo(_disposables);
             new AdsFirebaseSignalsModule(this, _progressService).AddTo(_disposables);
+        }
+
+        private void BuildRemovableAds()
+        {
+            if (_settings.EnableInterstitial) BuildInterstitial();
+            if (_settings.EnableBanner) BuildBanner();
+            if (_settings.EnableMrec) BuildMrec();
         }
 
         private void BuildRewarded()
@@ -178,13 +191,6 @@ namespace TapEmpire.Experimental
             Disposable.Create(() => _rewarded = null).AddTo(_disposables);
         }
 
-        private void BuildPaidMediators()
-        {
-            if (_settings.EnableBanner) BuildBanner();
-            if (_settings.EnableInterstitial) BuildInterstitial();
-            if (_settings.EnableMrec) BuildMrec();
-        }
-
         private void BuildBanner()
         {
             var config = _settings.Config;
@@ -195,9 +201,9 @@ namespace TapEmpire.Experimental
                 new MaxBannerProvider(config.AppLovin.BannerId, _settings.BannerPosition, bannerWidth),
                 new AdmobBannerProvider(config.Admob.BannerId, _settings.BannerPosition, bannerWidth),
             });
-            _banner.AddTo(_paidAdsDisposable);
-            _banner.OnImpression.Subscribe(OnImpression.OnNext).AddTo(_paidAdsDisposable);
-            Disposable.Create(() => _banner = null).AddTo(_paidAdsDisposable);
+            _banner.AddTo(_removableAdsDisposable);
+            _banner.OnImpression.Subscribe(OnImpression.OnNext).AddTo(_removableAdsDisposable);
+            Disposable.Create(() => _banner = null).AddTo(_removableAdsDisposable);
 
             ShowBanner(true);
         }
@@ -210,9 +216,9 @@ namespace TapEmpire.Experimental
                 new MaxInterstitialProvider(config.AppLovin.InterstitialId),
                 new AdmobInterstitialProvider(config.Admob.InterstitialId),
             });
-            _interstitial.AddTo(_paidAdsDisposable);
-            _interstitial.OnImpression.Subscribe(OnImpression.OnNext).AddTo(_paidAdsDisposable);
-            Disposable.Create(() => _interstitial = null).AddTo(_paidAdsDisposable);
+            _interstitial.AddTo(_removableAdsDisposable);
+            _interstitial.OnImpression.Subscribe(OnImpression.OnNext).AddTo(_removableAdsDisposable);
+            Disposable.Create(() => _interstitial = null).AddTo(_removableAdsDisposable);
         }
 
         private void BuildMrec()
@@ -223,9 +229,9 @@ namespace TapEmpire.Experimental
                 new MaxMrecProvider(config.AppLovin.MrecId, _settings.MrecPosition),
                 new AdmobMrecProvider(config.Admob.MrecId, _settings.MrecPosition),
             });
-            _mrec.AddTo(_paidAdsDisposable);
-            _mrec.OnImpression.Subscribe(OnImpression.OnNext).AddTo(_paidAdsDisposable);
-            Disposable.Create(() => _mrec = null).AddTo(_paidAdsDisposable);
+            _mrec.AddTo(_removableAdsDisposable);
+            _mrec.OnImpression.Subscribe(OnImpression.OnNext).AddTo(_removableAdsDisposable);
+            Disposable.Create(() => _mrec = null).AddTo(_removableAdsDisposable);
         }
     }
 }
