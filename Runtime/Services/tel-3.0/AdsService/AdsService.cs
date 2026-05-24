@@ -50,6 +50,10 @@ namespace TapEmpire.Experimental
         private IMrec _mrec;
         private bool _shouldShowBanner = false;
 
+#if TEL_METICA
+        private MeticaInitializer _metica;
+#endif
+
         private readonly CompositeDisposable _disposables = new();
         private readonly CompositeDisposable _removableAdsDisposable = new();
         private readonly SerialDisposable _pendingCallback = new();
@@ -156,6 +160,9 @@ namespace TapEmpire.Experimental
 
             await new AdmobInitializer().Initialize(isPersonalized, testMode, cancellationToken);
             await new MaxInitializer().Initialize(isPersonalized, testMode, cancellationToken);
+#if TEL_METICA
+            if (_settings.EnableMetica) { _metica = new MeticaInitializer(); await _metica.Initialize(cancellationToken); }
+#endif
 
             BuildRewarded();
             if (_adsEnabled.Value) BuildRemovableAds();
@@ -182,9 +189,13 @@ namespace TapEmpire.Experimental
 
         private void BuildRewarded()
         {
+            IRewarded appLovinRewarded = new MaxRewardedProvider(_settings.Config.AppLovin.RewardedId);
+#if TEL_METICA
+            if (_metica != null) appLovinRewarded = new MeticaRewardedProvider(appLovinRewarded, _metica);
+#endif
             _rewarded = new RewardedAdMediator(new IRewarded[]
             {
-                new MaxRewardedProvider(_settings.Config.AppLovin.RewardedId),
+                appLovinRewarded,
                 new AdmobRewardedProvider(_settings.Config.Admob.RewardedId),
             });
             _rewarded.AddTo(_disposables);
@@ -214,9 +225,13 @@ namespace TapEmpire.Experimental
         private void BuildInterstitial()
         {
             var config = _settings.Config;
+            IInterstitial appLovinInterstitial = new MaxInterstitialProvider(config.AppLovin.InterstitialId);
+#if TEL_METICA
+            if (_metica != null) appLovinInterstitial = new MeticaInterstitialProvider(appLovinInterstitial, _metica);
+#endif
             _interstitial = new InterstitialAdMediator(new IInterstitial[]
             {
-                new MaxInterstitialProvider(config.AppLovin.InterstitialId),
+                appLovinInterstitial,
                 new AdmobInterstitialProvider(config.Admob.InterstitialId),
             });
             _interstitial.AddTo(_removableAdsDisposable);

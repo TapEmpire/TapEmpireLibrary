@@ -11,6 +11,7 @@ namespace TapEmpire.Experimental
 
         public class AdsRemoteModel : IRemoteModel<AdsSettings>
         {
+            public bool? EnableMetica;
             public bool? EnableBanner;
             public bool? EnableMrec;
             public int? FromLevel;
@@ -20,6 +21,7 @@ namespace TapEmpire.Experimental
 
             public void FromSettings(AdsSettings settings)
             {
+                EnableMetica = settings.EnableMetica;
                 EnableBanner = settings.EnableBanner;
                 EnableMrec = settings.EnableMrec;
                 FromLevel = settings.FromLevel;
@@ -30,6 +32,7 @@ namespace TapEmpire.Experimental
 
             public void ToSettings(AdsSettings settings)
             {
+                settings.EnableMetica = EnableMetica ?? settings.EnableMetica;
                 settings.EnableBanner = EnableBanner ?? settings.EnableBanner;
                 settings.EnableMrec = EnableMrec ?? settings.EnableMrec;
                 settings.FromLevel = FromLevel ?? settings.FromLevel;

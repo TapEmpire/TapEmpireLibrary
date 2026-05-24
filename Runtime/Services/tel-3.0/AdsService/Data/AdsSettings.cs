@@ -10,10 +10,7 @@ namespace TapEmpire.Experimental
     {
         public AdsConfig Config;
 
-        [Header("Banner / MREC positioning")]
-        public AdPosition BannerPosition = AdPosition.BottomCenter;
-        public BannerWidth BannerSize = BannerWidth.Full;
-        public AdPosition MrecPosition = AdPosition.BottomCenter;
+        public bool EnableMetica = false;
 
         [Header("Show toggles")]
         public bool EnableBanner = true;
@@ -27,6 +24,11 @@ namespace TapEmpire.Experimental
 
         [Header("Interstitial scheduling")]
         public List<TimerData> TimerData = new();
+
+        [Header("Banner / MREC positioning")]
+        public AdPosition BannerPosition = AdPosition.BottomCenter;
+        public BannerWidth BannerSize = BannerWidth.Full;
+        public AdPosition MrecPosition = AdPosition.BottomCenter;
 
         [Header("Scene settings")]
         public List<SceneSettings> SceneSettings = new();
