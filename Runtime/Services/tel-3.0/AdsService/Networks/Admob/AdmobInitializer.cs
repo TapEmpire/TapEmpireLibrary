@@ -11,6 +11,7 @@ namespace TapEmpire.Experimental
 
         public static async UniTask Initialize(
             bool isPersonalized,
+            bool isForFamily,
             bool testMode = false,
             CancellationToken cancellationToken = default)
         {
@@ -24,6 +25,9 @@ namespace TapEmpire.Experimental
                 PublisherPrivacyPersonalizationState = isPersonalized
                     ? PublisherPrivacyPersonalizationState.Enabled
                     : PublisherPrivacyPersonalizationState.Disabled,
+                TagForUnderAgeOfConsent = isForFamily
+                    ? TagForUnderAgeOfConsent.True
+                    : TagForUnderAgeOfConsent.False,
             };
 
             if (testMode)
@@ -46,14 +50,6 @@ namespace TapEmpire.Experimental
             return string.IsNullOrEmpty(gaid)
                 ? new List<string>()
                 : new List<string> { gaid };
-        }
-
-        // Unused scaffold: legacy AdsManager.IsForFamily drove TagForUnderAgeOfConsent; call after `new RequestConfiguration { ... }` when wiring back.
-        private static void ApplyIsForFamily(RequestConfiguration configuration, bool isForFamily)
-        {
-            configuration.TagForUnderAgeOfConsent = isForFamily
-                ? TagForUnderAgeOfConsent.True
-                : TagForUnderAgeOfConsent.False;
         }
     }
 }

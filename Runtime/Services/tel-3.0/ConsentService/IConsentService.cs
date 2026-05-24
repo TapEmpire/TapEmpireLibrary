@@ -8,5 +8,6 @@ namespace TapEmpire.Experimental
         ReadOnlyReactiveProperty<bool> IsResolved { get; }
         ReadOnlyReactiveProperty<bool> IsPersonalized { get; }
         ReadOnlyReactiveProperty<bool> IsEurArea { get; }
+        bool IsForFamily { get; }
     }
 }

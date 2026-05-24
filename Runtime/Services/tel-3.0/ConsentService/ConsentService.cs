@@ -29,6 +29,7 @@ namespace TapEmpire.Experimental
         public ReadOnlyReactiveProperty<bool> IsPersonalized => _isPersonalized;
         public ReadOnlyReactiveProperty<bool> IsEurArea => _isEurArea;
         public ReadOnlyReactiveProperty<bool> IsAttGranted => _isAttGranted;
+        public bool IsForFamily => _settings.IsForFamily;
 
         protected override UniTask OnInitializeAsync(CancellationToken cancellationToken)
         {

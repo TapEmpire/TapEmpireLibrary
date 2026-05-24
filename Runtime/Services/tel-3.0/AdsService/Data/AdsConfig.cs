@@ -9,7 +9,6 @@ namespace TapEmpire.Experimental
         public AdsData Admob;
 
         public bool TestMode;
-        public bool IsForFamily;
         public string PrivacyPolicyUrl;
     }
 }
