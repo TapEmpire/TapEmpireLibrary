@@ -35,7 +35,7 @@ namespace TapEmpire.Experimental
         public AdsAnalyticsSettings AdsAnalyticsSettings;
 
         [Header("Other")]
-        public bool ShowApplovinOn2GB;
+        public bool ShowApplovinOn2GB = false;
     }
 
     public enum BannerWidth
