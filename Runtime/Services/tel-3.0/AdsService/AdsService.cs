@@ -197,11 +197,9 @@ namespace TapEmpire.Experimental
                 appLovinRewarded,
                 new AdmobRewardedProvider(_settings.Config.Admob.RewardedId),
             });
-            _rewarded.AddTo(_disposables);
             _pendingCallback.AddTo(_disposables);
             _rewarded.OnReward.Subscribe(OnReceivedReward.OnNext).AddTo(_disposables);
-            _rewarded.OnImpression.Subscribe(OnImpression.OnNext).AddTo(_disposables);
-            Disposable.Create(() => _rewarded = null).AddTo(_disposables);
+            SubscribeTo(_rewarded, () => _rewarded = null, _disposables);
         }
 
         private void BuildBanner()
@@ -214,9 +212,7 @@ namespace TapEmpire.Experimental
                 new MaxBannerProvider(config.AppLovin.BannerId, _settings.BannerPosition, bannerWidth),
                 new AdmobBannerProvider(config.Admob.BannerId, _settings.BannerPosition, bannerWidth),
             });
-            _banner.AddTo(_removableAdsDisposable);
-            _banner.OnImpression.Subscribe(OnImpression.OnNext).AddTo(_removableAdsDisposable);
-            Disposable.Create(() => _banner = null).AddTo(_removableAdsDisposable);
+            SubscribeTo(_banner, () => _banner = null, _removableAdsDisposable);
 
             ShowBanner(true);
         }
@@ -233,9 +229,7 @@ namespace TapEmpire.Experimental
                 appLovinInterstitial,
                 new AdmobInterstitialProvider(config.Admob.InterstitialId),
             });
-            _interstitial.AddTo(_removableAdsDisposable);
-            _interstitial.OnImpression.Subscribe(OnImpression.OnNext).AddTo(_removableAdsDisposable);
-            Disposable.Create(() => _interstitial = null).AddTo(_removableAdsDisposable);
+            SubscribeTo(_interstitial, () => _interstitial = null, _removableAdsDisposable);
         }
 
         private void BuildMrec()
@@ -246,9 +240,14 @@ namespace TapEmpire.Experimental
                 new MaxMrecProvider(config.AppLovin.MrecId, _settings.MrecPosition),
                 new AdmobMrecProvider(config.Admob.MrecId, _settings.MrecPosition),
             });
-            _mrec.AddTo(_removableAdsDisposable);
-            _mrec.OnImpression.Subscribe(OnImpression.OnNext).AddTo(_removableAdsDisposable);
-            Disposable.Create(() => _mrec = null).AddTo(_removableAdsDisposable);
+            SubscribeTo(_mrec, () => _mrec = null, _removableAdsDisposable);
+        }
+
+        private void SubscribeTo<T>(T ad, Action setNull, CompositeDisposable bag) where T : IAd
+        {
+            ad.AddTo(bag);
+            ad.OnImpression.Subscribe(OnImpression.OnNext).AddTo(bag);
+            Disposable.Create(setNull).AddTo(bag);
         }
     }
 }
