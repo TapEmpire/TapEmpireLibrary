@@ -47,6 +47,7 @@ namespace TapEmpire.Experimental
                 OnImpression = inner.OnImpression;
                 OnReward = inner.OnReward;
 
+                // NotifyAdLoadAttempt is not forwarded: IRewarded has no OnLoadAttempt hook to surface Max's load calls.
                 MaxSdkCallbacks.Rewarded.OnAdLoadedEvent += OnMaxLoaded;
                 MaxSdkCallbacks.Rewarded.OnAdLoadFailedEvent += OnMaxLoadFailed;
                 MaxSdkCallbacks.Rewarded.OnAdRevenuePaidEvent += OnMaxRevenuePaid;

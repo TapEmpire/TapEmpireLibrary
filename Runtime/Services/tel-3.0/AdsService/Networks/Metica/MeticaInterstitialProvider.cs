@@ -46,6 +46,7 @@ namespace TapEmpire.Experimental
                 OnImpression = inner.OnImpression;
                 OnReward = inner.OnReward;
 
+                // NotifyAdLoadAttempt is not forwarded: IInterstitial has no OnLoadAttempt hook to surface Max's load calls.
                 MaxSdkCallbacks.Interstitial.OnAdLoadedEvent += OnMaxLoaded;
                 MaxSdkCallbacks.Interstitial.OnAdLoadFailedEvent += OnMaxLoadFailed;
                 MaxSdkCallbacks.Interstitial.OnAdRevenuePaidEvent += OnMaxRevenuePaid;
