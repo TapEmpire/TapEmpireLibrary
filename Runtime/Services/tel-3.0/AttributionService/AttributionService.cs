@@ -7,6 +7,7 @@ using R3;
 using TapEmpire.Services;
 using TapEmpire.Utility;
 using UnityEngine;
+using Zenject;
 
 namespace TapEmpire.Experimental
 {
@@ -18,14 +19,27 @@ namespace TapEmpire.Experimental
         private readonly ReactiveProperty<string> _campaignName = new(string.Empty);
         private readonly CompositeDisposable _disposables = new();
 
+        private IConsentService _consentService;
+
         public ReadOnlyReactiveProperty<string> CampaignName => _campaignName;
 
-        protected override UniTask OnInitializeAsync(CancellationToken cancellationToken)
+        [Inject]
+        private void Construct(IConsentService consentService)
+        {
+            _consentService = consentService;
+        }
+
+        protected override async UniTask OnInitializeAsync(CancellationToken cancellationToken)
         {
             SubscribeDeepLinks();
+
+            await _consentService.IsResolved
+                .Where(resolved => resolved)
+                .FirstAsync(cancellationToken: cancellationToken);
+
+            PassDmaConsent();
             Adjust.InitSdk(BuildConfig());
             Adjust.GetAttribution(OnAttribution);
-            return UniTask.CompletedTask;
         }
 
         protected override void OnRelease()
@@ -140,6 +154,17 @@ namespace TapEmpire.Experimental
         private void OnAttribution(AdjustAttribution attribution)
         {
             _campaignName.Value = attribution?.Campaign ?? string.Empty;
+        }
+
+        private void PassDmaConsent()
+        {
+            var eea = _consentService.IsEurArea.CurrentValue ? "1" : "0";
+            var personalized = _consentService.IsPersonalized.CurrentValue ? "1" : "0";
+            var sharing = new AdjustThirdPartySharing(null);
+            sharing.AddGranularOption("google_dma", "eea", eea);
+            sharing.AddGranularOption("google_dma", "ad_personalization", personalized);
+            sharing.AddGranularOption("google_dma", "ad_user_data", personalized);
+            Adjust.TrackThirdPartySharing(sharing);
         }
 
         private void SubscribeDeepLinks()
