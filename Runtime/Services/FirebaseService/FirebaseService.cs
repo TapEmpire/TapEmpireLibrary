@@ -39,10 +39,8 @@ namespace TapEmpire.Services
         {
             await _InitializeInternal(cancellationToken);
 
-            _consentSubscription = _consentService.IsResolved
-                .Where(resolved => resolved)
-                .Take(1)
-                .Subscribe(_ => UpdateConsentStatus(_consentService.IsPersonalized.CurrentValue));
+            _consentSubscription = _consentService.IsResolved.OnceTrue(
+                () => UpdateConsentStatus(_consentService.IsPersonalized.CurrentValue));
         }
 
         protected override void OnRelease()

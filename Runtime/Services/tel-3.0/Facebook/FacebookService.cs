@@ -5,6 +5,7 @@ using Cysharp.Threading.Tasks;
 using Facebook.Unity;
 using R3;
 using TapEmpire.Services;
+using TapEmpire.Utility;
 using UnityEngine;
 using Zenject;
 
@@ -24,9 +25,7 @@ namespace TapEmpire.Experimental
         {
             if (!_adsService.Settings.AdsAnalyticsSettings.EnableMeta) return;
 
-            await _consentService.IsResolved
-                .Where(resolved => resolved)
-                .FirstAsync(cancellationToken: cancellationToken);
+            await _consentService.IsResolved.WaitTrue(cancellationToken);
 
             var isPersonalized = _consentService.IsPersonalized.CurrentValue;
             await InitializeFacebook(isPersonalized, cancellationToken);

@@ -3,6 +3,7 @@ using System.Threading;
 using Cysharp.Threading.Tasks;
 using R3;
 using TapEmpire.Services;
+using TapEmpire.Utility;
 using UnityEngine;
 using Zenject;
 
@@ -151,9 +152,7 @@ namespace TapEmpire.Experimental
 
         private async UniTask InitializeNetworksAsync(CancellationToken cancellationToken)
         {
-            await _consentService.IsResolved
-                .Where(resolved => resolved)
-                .FirstAsync(cancellationToken: cancellationToken);
+            await _consentService.IsResolved.WaitTrue(cancellationToken);
 
             var isPersonalized = _consentService.IsPersonalized.CurrentValue;
             var testMode = _settings.Config.TestMode;

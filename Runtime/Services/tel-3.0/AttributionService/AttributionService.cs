@@ -33,9 +33,7 @@ namespace TapEmpire.Experimental
         {
             SubscribeDeepLinks();
 
-            await _consentService.IsResolved
-                .Where(resolved => resolved)
-                .FirstAsync(cancellationToken: cancellationToken);
+            await _consentService.IsResolved.WaitTrue(cancellationToken);
 
             PassDmaConsent();
             Adjust.InitSdk(BuildConfig());
