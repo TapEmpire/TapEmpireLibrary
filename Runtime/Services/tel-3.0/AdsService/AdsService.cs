@@ -161,7 +161,7 @@ namespace TapEmpire.Experimental
             await new AdmobInitializer().Initialize(isPersonalized, testMode, cancellationToken);
             await new MaxInitializer().Initialize(isPersonalized, testMode, cancellationToken);
 #if TEL_METICA
-            if (_settings.EnableMetica) { _metica = new MeticaInitializer(); await _metica.Initialize(cancellationToken); }
+            if (_settings.EnableMetica) { _metica = new MeticaInitializer(); await _metica.Initialize(_settings.MeticaPrefab); }
 #endif
 
             BuildRewarded();

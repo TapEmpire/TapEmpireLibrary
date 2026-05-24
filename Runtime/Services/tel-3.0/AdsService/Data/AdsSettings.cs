@@ -1,5 +1,8 @@
 using System;
 using System.Collections.Generic;
+#if TEL_METICA
+using Metica.Unity;
+#endif
 using TapEmpire.Services;
 using UnityEngine;
 
@@ -11,6 +14,9 @@ namespace TapEmpire.Experimental
         public AdsConfig Config;
 
         public bool EnableMetica = false;
+#if TEL_METICA
+        public MeticaUnitySdk MeticaPrefab;
+#endif
 
         [Header("Show toggles")]
         public bool EnableBanner = true;

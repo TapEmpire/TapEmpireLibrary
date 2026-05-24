@@ -1,8 +1,8 @@
 #if TEL_METICA
-using System.Threading;
 using Cysharp.Threading.Tasks;
 using Metica.ADS;
 using Metica.SDK;
+using Metica.Unity;
 using R3;
 using UnityEngine;
 
@@ -13,15 +13,16 @@ namespace TapEmpire.Experimental
         private readonly ReactiveProperty<bool> _isInitialized = new(false);
 
         public ReadOnlyReactiveProperty<bool> IsInitialized => _isInitialized;
-        public bool IsAdsEnabled { get; private set; }
+        public bool IsMeticaEnabled { get; private set; }
 
-        public async UniTask Initialize(CancellationToken cancellationToken = default)
+        public async UniTask Initialize(MeticaUnitySdk prefab)
         {
             if (_isInitialized.Value) return;
 
+            Object.Instantiate(prefab);
+
             MeticaSdk.CurrentUserId = GetUserId();
-            IsAdsEnabled = await MeticaAds.InitializeAsync(new MeticaConfiguration());
-            cancellationToken.ThrowIfCancellationRequested();
+            IsMeticaEnabled = await MeticaAds.InitializeAsync(new MeticaConfiguration());
             _isInitialized.Value = true;
         }
 

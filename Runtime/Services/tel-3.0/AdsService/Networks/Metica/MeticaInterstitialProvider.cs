@@ -2,6 +2,7 @@
 using System;
 using Metica.ADS;
 using R3;
+using TapEmpire.Utility;
 
 namespace TapEmpire.Experimental
 {
@@ -14,9 +15,12 @@ namespace TapEmpire.Experimental
         private readonly IInterstitial _inner;
         private readonly bool _takeover;
 
+        private CancellableTask _retryDisposable;
+        private int _retryAttempt;
+
         public MeticaInterstitialProvider(IInterstitial inner, MeticaInitializer initializer)
         {
-            _takeover = initializer.IsAdsEnabled;
+            _takeover = initializer.IsMeticaEnabled;
 
             if (_takeover)
             {
@@ -72,6 +76,7 @@ namespace TapEmpire.Experimental
                 MeticaAdsCallbacks.Interstitial.OnAdShowFailed -= OnMeticaShowFailed;
                 MeticaAdsCallbacks.Interstitial.OnAdHidden -= OnMeticaHidden;
                 MeticaAdsCallbacks.Interstitial.OnAdRevenuePaid -= OnMeticaRevenuePaid;
+                _retryDisposable?.Dispose();
             }
             else
             {
@@ -82,12 +87,19 @@ namespace TapEmpire.Experimental
             }
         }
 
-        private void OnMeticaLoaded(MeticaAd ad) => IsLoaded.Value = true;
+        private void OnMeticaLoaded(MeticaAd ad)
+        {
+            _retryAttempt = 0;
+            IsLoaded.Value = true;
+        }
 
         private void OnMeticaLoadFailed(object error)
         {
             IsLoaded.Value = false;
-            MeticaAds.LoadInterstitial();
+            _retryAttempt++;
+            var seconds = (float)Math.Pow(2, Math.Min(6, _retryAttempt));
+            _retryDisposable?.Dispose();
+            _retryDisposable = UniTaskUtility.Delay(seconds, MeticaAds.LoadInterstitial);
         }
 
         private void OnMeticaShowFailed(MeticaAd ad, object error)
