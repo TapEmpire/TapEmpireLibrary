@@ -2,25 +2,19 @@ using System.Collections.Generic;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using GoogleMobileAds.Api;
-using R3;
 
 namespace TapEmpire.Experimental
 {
-    public class AdmobInitializer
+    public static class AdmobInitializer
     {
-        private readonly ReactiveProperty<bool> _isInitialized = new(false);
+        private static bool _initialized;
 
-        public ReadOnlyReactiveProperty<bool> IsInitialized => _isInitialized;
-
-        public async UniTask Initialize(
+        public static async UniTask Initialize(
             bool isPersonalized,
             bool testMode = false,
             CancellationToken cancellationToken = default)
         {
-            if (_isInitialized.Value)
-            {
-                return;
-            }
+            if (_initialized) return;
 
             MobileAds.SetiOSAppPauseOnBackground(true);
             MobileAds.RaiseAdEventsOnUnityMainThread = true;
@@ -43,7 +37,7 @@ namespace TapEmpire.Experimental
             MobileAds.Initialize(_ => completion.TrySetResult());
 
             await completion.Task.AttachExternalCancellation(cancellationToken);
-            _isInitialized.Value = true;
+            _initialized = true;
         }
 
         private static async UniTask<List<string>> GetTestDeviceIds(CancellationToken cancellationToken)

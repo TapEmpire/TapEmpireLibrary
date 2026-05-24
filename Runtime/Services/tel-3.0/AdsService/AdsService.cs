@@ -157,8 +157,8 @@ namespace TapEmpire.Experimental
             var isPersonalized = _consentService.IsPersonalized.CurrentValue;
             var testMode = _settings.Config.TestMode;
 
-            await new AdmobInitializer().Initialize(isPersonalized, testMode, cancellationToken);
-            await new MaxInitializer().Initialize(isPersonalized, testMode, cancellationToken);
+            await AdmobInitializer.Initialize(isPersonalized, testMode, cancellationToken);
+            await MaxInitializer.Initialize(isPersonalized, testMode, cancellationToken);
 #if TEL_METICA
             if (_settings.EnableMetica) { _metica = new MeticaInitializer(); await _metica.Initialize(_settings.MeticaPrefab); }
 #endif

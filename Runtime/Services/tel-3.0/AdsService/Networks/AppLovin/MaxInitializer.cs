@@ -1,24 +1,18 @@
 using System.Threading;
 using Cysharp.Threading.Tasks;
-using R3;
 
 namespace TapEmpire.Experimental
 {
-    public class MaxInitializer
+    public static class MaxInitializer
     {
-        private readonly ReactiveProperty<bool> _isInitialized = new(false);
+        private static bool _initialized;
 
-        public ReadOnlyReactiveProperty<bool> IsInitialized => _isInitialized;
-
-        public async UniTask Initialize(
+        public static async UniTask Initialize(
             bool isPersonalized,
             bool testMode = false,
             CancellationToken cancellationToken = default)
         {
-            if (_isInitialized.Value)
-            {
-                return;
-            }
+            if (_initialized) return;
 
             if (testMode)
             {
@@ -40,7 +34,7 @@ namespace TapEmpire.Experimental
             MaxSdk.InitializeSdk();
 
             await completion.Task.AttachExternalCancellation(cancellationToken);
-            _isInitialized.Value = true;
+            _initialized = true;
         }
 
         private static async UniTask SetTestDeviceIds(CancellationToken cancellationToken)
