@@ -53,7 +53,7 @@ namespace TapEmpire.Experimental
             Adjust.TrackEvent(evt);
         }
 
-        public void TrackRevenue(
+        public static void TrackRevenue(
             string eventToken,
             double revenue,
             string isoCurrency,
@@ -83,14 +83,14 @@ namespace TapEmpire.Experimental
             Adjust.TrackAdRevenue(adRevenue);
         }
 
-        public void VerifyAndroidPurchase(string productId, string purchaseToken, Action<bool> callback)
+        public static void VerifyAndroidPurchase(string productId, string purchaseToken, Action<bool> callback)
         {
             var purchase = new AdjustPlayStorePurchase(productId, purchaseToken);
             Adjust.VerifyPlayStorePurchase(purchase, result =>
                 callback?.Invoke(result.VerificationStatus == "success"));
         }
 
-        public void VerifyApplePurchase(string transactionId, string productId, Action<bool> callback)
+        public static void VerifyApplePurchase(string transactionId, string productId, Action<bool> callback)
         {
             var purchase = new AdjustAppStorePurchase(transactionId, productId);
             Adjust.VerifyAppStorePurchase(purchase, result =>

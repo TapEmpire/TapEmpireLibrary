@@ -15,7 +15,6 @@ namespace TapEmpire.Services
     public class IapAnalyticsModule : IServiceModule
     {
         private readonly IAnalyticsService _analyticsService;
-        private readonly IAttributionService _attributionService;
         private readonly IIapService _iapService;
         private readonly IUIService _uiService;
         private readonly IProgressService _progressService;
@@ -27,7 +26,6 @@ namespace TapEmpire.Services
         {
             _progressService = diContainer.Resolve<IProgressService>();
             _analyticsService = diContainer.Resolve<IAnalyticsService>();
-            _attributionService = diContainer.Resolve<IAttributionService>();
             _iapService = diContainer.Resolve<IIapService>();
             _uiService = diContainer.Resolve<IUIService>();
             _adsSettings = diContainer.Resolve<IAdsService>().Settings;
@@ -70,7 +68,7 @@ namespace TapEmpire.Services
             var revenue = new Revenue((long)(price * 1_000_000m), isoCode);
             AppMetrica.ReportRevenue(revenue);
 
-            _attributionService.TrackRevenue(_iapService.AdjustPurchaseToken, (double)price, isoCode, iapId);
+            AttributionService.TrackRevenue(_iapService.AdjustPurchaseToken, (double)price, isoCode, iapId);
 
             FirebaseAnalytics.LogEvent(IapAnalyticsEvents.IapPurchased, new Parameter[]
             {

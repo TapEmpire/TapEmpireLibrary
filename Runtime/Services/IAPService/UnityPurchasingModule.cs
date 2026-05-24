@@ -61,13 +61,11 @@ namespace TapEmpire.Services
         private HashSet<string> _knownStoreIds = new();
 
         private readonly IProgressService _progressService;
-        private readonly IAttributionService _attributionService;
         private bool _hasVerification = true;
 
-        public UnityPurchasingModule(IProgressService progressService, IAttributionService attributionService)
+        public UnityPurchasingModule(IProgressService progressService)
         {
             _progressService = progressService;
-            _attributionService = attributionService;
         }
 
         public void Init(IReadOnlyCollection<IapOffer> iapSettings, bool hasVerification)
@@ -353,9 +351,9 @@ namespace TapEmpire.Services
 #elif UNITY_ANDROID
             var googleReceiptJson = JsonUtility.FromJson<GooglePlayReceiptJson>(unityReceipt.Payload);
             var googleReceipt = JsonUtility.FromJson<GooglePlayReceiptFixed>(googleReceiptJson.json);
-            _attributionService.VerifyAndroidPurchase(googleReceipt.productId, googleReceipt.purchaseToken, callback);
+            AttributionService.VerifyAndroidPurchase(googleReceipt.productId, googleReceipt.purchaseToken, callback);
 #elif UNITY_IOS
-            _attributionService.VerifyApplePurchase(order.Info.TransactionID, order.CartOrdered.Items()[0].Product.definition.id, callback);
+            AttributionService.VerifyApplePurchase(order.Info.TransactionID, order.CartOrdered.Items()[0].Product.definition.id, callback);
 #endif
         }
 
