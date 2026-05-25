@@ -333,7 +333,7 @@ namespace TapEmpire.Services
             Action<bool> callback = isSuccess =>
             {
                 Debug.Log($"IAP verification result: {isSuccess}");
-                ThreadDispatcher.Enqueue(() => ProvidePurchase(order, isSuccess, isRestore));
+                ProvidePurchase(order, isSuccess, isRestore);
             };
 
 #if !IGNORE_VERIFICATION

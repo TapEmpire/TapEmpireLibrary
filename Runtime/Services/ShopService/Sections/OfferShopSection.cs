@@ -19,7 +19,7 @@ namespace TapEmpire.Services.Shop
             var data = sectionData as OfferSectionData;
 
             var offers = data.OfferData.Where(offer => offer.BundleType == BundleType.Always ||
-                (offer.BundleType == BundleType.NoAds && !adsService.AdsDisabled));
+                (offer.BundleType == BundleType.NoAds && adsService.AdsEnabled.CurrentValue));
 
             if (activeOffer.Data != null)
             {

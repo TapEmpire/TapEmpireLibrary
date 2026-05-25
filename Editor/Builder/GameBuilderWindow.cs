@@ -107,9 +107,9 @@ namespace TapEmpire.Build
                 : AdjustEnvironment.Production;
             EditorUtility.SetDirty(adjust);
 
-            var adsManager = AssetDatabase.LoadAssetAtPath<AdsManager>($"{_projectPathSettings.DefaultServicesPath}/AdsManager Variant.prefab");
-            adsManager.TestAds = SelectedBuildConfig == Configuration.Debug;
-            EditorUtility.SetDirty(adsManager);
+            var adsConfig = AssetDatabase.LoadAssetAtPath<AdsConfig>($"{_projectPathSettings.DefaultScriptablesPath}/AdsConfig.asset");
+            adsConfig.TestMode = SelectedBuildConfig == Configuration.Debug;
+            EditorUtility.SetDirty(adsConfig);
 
             var console = FindObjectOfType<LunarConsole>(true);
             if (console)
@@ -128,21 +128,12 @@ namespace TapEmpire.Build
             adjust.appToken = platformData.Adjust.AppToken;
             EditorUtility.SetDirty(adjust);
 
-            var adsManager = AssetDatabase.LoadAssetAtPath<AdsManager>($"{_projectPathSettings.DefaultServicesPath}/AdsManager Variant.prefab");
+            var adsConfig = AssetDatabase.LoadAssetAtPath<AdsConfig>($"{_projectPathSettings.DefaultScriptablesPath}/AdsConfig.asset");
 
-            adsManager.AppID = platformData.GoogleAds.AppKey;
-            adsManager.BannerID = platformData.GoogleAds.BannerId;
-            adsManager.MrecID = platformData.GoogleAds.MrecId;
-            adsManager.InterstitialID = platformData.GoogleAds.InterstitialId;
-            adsManager.RewardedID = platformData.GoogleAds.RewardedId;
+            adsConfig.Admob.CopyFrom(platformData.GoogleAds);
+            adsConfig.AppLovin.CopyFrom(platformData.ApplovinAds);
 
-            adsManager.MaxSDKKey = platformData.ApplovinAds.AppKey;
-            adsManager.MaxBanner = platformData.ApplovinAds.BannerId;
-            adsManager.MaxMrec = platformData.ApplovinAds.MrecId;
-            adsManager.MaxInterstitial = platformData.ApplovinAds.InterstitialId;
-            adsManager.MaxRewarded = platformData.ApplovinAds.RewardedId;
-
-            EditorUtility.SetDirty(adsManager);
+            EditorUtility.SetDirty(adsConfig);
 
             var servicesInstaller = AssetDatabase.LoadAssetAtPath<ServicesInstaller>($"{_projectPathSettings.DefaultScriptablesPath}/ServicesInstaller.asset");
 

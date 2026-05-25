@@ -40,7 +40,7 @@ namespace TapEmpire.Services.Shop
 
         private void OnPurchaseSuccess(string productId)
         {
-            if (_adsService.AdsDisabled)
+            if (!_adsService.AdsEnabled.CurrentValue)
             {
                 OnShouldDestroy.OnNext(this);
             }

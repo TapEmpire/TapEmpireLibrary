@@ -1,18 +1,9 @@
 using System;
+using TapEmpire.Services;
 using UnityEngine;
 
 namespace TapEmpire.Build
 {
-    [Serializable]
-    public class AdsData
-    {
-        public string AppKey; // might be appId or sdkId
-        public string BannerId;
-        public string MrecId;
-        public string InterstitialId;
-        public string RewardedId;
-    }
-
     [Serializable]
     public class AdjustData
     {

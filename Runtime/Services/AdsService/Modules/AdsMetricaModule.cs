@@ -1,5 +1,4 @@
 using System;
-using Io.AppMetrica;
 using R3;
 
 namespace TapEmpire.Services
@@ -17,23 +16,23 @@ namespace TapEmpire.Services
 
         private void OnImpression(AdImpressionData data)
         {
-            var rev = new AdRevenue(data.Revenue, data.Currency)
+            var rev = new Io.AppMetrica.AdRevenue(data.Revenue, data.Currency)
             {
                 AdType = MapToAdType(data.Format),
                 AdNetwork = data.Mediation == AdNetwork.Admob ? "Admob_Native" : data.Network,
                 AdUnitId = data.AdUnitId,
                 AdPlacementName = data.Placement,
             };
-            AppMetrica.ReportAdRevenue(rev);
+            Io.AppMetrica.AppMetrica.ReportAdRevenue(rev);
         }
 
-        private static AdType MapToAdType(AdFormat format) => format switch
+        private static Io.AppMetrica.AdType MapToAdType(AdFormat format) => format switch
         {
-            AdFormat.Interstitial => AdType.Interstitial,
-            AdFormat.Rewarded => AdType.Rewarded,
-            AdFormat.Banner => AdType.Banner,
-            AdFormat.Mrec => AdType.Mrec,
-            _ => AdType.Other,
+            AdFormat.Interstitial => Io.AppMetrica.AdType.Interstitial,
+            AdFormat.Rewarded => Io.AppMetrica.AdType.Rewarded,
+            AdFormat.Banner => Io.AppMetrica.AdType.Banner,
+            AdFormat.Mrec => Io.AppMetrica.AdType.Mrec,
+            _ => Io.AppMetrica.AdType.Other,
         };
     }
 }

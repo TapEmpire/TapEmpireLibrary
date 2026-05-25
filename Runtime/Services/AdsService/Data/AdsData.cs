@@ -10,5 +10,14 @@ namespace TapEmpire.Services
         public string MrecId;
         public string InterstitialId;
         public string RewardedId;
+
+        public void CopyFrom(AdsData other)
+        {
+            AppKey = other.AppKey;
+            BannerId = other.BannerId;
+            MrecId = other.MrecId;
+            InterstitialId = other.InterstitialId;
+            RewardedId = other.RewardedId;
+        }
     }
 }
