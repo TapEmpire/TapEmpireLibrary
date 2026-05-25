@@ -82,7 +82,7 @@ namespace TapEmpire.Services
 #endif
             }
 
-            OnCounterUpdate(format);
+            OnCounterUpdate(format, currencyCode == "USD" ? price : 0.0);
         }
 
         private void OnAdRevenue(double price, LayeredData data)
@@ -235,19 +235,22 @@ namespace TapEmpire.Services
             return layeredData;
         }
 
-        private void OnCounterUpdate(AdFormat format)
+        private void OnCounterUpdate(AdFormat format, double usdRevenue)
         {
             if (_settings.AdsAnalyticsSettings.AddBanners || AdConstants.IsRewardedOrInterstitial(format))
             {
                 var counter = _progressService.GetAdCounter() + 1;
+                var revenue = _progressService.UpdateAdCounterRevenue(usdRevenue);
 
                 if (counter >= _settings.AdsAnalyticsSettings.CounterThreshold)
                 {
                     var parameters = new[] {
-                        new Parameter(FirebaseAnalytics.ParameterValue, counter),
+                        new Parameter(FirebaseAnalytics.ParameterValue, revenue),
+                        new Parameter(FirebaseAnalytics.ParameterCurrency, "USD"),
                     };
                     FirebaseService.LogEvent("ad_counter", parameters);
 
+                    _progressService.ClearAdCounterRevenue();
                     counter = 0;
                 }
 

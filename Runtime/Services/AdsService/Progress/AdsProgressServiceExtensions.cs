@@ -77,5 +77,20 @@ namespace TapEmpire.Services
         public static int GetAdCounter(this IProgressService self) => self.GetInt(AdCounterKey);
         public static void SetAdCounter(this IProgressService self, int value) => self.SetInt(AdCounterKey, value);
         public static int UpdateAdCounter(this IProgressService self) => self.UpdateInt(AdCounterKey);
+
+        private const string AdCounterRevenueKey = "AdCounterRevenue";
+
+        public static double UpdateAdCounterRevenue(this IProgressService self, double revenue)
+        {
+            var current = self.GetInt(AdCounterRevenueKey);
+            current += (int)Math.Floor(revenue * MillionDouble);
+            self.SetInt(AdCounterRevenueKey, current);
+            return current / MillionDouble;
+        }
+
+        public static void ClearAdCounterRevenue(this IProgressService self)
+        {
+            self.SetInt(AdCounterRevenueKey, 0);
+        }
     }
 }
