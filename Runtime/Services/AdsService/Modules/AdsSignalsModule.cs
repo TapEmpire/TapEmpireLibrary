@@ -237,10 +237,11 @@ namespace TapEmpire.Services
 
         private void OnCounterUpdate(AdFormat format, double usdRevenue)
         {
+            var revenue = _progressService.UpdateAdCounterRevenue(usdRevenue);
+
             if (_settings.AdsAnalyticsSettings.AddBanners || AdConstants.IsRewardedOrInterstitial(format))
             {
                 var counter = _progressService.GetAdCounter() + 1;
-                var revenue = _progressService.UpdateAdCounterRevenue(usdRevenue);
 
                 if (counter >= _settings.AdsAnalyticsSettings.CounterThreshold)
                 {
