@@ -18,6 +18,7 @@ namespace TapEmpire.Services
         ReadOnlyReactiveProperty<bool> IsRewardedReady { get; }
         bool CanShowRewarded { get; }
         bool CanShowInterstitial { get; }
+        bool IsMeticaEnabled { get; }
 
         bool SkipAds { get; set; }
 

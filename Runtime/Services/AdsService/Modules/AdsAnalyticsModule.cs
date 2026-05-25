@@ -23,6 +23,8 @@ namespace TapEmpire.Services
             _analyticsService = analyticsService;
             _progressService = progressService;
 
+            _analyticsService.SetUserProperty(AdsAnalyticsEvents.IsMeticaEnabled, adsService.IsMeticaEnabled.ToString(), true);
+
             adsService.OnAdClicked.Subscribe(OnAdClicked).AddTo(_disposables);
             adsService.OnInterstitialAttempt.Subscribe(OnInterstitialAttempt).AddTo(_disposables);
             adsService.OnReceivedReward.Subscribe(OnReceivedReward).AddTo(_disposables);

@@ -34,6 +34,13 @@ namespace TapEmpire.Services
             _progressService.GetCyclesProgress() > 0 ||
             _progressService.GetLevelProgress() + 1 >= _settings.FromLevel;
 
+        public bool IsMeticaEnabled =>
+#if TEL_METICA
+            _metica?.IsMeticaEnabled ?? false;
+#else
+            false;
+#endif
+
         private bool CanShowBanner =>
             _progressService.GetCyclesProgress() > 0 ||
             _progressService.GetLevelProgress() + 1 >= _settings.BannerFromLevel;
