@@ -20,7 +20,7 @@ namespace TapEmpire.Services
     }
 
     [Serializable]
-    public struct ResourceSettings<ResourceT>
+    public class ResourceSettings<ResourceT>
     {
         public ResourceT ResourceType;
         public int MaxAmount;

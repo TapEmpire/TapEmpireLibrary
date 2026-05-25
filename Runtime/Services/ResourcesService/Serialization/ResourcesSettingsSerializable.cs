@@ -9,13 +9,29 @@ using UnityEngine;
 namespace TapEmpire.Services
 {
     [Serializable]
+    public class ResourceSettingsRemoteModel<ResourceT>
+    {
+        public ResourceT ResourceType;
+        public int? MaxAmount;
+        public int? ReplenishTime;
+        public int? InitialAmount;
+
+        public void ApplyTo(ResourceSettings<ResourceT> settings)
+        {
+            if (MaxAmount.HasValue) settings.MaxAmount = MaxAmount.Value;
+            if (ReplenishTime.HasValue) settings.ReplenishTime = ReplenishTime.Value;
+            if (InitialAmount.HasValue) settings.InitialAmount = InitialAmount.Value;
+        }
+    }
+
+    [Serializable]
     public class ResourcesSettingsSerializable<ResourceType> : IRemoteSerializable
     {
         [SerializeField] private ResourcesSettings<ResourceType> _resourcesSettings;
 
         public class ResourcesSettingsRemoteModel
         {
-            public List<ResourceSettings<ResourceType>> Resources;
+            public List<ResourceSettingsRemoteModel<ResourceType>> Resources;
 
             public ResourcesSettingsRemoteModel()
             {
@@ -23,7 +39,13 @@ namespace TapEmpire.Services
 
             public ResourcesSettingsRemoteModel(ResourcesSettings<ResourceType> resourcesSettings)
             {
-                Resources = resourcesSettings.Resources.ToList();
+                Resources = resourcesSettings.Resources.Select(resource => new ResourceSettingsRemoteModel<ResourceType>
+                {
+                    ResourceType = resource.ResourceType,
+                    MaxAmount = resource.MaxAmount,
+                    ReplenishTime = resource.ReplenishTime,
+                    InitialAmount = resource.InitialAmount,
+                }).ToList();
             }
         }
 
@@ -33,7 +55,16 @@ namespace TapEmpire.Services
         {
             var model = token.ToObject<ResourcesSettingsRemoteModel>();
 
-            _resourcesSettings.Resources = model.Resources.ToList();
+            foreach (var remoteResource in model.Resources)
+            {
+                var settings = _resourcesSettings.Resources.Find(resource =>
+                    EqualityComparer<ResourceType>.Default.Equals(resource.ResourceType, remoteResource.ResourceType));
+
+                if (settings != null)
+                {
+                    remoteResource.ApplyTo(settings);
+                }
+            }
         }
 
         public string SerializeJson()
