@@ -3,7 +3,7 @@ using R3;
 
 namespace TapEmpire.Services
 {
-    public interface IAdsService
+    public interface IAdsService : IService
     {
         Subject<Unit> OnInitialized { get; }
         Subject<Unit> OnReceivedReward { get; }
