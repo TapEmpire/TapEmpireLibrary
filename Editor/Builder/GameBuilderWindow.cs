@@ -101,11 +101,11 @@ namespace TapEmpire.Build
             startSettings.IgnoreConnection &= SelectedBuildConfig == Configuration.Debug;
             EditorUtility.SetDirty(startSettings);
 
-            var adjust = AssetDatabase.LoadAssetAtPath<Adjust>($"{_projectPathSettings.DefaultServicesPath}/Adjust Variant.prefab");
-            adjust.environment = SelectedBuildConfig == Configuration.Debug
+            var attributionSettings = AssetDatabase.LoadAssetAtPath<AttributionSettings>($"{_projectPathSettings.DefaultScriptablesPath}/AttributionSettings.asset");
+            attributionSettings.Environment = SelectedBuildConfig == Configuration.Debug
                 ? AdjustEnvironment.Sandbox
                 : AdjustEnvironment.Production;
-            EditorUtility.SetDirty(adjust);
+            EditorUtility.SetDirty(attributionSettings);
 
             var adsConfig = AssetDatabase.LoadAssetAtPath<AdsConfig>($"{_projectPathSettings.DefaultScriptablesPath}/AdsConfig.asset");
             adsConfig.TestMode = SelectedBuildConfig == Configuration.Debug;
@@ -124,9 +124,9 @@ namespace TapEmpire.Build
             var buildSettings = AssetDatabase.LoadAssetAtPath<GameBuildSettings>(_projectPathSettings.GameBuildSettingsPath);
             var platformData = PlatformType == PlatformType.Android ? buildSettings.Android : buildSettings.Ios;
 
-            var adjust = AssetDatabase.LoadAssetAtPath<Adjust>($"{_projectPathSettings.DefaultServicesPath}/Adjust Variant.prefab");
-            adjust.appToken = platformData.Adjust.AppToken;
-            EditorUtility.SetDirty(adjust);
+            var attributionSettings = AssetDatabase.LoadAssetAtPath<AttributionSettings>($"{_projectPathSettings.DefaultScriptablesPath}/AttributionSettings.asset");
+            attributionSettings.AppToken = platformData.Adjust.AppToken;
+            EditorUtility.SetDirty(attributionSettings);
 
             var adsConfig = AssetDatabase.LoadAssetAtPath<AdsConfig>($"{_projectPathSettings.DefaultScriptablesPath}/AdsConfig.asset");
 
