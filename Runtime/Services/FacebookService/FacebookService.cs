@@ -12,14 +12,24 @@ using Zenject;
 namespace TapEmpire.Services
 {
     [Serializable]
-    public class FacebookService : Initializable
+    public class FacebookService : Initializable, IFacebookService
     {
-        [Inject] private IConsentService _consentService;
-        [Inject] private IAdsService _adsService;
-        [Inject] private IProgressService _progressService;
-        [Inject] private IIapService _iapService;
+        private IConsentService _consentService;
+        private IAdsService _adsService;
+        private IProgressService _progressService;
+        private IIapService _iapService;
 
         private readonly CompositeDisposable _disposables = new();
+
+        [Inject]
+        private void Construct(IConsentService consentService, IAdsService adsService, IProgressService progressService,
+            IIapService iapService)
+        {
+            _consentService = consentService;
+            _adsService = adsService;
+            _progressService = progressService;
+            _iapService = iapService;
+        }
 
         protected override async UniTask OnInitializeAsync(CancellationToken cancellationToken)
         {
