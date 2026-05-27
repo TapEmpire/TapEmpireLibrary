@@ -48,21 +48,27 @@ namespace TapEmpire.Services
 
         private void UpdateCounter(AdImpressionData data)
         {
-            if (!_analyticsSettings.AddBanners && !data.Format.IsExpensive())
-            {
-                return;
-            }
+            var usdRevenue = data.Currency == "USD" ? data.Revenue : 0.0;
+            var revenue = _progressService.UpdateAdCounterRevenue(usdRevenue);
 
-            var counter = _progressService.GetAdCounter() + 1;
-            if (counter >= _analyticsSettings.CounterThreshold)
+            if (_analyticsSettings.AddBanners || data.Format.IsExpensive())
             {
-                FirebaseService.LogEvent("ad_counter", new[]
+                var counter = _progressService.GetAdCounter() + 1;
+
+                if (counter >= _analyticsSettings.CounterThreshold)
                 {
-                    new Parameter(FirebaseAnalytics.ParameterValue, counter),
-                });
-                counter = 0;
+                    FirebaseService.LogEvent("ad_counter", new[]
+                    {
+                        new Parameter(FirebaseAnalytics.ParameterValue, revenue),
+                        new Parameter(FirebaseAnalytics.ParameterCurrency, "USD"),
+                    });
+
+                    _progressService.ClearAdCounterRevenue();
+                    counter = 0;
+                }
+
+                _progressService.SetAdCounter(counter);
             }
-            _progressService.SetAdCounter(counter);
         }
     }
 }

@@ -18,9 +18,6 @@ namespace TapEmpire.Services
             self.SetBoolProp(ProgressBoolProp.DisableAds, value);
         }
 
-        public static int GetAdCounter(this IProgressService self) => self.GetInt(AdCounterKey);
-        public static void SetAdCounter(this IProgressService self, int value) => self.SetInt(AdCounterKey, value);
-
         public static float GetAdRevenueLayered(this IProgressService self, string postfix)
         {
             return self.GetIntAdRevenueLayered(postfix) / MillionFloat;
@@ -76,5 +73,24 @@ namespace TapEmpire.Services
         private static string GetAdRevenueBatchedKey(string postfix) => $"{AdRevenueBatchedKey}{postfix}";
         private static string GetAdRevenueLayeredKey(string postfix) => $"{AdRevenueKey}{postfix}";
         private static string GetAdOnceKey(string postfix) => $"{AdOnceKey}{postfix}";
+
+        public static int GetAdCounter(this IProgressService self) => self.GetInt(AdCounterKey);
+        public static void SetAdCounter(this IProgressService self, int value) => self.SetInt(AdCounterKey, value);
+        public static int UpdateAdCounter(this IProgressService self) => self.UpdateInt(AdCounterKey);
+
+        private const string AdCounterRevenueKey = "AdCounterRevenue";
+
+        public static double UpdateAdCounterRevenue(this IProgressService self, double revenue)
+        {
+            var current = self.GetInt(AdCounterRevenueKey);
+            current += (int)Math.Floor(revenue * MillionDouble);
+            self.SetInt(AdCounterRevenueKey, current);
+            return current / MillionDouble;
+        }
+
+        public static void ClearAdCounterRevenue(this IProgressService self)
+        {
+            self.SetInt(AdCounterRevenueKey, 0);
+        }
     }
 }

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -55,14 +56,44 @@ namespace TapEmpire.Services.LiveOps
             foreach (var liveOps in _liveOps)
                 liveOps.UpdatePrepare(debug);
 
-            var active = _liveOps.Where(liveOps => liveOps.Runtime.State != State.NotStarted);
-            var inactive = _liveOps.Where(liveOps => liveOps.Runtime.State == State.NotStarted);
+            var active = _liveOps.Where(liveOps => liveOps.Runtime.State != State.NotStarted).ToList();
+
+            // Finished events with announce icon: timer still running (can't restart yet), previously started.
+            var lockedVisible = _liveOps
+                .Where(liveOps => liveOps.Runtime.State == State.NotStarted &&
+                                  liveOps.Data.HasAnnounceIcon &&
+                                  liveOps.Runtime.StartedAt != default &&
+                                  liveOps.GetRemainingTime() > TimeSpan.Zero)
+                .ToList();
+
+            var inactive = _liveOps
+                .Where(liveOps => liveOps.Runtime.State == State.NotStarted && !lockedVisible.Contains(liveOps))
+                .ToList();
 
             if (layout != null)
+            {
                 active.ForEach(liveOps => liveOps.CreateIcon()?.AddTo(layout));
+                lockedVisible.ForEach(liveOps => liveOps.CreateAnnounceIcon()?.AddTo(layout));
+            }
 
             await UniTask.WaitForSeconds(Settings.UpdateDelaySeconds, cancellationToken: default);
-            await UniTask.WhenAll(active.Select(liveOps => liveOps.UpdateVisual(_resourceEmitter, debug)));
+
+            if (active.Count > 0)
+            {
+                var skipCount = active[0] == _liveOps[0] ? 1 : 0;
+                if (skipCount > 0)
+                    await active[0].UpdateVisual(_resourceEmitter, debug);
+
+                var tasks = new List<UniTask>(active.Count);
+                foreach (var liveOps in active.Skip(skipCount))
+                {
+                    if (tasks.Count > 0)
+                        await UniTask.WaitForSeconds(Settings.UpdateVisualIntervalSeconds, cancellationToken: default);
+                    tasks.Add(liveOps.UpdateVisual(_resourceEmitter, debug));
+                }
+                if (tasks.Count > 0)
+                    await UniTask.WhenAll(tasks);
+            }
 
             foreach (var liveOps in active)
                 await liveOps.UpdatePopups();
@@ -71,10 +102,14 @@ namespace TapEmpire.Services.LiveOps
             {
                 await liveOps.UpdatePopups();
 
-                if (layout != null && liveOps.Runtime.State != State.NotStarted)
+                if (layout == null)
+                    continue;
+
+                if (liveOps.Runtime.State != State.NotStarted)
                     liveOps.CreateIcon()?.AddTo(layout);
             }
         }
+
         private void InitializeAndRegisterLiveOps(LiveOpsData data)
         {
             var liveOps = data.Create(_diContainer);

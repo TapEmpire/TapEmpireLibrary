@@ -17,6 +17,7 @@ namespace TapEmpire.Services.LiveOps
         Observable<ILiveOps> OnExpired { get; }
 
         LiveOpsIcon CreateIcon();
+        LiveOpsIcon CreateAnnounceIcon();
         UniTask OpenView();
         UniTask OpenTutorial(bool isSkippable = true);
         TimeSpan GetRemainingTime();
