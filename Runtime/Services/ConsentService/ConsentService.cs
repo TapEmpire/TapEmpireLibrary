@@ -31,10 +31,9 @@ namespace TapEmpire.Services
         public ReadOnlyReactiveProperty<bool> IsAttGranted => _isAttGranted;
         public bool IsForFamily => _settings.IsForFamily;
 
-        protected override UniTask OnInitializeAsync(CancellationToken cancellationToken)
+        protected override async UniTask OnInitializeAsync(CancellationToken cancellationToken)
         {
-            GatherAsync(cancellationToken).Forget();
-            return UniTask.CompletedTask;
+            await GatherAsync(cancellationToken);
         }
 
         private async UniTask GatherAsync(CancellationToken cancellationToken)
