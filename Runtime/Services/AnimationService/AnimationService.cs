@@ -59,12 +59,17 @@ namespace TapEmpire.Services
 
         public Sequence CollectResource(ResourceType resourceType, int amount, Vector3 start, bool shouldAddResource)
         {
+            var target = _uiService.ShibariContext.TryGetValue($"{resourceType}Hud");
+            return CollectResource(resourceType, amount, start, target, shouldAddResource);
+        }
+
+        public Sequence CollectResource(ResourceType resourceType, int amount, Vector3 start, Transform target, bool shouldAddResource)
+        {
             var newAmount = Mathf.Clamp(amount, 0, MaxResourceAmount);
             var resourceAmount = amount / newAmount;
             var firstResourceAmount = amount - resourceAmount * (newAmount - 1);
 
             var sprite = _resourcesService.GetFlyingSprite(resourceType);
-            var target = _uiService.ShibariContext.TryGetValue($"{resourceType}Hud");
 
             if (target == null)
             {
