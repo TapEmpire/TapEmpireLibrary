@@ -25,9 +25,18 @@ namespace TapEmpire.Build
             var version = GetArg(args, "-buildVersion");
             var buildNumber = int.TryParse(GetArg(args, "-buildNumber"), out var n) ? n : 0;
             var buildPath = GetArg(args, "-buildPath");
+            var gradleDir = GetArg(args, "-gradleDir");
 
             if (platform == PlatformType.Android)
+            {
                 ApplyAndroidKeystoreFromEnv();
+
+                if (!string.IsNullOrEmpty(gradleDir))
+                {
+                    EditorPrefs.SetBool("GradleUseEmbedded", false);
+                    EditorPrefs.SetString("GradlePath", gradleDir);
+                }
+            }
 
             Build(config, platform, version, buildNumber, buildPath);
         }
