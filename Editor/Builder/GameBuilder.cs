@@ -25,7 +25,22 @@ namespace TapEmpire.Build
             var buildNumber = int.TryParse(GetArg(args, "-buildNumber"), out var n) ? n : 0;
             var buildPath = GetArg(args, "-buildPath");
 
+            if (platform == PlatformType.Android)
+                ApplyAndroidKeystoreFromEnv();
+
             Build(config, platform, version, buildNumber, buildPath);
+        }
+
+        static void ApplyAndroidKeystoreFromEnv()
+        {
+            var keystoreName = Environment.GetEnvironmentVariable("ANDROID_KEYSTORE_NAME");
+            if (string.IsNullOrEmpty(keystoreName)) return;
+
+            PlayerSettings.Android.useCustomKeystore = true;
+            PlayerSettings.Android.keystoreName = keystoreName;
+            PlayerSettings.Android.keystorePass = Environment.GetEnvironmentVariable("ANDROID_KEYSTORE_PASS");
+            PlayerSettings.Android.keyaliasName = Environment.GetEnvironmentVariable("ANDROID_KEYALIAS_NAME");
+            PlayerSettings.Android.keyaliasPass = Environment.GetEnvironmentVariable("ANDROID_KEYALIAS_PASS");
         }
 
         public static void Build(Configuration config, PlatformType platform,
