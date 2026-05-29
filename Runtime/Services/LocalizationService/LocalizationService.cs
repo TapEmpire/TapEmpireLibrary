@@ -18,6 +18,7 @@ namespace TapEmpire.Services.Localization
     public class LocalizationService : Initializable, ILocalizationService
     {
         [SerializeField] private List<string> _languageSortingOrder = null;
+        [SerializeField] private SerializableDictionary<string, string> _languageNames = null;
 
         public LocaleModel SelectedLocale { get; private set; }
         public ReadOnlyReactiveProperty<LocaleModel> Locale => _locale;
@@ -26,6 +27,8 @@ namespace TapEmpire.Services.Localization
         protected List<LocaleModel> _localeModels = new();
         protected ReactiveProperty<LocaleModel> _locale = new();
 
+        private static SerializableDictionary<string, string> _languageNameLocalizations;
+            
         [Inject]
         private void Construct(IProgressService progressService)
         {
@@ -34,6 +37,7 @@ namespace TapEmpire.Services.Localization
 
         protected override UniTask OnInitializeAsync(CancellationToken cancellationToken)
         {
+            _languageNameLocalizations = _languageNames;
             var savedLocale = _progressService.GetLocale(Application.systemLanguage.ToString());
             var locales = LocalizationSettings.AvailableLocales.Locales;
             _localeModels.Clear();
@@ -86,6 +90,21 @@ namespace TapEmpire.Services.Localization
         public static string GetLevelTableName(string levelName)
         {
             return $"Level_{levelName}";
+        }
+        
+        public static string GetLanguageLocalizedName(string levelName)
+        {
+            if (_languageNameLocalizations.ContainsKey(levelName))
+            {
+                return _languageNameLocalizations[levelName];
+            }
+
+            if (levelName == LocaleModel.NoneName.ToString())
+            {
+                return GetLocalizedString(LocalizationConstants.UITable, "none");
+            }
+            
+            return levelName;
         }
 
         private void UpdateFarsiState(LocaleModel model)

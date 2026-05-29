@@ -33,7 +33,7 @@ namespace TapEmpire.Feature.Effects
                 })
                 .Append(transform.DOLocalMove(_endPoint, _duration).SetEase(Ease.Linear))
                 .AppendInterval(_repeatDelay)
-                .SetLoops(-1, LoopType.Restart);
+                .SetLoops(int.MaxValue, LoopType.Restart); //MaxValue - infinite loops inside sequence are not allowed
             
             _sequence = DOTween.Sequence()
                 .SetTarget(gameObject)
