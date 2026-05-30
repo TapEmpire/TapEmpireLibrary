@@ -39,8 +39,12 @@ namespace TapEmpire.Build
 
                 if (!string.IsNullOrEmpty(jdkPath))
                 {
-                    UnityEditor.Android.AndroidExternalToolsSettings.jdkRootPath = jdkPath;
-                    Debug.Log($"[GameBuilder] Custom JDK → {UnityEditor.Android.AndroidExternalToolsSettings.jdkRootPath}");
+                    var gradleUserHome = System.Environment.GetEnvironmentVariable("GRADLE_USER_HOME")
+                        ?? System.IO.Path.Combine(System.Environment.GetEnvironmentVariable("HOME") ?? "", ".gradle");
+                    System.IO.Directory.CreateDirectory(gradleUserHome);
+                    var props = System.IO.Path.Combine(gradleUserHome, "gradle.properties");
+                    System.IO.File.AppendAllText(props, $"org.gradle.java.home={jdkPath}{System.Environment.NewLine}");
+                    Debug.Log($"[GameBuilder] org.gradle.java.home → {jdkPath} (wrote {props})");
                 }
             }
 
