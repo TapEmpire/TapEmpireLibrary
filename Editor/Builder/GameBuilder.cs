@@ -25,6 +25,7 @@ namespace TapEmpire.Build
             var buildNumber = int.TryParse(GetArg(args, "-buildNumber"), out var n) ? n : 0;
             var buildPath = GetArg(args, "-buildPath");
             var gradleDir = GetArg(args, "-gradleDir");
+            var jdkPath = GetArg(args, "-jdkPath");
 
             if (platform == PlatformType.Android)
             {
@@ -34,6 +35,12 @@ namespace TapEmpire.Build
                 {
                     UnityEditor.Android.AndroidExternalToolsSettings.gradlePath = gradleDir;
                     Debug.Log($"[GameBuilder] Custom Gradle → {UnityEditor.Android.AndroidExternalToolsSettings.gradlePath}");
+                }
+
+                if (!string.IsNullOrEmpty(jdkPath))
+                {
+                    UnityEditor.Android.AndroidExternalToolsSettings.jdkRootPath = jdkPath;
+                    Debug.Log($"[GameBuilder] Custom JDK → {UnityEditor.Android.AndroidExternalToolsSettings.jdkRootPath}");
                 }
             }
 
