@@ -143,7 +143,7 @@ namespace TapEmpire.Services
                 return;
             }
 
-            _rewarded.Show(placement);
+            _rewarded?.Show(placement);
         }
 
         public void ShowMrec() => _mrec?.Show();
