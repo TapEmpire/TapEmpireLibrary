@@ -19,9 +19,9 @@ namespace TapEmpire.Services
         private CancellableTask _retryDisposable;
         private int _retryAttempt;
 
-        public AdmobInterstitialProvider(string adUnitId)
+        public AdmobInterstitialProvider(string adUnitId, bool testMode)
         {
-            _interstitialAdUnitId = adUnitId;
+            _interstitialAdUnitId = testMode ? AdmobTestAdUnits.Interstitial : adUnitId;
             LoadInterstitial();
         }
 

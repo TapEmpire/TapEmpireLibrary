@@ -19,9 +19,9 @@ namespace TapEmpire.Services
         private CancellableTask _retryDisposable;
         private int _retryAttempt;
 
-        public AdmobRewardedProvider(string adUnitId)
+        public AdmobRewardedProvider(string adUnitId, bool testMode)
         {
-            _rewardedAdUnitId = adUnitId;
+            _rewardedAdUnitId = testMode ? AdmobTestAdUnits.Rewarded : adUnitId;
             LoadRewarded();
         }
 

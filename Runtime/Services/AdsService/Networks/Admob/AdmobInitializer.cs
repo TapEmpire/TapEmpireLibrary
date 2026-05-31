@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using GoogleMobileAds.Api;
@@ -9,10 +8,10 @@ namespace TapEmpire.Services
     {
         private static bool _initialized;
 
+        // Test ads come from Google's sample ad unit IDs (see AdmobTestAdUnits), so no test-device registration is needed.
         public static async UniTask Initialize(
             bool isPersonalized,
             bool isForFamily,
-            bool testMode = false,
             CancellationToken cancellationToken = default)
         {
             if (_initialized) return;
@@ -30,11 +29,6 @@ namespace TapEmpire.Services
                     : TagForUnderAgeOfConsent.False,
             };
 
-            if (testMode)
-            {
-                configuration.TestDeviceIds = await GetTestDeviceIds(cancellationToken);
-            }
-
             MobileAds.SetRequestConfiguration(configuration);
 
             var completion = new UniTaskCompletionSource();
@@ -42,14 +36,6 @@ namespace TapEmpire.Services
 
             await completion.Task.AttachExternalCancellation(cancellationToken);
             _initialized = true;
-        }
-
-        private static async UniTask<List<string>> GetTestDeviceIds(CancellationToken cancellationToken)
-        {
-            var gaid = await AdvertisingId.Get(cancellationToken);
-            return string.IsNullOrEmpty(gaid)
-                ? new List<string>()
-                : new List<string> { gaid };
         }
     }
 }

@@ -14,9 +14,9 @@ namespace TapEmpire.Services
         private readonly AdPosition _position;
         private BannerView _mrecView;
 
-        public AdmobMrecProvider(string adUnitId, AdPosition position)
+        public AdmobMrecProvider(string adUnitId, AdPosition position, bool testMode = false)
         {
-            _adUnitId = adUnitId;
+            _adUnitId = testMode ? AdmobTestAdUnits.Mrec : adUnitId;
             _position = position;
         }
 

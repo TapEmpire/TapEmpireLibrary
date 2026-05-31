@@ -13,9 +13,9 @@ namespace TapEmpire.Services
         private readonly string _adUnitId;
         private readonly BannerView _bannerView;
 
-        public AdmobBannerProvider(string adUnitId, AdPosition position, int width = 0)
+        public AdmobBannerProvider(string adUnitId, AdPosition position, int width = 0, bool testMode = false)
         {
-            _adUnitId = adUnitId;
+            _adUnitId = testMode ? AdmobTestAdUnits.Banner : adUnitId;
 
             int bannerWidth = width > 0 ? width : AdSize.FullWidth;
             var adSize = new AdSize(bannerWidth, 0);

@@ -168,7 +168,7 @@ namespace TapEmpire.Services
                 var testMode = _settings.Config.TestMode;
 
                 Debug.Log($"[Ads] Initializing AdMob (personalized={isPersonalized}, testMode={testMode})");
-                await AdmobInitializer.Initialize(isPersonalized, _consentService.IsForFamily, testMode, cancellationToken);
+                await AdmobInitializer.Initialize(isPersonalized, _consentService.IsForFamily, cancellationToken);
 
                 Debug.Log("[Ads] Initializing AppLovin Max");
                 await MaxInitializer.Initialize(isPersonalized, testMode, cancellationToken);
@@ -214,7 +214,7 @@ namespace TapEmpire.Services
             _rewarded = new RewardedAdMediator(new IRewarded[]
             {
                 appLovinRewarded,
-                new AdmobRewardedProvider(_settings.Config.Admob.RewardedId),
+                new AdmobRewardedProvider(_settings.Config.Admob.RewardedId, _settings.Config.TestMode),
             });
             _pendingCallback.AddTo(_disposables);
             _rewarded.OnReward.Subscribe(OnReceivedReward.OnNext).AddTo(_disposables);
@@ -229,7 +229,7 @@ namespace TapEmpire.Services
             _banner = new BannerAdMediator(new IBanner[]
             {
                 new MaxBannerProvider(config.AppLovin.BannerId, _settings.BannerPosition, bannerWidth),
-                new AdmobBannerProvider(config.Admob.BannerId, _settings.BannerPosition, bannerWidth),
+                new AdmobBannerProvider(config.Admob.BannerId, _settings.BannerPosition, bannerWidth, config.TestMode),
             });
             SubscribeTo(_banner, () => _banner = null, _removableAdsDisposable);
 
@@ -246,7 +246,7 @@ namespace TapEmpire.Services
             _interstitial = new InterstitialAdMediator(new IInterstitial[]
             {
                 appLovinInterstitial,
-                new AdmobInterstitialProvider(config.Admob.InterstitialId),
+                new AdmobInterstitialProvider(config.Admob.InterstitialId, config.TestMode),
             });
             SubscribeTo(_interstitial, () => _interstitial = null, _removableAdsDisposable);
         }
@@ -257,7 +257,7 @@ namespace TapEmpire.Services
             _mrec = new MrecAdMediator(new IMrec[]
             {
                 new MaxMrecProvider(config.AppLovin.MrecId, _settings.MrecPosition),
-                new AdmobMrecProvider(config.Admob.MrecId, _settings.MrecPosition),
+                new AdmobMrecProvider(config.Admob.MrecId, _settings.MrecPosition, config.TestMode),
             });
             SubscribeTo(_mrec, () => _mrec = null, _removableAdsDisposable);
         }
