@@ -13,6 +13,9 @@ namespace TapEmpire.Services
 #if UNITY_ANDROID && !UNITY_EDITOR
             return UniTask.RunOnThreadPool(() =>
             {
+                // JNI calls require the worker thread to be attached to the JVM;
+                // AdvertisingIdClient.getAdvertisingIdInfo must not run on the main thread.
+                AndroidJNI.AttachCurrentThread();
                 try
                 {
                     using var advertisingIdClass = new AndroidJavaClass("com.tapempire.ads.AdvertisingId");
@@ -23,6 +26,10 @@ namespace TapEmpire.Services
                 catch
                 {
                     return null;
+                }
+                finally
+                {
+                    AndroidJNI.DetachCurrentThread();
                 }
             }, cancellationToken: cancellationToken);
 #else
