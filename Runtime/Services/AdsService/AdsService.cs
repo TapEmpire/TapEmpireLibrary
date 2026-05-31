@@ -78,7 +78,7 @@ namespace TapEmpire.Services
         {
             _adsEnabled.Value = !_progressService.GetAdsDisabled();
 
-            InitializeNetworksAsync(cancellationToken).Forget();
+            InitializeNetworksAsync(LifetimeCancellationToken).Forget();
 
             return UniTask.CompletedTask;
         }
@@ -159,22 +159,34 @@ namespace TapEmpire.Services
 
         private async UniTask InitializeNetworksAsync(CancellationToken cancellationToken)
         {
-            await _consentService.IsResolved.WaitTrue(cancellationToken);
+            try
+            {
+                Debug.Log("[Ads] Waiting for consent");
+                await _consentService.IsResolved.WaitTrue(cancellationToken);
 
-            var isPersonalized = _consentService.IsPersonalized.CurrentValue;
-            var testMode = _settings.Config.TestMode;
+                var isPersonalized = _consentService.IsPersonalized.CurrentValue;
+                var testMode = _settings.Config.TestMode;
 
-            await AdmobInitializer.Initialize(isPersonalized, _consentService.IsForFamily, testMode, cancellationToken);
-            await MaxInitializer.Initialize(isPersonalized, testMode, cancellationToken);
+                Debug.Log($"[Ads] Initializing AdMob (personalized={isPersonalized}, testMode={testMode})");
+                await AdmobInitializer.Initialize(isPersonalized, _consentService.IsForFamily, testMode, cancellationToken);
+
+                Debug.Log("[Ads] Initializing AppLovin Max");
+                await MaxInitializer.Initialize(isPersonalized, testMode, cancellationToken);
 #if TEL_METICA
-            if (_settings.EnableMetica) { _metica = new MeticaInitializer(); await _metica.Initialize(_settings.MeticaPrefab); }
+                if (_settings.EnableMetica) { _metica = new MeticaInitializer(); await _metica.Initialize(_settings.MeticaPrefab); }
 #endif
 
-            BuildRewarded();
-            if (_adsEnabled.Value) BuildRemovableAds();
-            BuildModules();
+                BuildRewarded();
+                if (_adsEnabled.Value) BuildRemovableAds();
+                BuildModules();
 
-            OnInitialized.OnNext(Unit.Default);
+                Debug.Log("[Ads] Networks initialized");
+                OnInitialized.OnNext(Unit.Default);
+            }
+            catch (Exception exception)
+            {
+                Debug.LogError($"[Ads] Network initialization failed: {exception}");
+            }
         }
 
         private void BuildModules()

@@ -19,6 +19,8 @@ namespace TapEmpire.Services
         bool IInitializable.Initialized => _initialized;
         int IInitializable.Order { get => _order; set => _order = value; }
 
+        protected CancellationToken LifetimeCancellationToken => _cancellationTokenSource.Token;
+
         async UniTask IInitializable.InitializeAsync(CancellationToken cancellationToken)
         {
             _cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(Application.exitCancellationToken);
