@@ -233,7 +233,7 @@ namespace TapEmpire.Services
             });
             SubscribeTo(_banner, () => _banner = null, _removableAdsDisposable);
 
-            ShowBanner(true);
+            ShowBanner(_shouldShowBanner);
         }
 
         private void BuildInterstitial()
