@@ -67,6 +67,7 @@ namespace TapEmpire.Services
 
         private void Apply(IMrec provider)
         {
+            if (provider == null) return;
             if (_shouldShow) ShowInternal(provider);
             else provider.Hide();
         }
