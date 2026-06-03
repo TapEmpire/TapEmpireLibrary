@@ -24,6 +24,7 @@ namespace TapEmpire.Build
             var version = GetArg(args, "-buildVersion");
             var buildNumber = int.TryParse(GetArg(args, "-buildNumber"), out var n) ? n : 0;
             var buildPath = GetArg(args, "-buildPath");
+            var appName = GetArg(args, "-appName");
             var gradleDir = GetArg(args, "-gradleDir");
             var jdkPath = GetArg(args, "-jdkPath");
 
@@ -48,7 +49,7 @@ namespace TapEmpire.Build
                 }
             }
 
-            Build(config, platform, version, buildNumber, buildPath);
+            Build(config, platform, version, buildNumber, buildPath, appName);
         }
 
         static void ApplyAndroidKeystoreFromEnv()
@@ -64,7 +65,8 @@ namespace TapEmpire.Build
         }
 
         public static void Build(Configuration config, PlatformType platform,
-                                 string version = null, int buildNumber = 0, string buildPath = null)
+                                 string version = null, int buildNumber = 0,
+                                 string buildPath = null, string appName = null)
         {
             Apply(config, platform);
 
@@ -104,7 +106,7 @@ namespace TapEmpire.Build
                 scenes = scenes,
                 target = target,
                 targetGroup = group,
-                locationPathName = buildPath ?? DefaultLocation(config, platform),
+                locationPathName = buildPath ?? DefaultLocation(config, platform, appName),
                 options = BuildOptions.None,
             };
 
@@ -125,13 +127,15 @@ namespace TapEmpire.Build
             ApplyActions(config, paths);
         }
 
-        private static string DefaultLocation(Configuration config, PlatformType platform)
+        private static string DefaultLocation(Configuration config, PlatformType platform, string appName = null)
         {
             if (platform == PlatformType.Ios)
                 return "Builds/iOS";
 
             var ext = config == Configuration.Release ? ".aab" : ".apk";
-            var name = $"{Application.productName}" +
+            var rawName = string.IsNullOrEmpty(appName) ? Application.productName : appName;
+            var safeName = rawName.Replace(" ", "");
+            var name = $"{safeName}" +
                        $"-{config.ToString().ToLower()}" +
                        $"-{PlayerSettings.bundleVersion}" +
                        $"-build{PlayerSettings.Android.bundleVersionCode}{ext}";
