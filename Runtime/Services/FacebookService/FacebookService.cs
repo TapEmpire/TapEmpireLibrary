@@ -40,7 +40,7 @@ namespace TapEmpire.Services
             var isPersonalized = _consentService.IsPersonalized.CurrentValue;
             await InitializeFacebook(isPersonalized, cancellationToken);
 
-            new FacebookAdsModule(_adsService).AddTo(_disposables);
+            new FacebookAnalyticsModule(_adsService, _iapService).AddTo(_disposables);
             new FacebookAdsSignalsModule(_adsService, _progressService, _iapService).AddTo(_disposables);
         }
 

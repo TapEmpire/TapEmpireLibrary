@@ -19,7 +19,6 @@ namespace TapEmpire.Services
         private readonly IUIService _uiService;
         private readonly IProgressService _progressService;
 
-        private AdsSettings _adsSettings;
         private CompositeDisposable _disposables = new();
 
         public IapAnalyticsModule(DiContainer diContainer)
@@ -28,7 +27,6 @@ namespace TapEmpire.Services
             _analyticsService = diContainer.Resolve<IAnalyticsService>();
             _iapService = diContainer.Resolve<IIapService>();
             _uiService = diContainer.Resolve<IUIService>();
-            _adsSettings = diContainer.Resolve<IAdsService>().Settings;
 
             _iapService.OnPurchaseSuccessDetailed.Subscribe(OnPurchaseSuccessDetailed).AddTo(_disposables);
             _iapService.OnPurchaseFailed.Subscribe(OnPurchaseFailed).AddTo(_disposables);
@@ -75,18 +73,6 @@ namespace TapEmpire.Services
                 new Parameter(FirebaseAnalytics.ParameterValue, (double)price),
                 new Parameter(FirebaseAnalytics.ParameterCurrency, isoCode),
             });
-
-#if TEL_META
-            if (_adsSettings.AdsAnalyticsSettings.EnableMeta && _adsSettings.AdsAnalyticsSettings.EnableMetaPurchases)
-            {
-                Facebook.Unity.FB.LogPurchase(price, isoCode, new Dictionary<string, object>
-                {
-                    { "fb_content_type", "product" },
-                    { "fb_content_id", iapId },
-                    { "fb_order_id", data.product.transactionID ?? string.Empty }
-                });
-            }
-#endif
 
             _analyticsService.LogEvent(IapAnalyticsStrings.AdsPlacements, new Dictionary<string, object>()
             {
