@@ -69,9 +69,13 @@ namespace TapEmpire.Build
             Apply(config, platform);
 
             if (!string.IsNullOrEmpty(version))
+            {
+                if (version.StartsWith("v") || version.StartsWith("V"))
+                    version = version.Substring(1);
                 PlayerSettings.bundleVersion = version;
+            }
 
-            if (config == Configuration.Release && buildNumber > 0)
+            if (buildNumber > 0)
             {
                 PlayerSettings.Android.bundleVersionCode = buildNumber;
                 PlayerSettings.iOS.buildNumber = buildNumber.ToString();
@@ -126,9 +130,12 @@ namespace TapEmpire.Build
             if (platform == PlatformType.Ios)
                 return "Builds/iOS";
 
-            var extension = config == Configuration.Release ? ".aab" : ".apk";
-            var buildName = $"{Application.productName}_{PlayerSettings.bundleVersion}_{config.ToString().ToLower()}{extension}";
-            return $"Builds/{buildName}";
+            var ext = config == Configuration.Release ? ".aab" : ".apk";
+            var name = $"{Application.productName}" +
+                       $"-{config.ToString().ToLower()}" +
+                       $"-{PlayerSettings.bundleVersion}" +
+                       $"-build{PlayerSettings.Android.bundleVersionCode}{ext}";
+            return $"Builds/{name}";
         }
 
         private static void ApplyBuildMode(Configuration config, ProjectPathSettings paths)
