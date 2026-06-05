@@ -14,7 +14,7 @@ namespace TapEmpire.Services
             var iapService = diContainer.Resolve<IIapService>();
             _adsService = diContainer.Resolve<IAdsService>();
 
-            if (iapService.Settings.DisableAdsForPayers && !_adsService.AdsDisabled)
+            if (iapService.Settings.DisableAdsForPayers && _adsService.AdsEnabled.CurrentValue)
             {
                 iapService.OnPurchaseSuccess.Subscribe(OnPurchase).AddTo(_disposables);
                 iapService.OnPurchaseRestored.Subscribe(OnPurchase).AddTo(_disposables);

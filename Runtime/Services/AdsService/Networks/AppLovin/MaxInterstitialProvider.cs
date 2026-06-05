@@ -1,0 +1,92 @@
+using System;
+using R3;
+using TapEmpire.Utility;
+
+namespace TapEmpire.Services
+{
+    public class MaxInterstitialProvider : IInterstitial
+    {
+        public ReactiveProperty<bool> IsLoaded { get; } = new(false);
+        public Subject<AdImpressionData> OnImpression { get; } = new();
+        public Subject<Unit> OnReward { get; } = new();
+
+        private readonly string _adUnitId;
+
+        private CancellableTask _retryDisposable;
+        private int _retryAttempt;
+
+        public MaxInterstitialProvider(string adUnitId)
+        {
+            _adUnitId = adUnitId;
+
+            MaxSdkCallbacks.Interstitial.OnAdLoadedEvent += OnAdLoaded;
+            MaxSdkCallbacks.Interstitial.OnAdLoadFailedEvent += OnAdLoadFailed;
+            MaxSdkCallbacks.Interstitial.OnAdDisplayFailedEvent += OnAdDisplayFailed;
+            MaxSdkCallbacks.Interstitial.OnAdHiddenEvent += OnAdHidden;
+            MaxSdkCallbacks.Interstitial.OnAdRevenuePaidEvent += OnAdRevenuePaid;
+
+            LoadInterstitial();
+        }
+
+        public bool HasInterstitial(bool doRequest = false)
+        {
+            bool isReady = MaxSdk.IsInterstitialReady(_adUnitId);
+            if (!isReady && doRequest)
+            {
+                LoadInterstitial();
+            }
+            return isReady;
+        }
+
+        public void Show(string placement)
+        {
+            MaxSdk.ShowInterstitial(_adUnitId, placement);
+        }
+
+        public void Dispose()
+        {
+            MaxSdkCallbacks.Interstitial.OnAdLoadedEvent -= OnAdLoaded;
+            MaxSdkCallbacks.Interstitial.OnAdLoadFailedEvent -= OnAdLoadFailed;
+            MaxSdkCallbacks.Interstitial.OnAdDisplayFailedEvent -= OnAdDisplayFailed;
+            MaxSdkCallbacks.Interstitial.OnAdHiddenEvent -= OnAdHidden;
+            MaxSdkCallbacks.Interstitial.OnAdRevenuePaidEvent -= OnAdRevenuePaid;
+
+            _retryDisposable?.Dispose();
+        }
+
+        private void LoadInterstitial() => MaxSdk.LoadInterstitial(_adUnitId);
+
+        private void OnAdLoaded(string adUnitId, MaxSdkBase.AdInfo adInfo)
+        {
+            _retryAttempt = 0;
+            IsLoaded.Value = true;
+        }
+
+        private void OnAdLoadFailed(string adUnitId, MaxSdkBase.ErrorInfo errorInfo)
+        {
+            IsLoaded.Value = false;
+            _retryAttempt++;
+            var seconds = (float)Math.Pow(2, Math.Min(6, _retryAttempt));
+            _retryDisposable?.Dispose();
+            _retryDisposable = UniTaskUtility.Delay(seconds, LoadInterstitial);
+        }
+
+        private void OnAdDisplayFailed(string adUnitId, MaxSdkBase.ErrorInfo errorInfo, MaxSdkBase.AdInfo adInfo)
+        {
+            IsLoaded.Value = false;
+            LoadInterstitial();
+        }
+
+        private void OnAdHidden(string adUnitId, MaxSdkBase.AdInfo adInfo)
+        {
+            IsLoaded.Value = false;
+            OnReward.OnNext(Unit.Default);
+            LoadInterstitial();
+        }
+
+        private void OnAdRevenuePaid(string adUnitId, MaxSdkBase.AdInfo adInfo)
+        {
+            OnImpression.OnNext(MaxImpressionData.Create(adInfo, AdFormat.Interstitial));
+        }
+    }
+}
