@@ -1,524 +1,272 @@
-using System.Collections.Generic;
+using System;
 using System.Threading;
 using Cysharp.Threading.Tasks;
-using DG.Tweening;
-using UnityEngine;
-using System.Linq;
-using Zenject;
-using TapEmpire.Utility;
 using R3;
-using AdjustSdk;
-#if TEL_METICA
-using Metica.Unity;
-#endif
-using TapEmpire.Modules;
-using GoogleMobileAds.Api;
+using TapEmpire.Services;
+using TapEmpire.Utility;
+using UnityEngine;
+using Zenject;
 
 namespace TapEmpire.Services
 {
-    [System.Serializable]
+    [Serializable]
     public class AdsService : Initializable, IAdsService
     {
+        [SerializeField] private AdsSettings _settings;
+
+        public Subject<Unit> OnInitialized { get; } = new();
+        public Subject<Unit> OnReceivedReward { get; } = new();
+        public Subject<string> OnAdClicked { get; } = new();
+        public Subject<bool> OnInterstitialAttempt { get; } = new();
+        public Subject<AdImpressionData> OnImpression { get; } = new();
+
+        public AdsSettings Settings => _settings;
         public ReadOnlyReactiveProperty<bool> AdsEnabled => _adsEnabled;
-        public Observable<Unit> OnAdsInitialized => global::AdsManager.Instance.OnInitialized;
+        public ReadOnlyReactiveProperty<bool> IsInterstitialReady => _interstitial?.IsLoaded ?? _notReady;
+        public ReadOnlyReactiveProperty<bool> IsRewardedReady => _rewarded?.IsLoaded ?? _notReady;
+        public bool SkipAds { get; set; }
 
-        public System.Action<string> OnAdReceivedRewardEvent { get; set; } = null;
-        public System.Action<string> OnAdReceivedOnceRewardEvent { get; set; } = null;
-        public System.Action<string> OnAdDisplayedRewardEvent { get; set; } = null;
-        public System.Action<string> OnAdClickedEvent { get; set; } = null;
-        public System.Action<bool> OnInterstitialAdShowRequested { get; set; } = null;
+        public bool CanShowRewarded =>
+            _progressService.GetCyclesProgress() > 0 ||
+            _progressService.GetLevelProgress() + 1 >= _settings.RewardedFromLevel;
 
-        public System.Action OnRewardedAdReady { get; set; } = null;
+        public bool CanShowInterstitial =>
+            _progressService.GetCyclesProgress() > 0 ||
+            _progressService.GetLevelProgress() + 1 >= _settings.FromLevel;
 
-        public bool IsRewardedAdReady => global::AdsManager.Instance != null && global::AdsManager.Instance.HasAnyRewarded;
-        public bool IsInterstitialReady => global::AdsManager.Instance != null && global::AdsManager.Instance.HasInterstitial;
-
-        [SerializeField]
-        private AdsManager _adsManagerPrefab = null;
-
-        [SerializeField]
-        private Adjust _adjustPrefab = null;
-
+        public bool IsMeticaEnabled =>
 #if TEL_METICA
-        [SerializeField]
-        private MeticaUnitySdk _meticaPrefab = null;
-#endif
-
-        [SerializeField]
-        private AdsSettings _adsSettings = null;
-
-        [Inject]
-        private DiContainer _diContainer = null;
-        [SerializeField] private bool _adsDisabled;
-        private ReactiveProperty<bool> _adsEnabled = new(true);
-
-        private string _currentAdPlacement = "";
-
-        [Inject]
-        private IProgressService _progressService;
-
-        private Tween _interstitialTimerTween = null;
-        private float _interstitialTimer = 30.0f;
-        private bool _isInitialized = false;
-
-        public bool AdsDisabled => _adsDisabled;
-        public bool AdsDisabledDebug { get; set; } = false;
-        public float MaxWaitingTime => _adsSettings.ShouldWaitAppOpen ? _adsSettings.AppOpenWaitTime : 0.0f;
-
-        private CancellationTokenSource _cancellationTokenSource;
-
-        private ReactiveProperty<bool> _shouldWaitAppOpen = null;
-        public ReadOnlyReactiveProperty<bool> ShouldWaitAppOpen { get; private set; } = new ReactiveProperty<bool>(true);
-        public AdsSettings Settings => _adsSettings;
-        public bool IsMeticaEnabled => global::AdsManager.Instance.IsMeticaEnabled;
-
-        private AdsRuntimeScenario _adsRuntimeScenario;
-
-        private BannerWidth? _pendingBannerSize = null;
-        private AdPosition? _pendingBannerPos = null;
-
-        private CompositeDisposable _disposables = new();
-
-#if TEL_META
-        private FacebookModule _facebookModule = null;
-#endif
-
-        protected override async UniTask OnInitializeAsync(CancellationToken cancellationToken)
-        {
-            if (_isInitialized)
-                return; //  UniTask.CompletedTask;
-
-            _disposables = new();
-
-            _progressService.TryGetBoolProp(ProgressBoolProp.DisableAds, out _adsDisabled);
-            _adsEnabled.Value = !_adsDisabled;
-            _adsRuntimeScenario = new AdsRuntimeScenario();
-            if (_adsDisabled)
-            {
-                _adsRuntimeScenario.IsEnabled = false;
-                _adsRuntimeScenario.EnableAppOpen = false;
-                _adsRuntimeScenario.ShouldWaitAppOpen = false;
-                _adsRuntimeScenario.InterstitialAfterLevels = new List<int>();
-                _adsRuntimeScenario.ShowBanner = false;
-                _adsRuntimeScenario.ShowMrec = false;
-                _adsRuntimeScenario.FromLevel = 0;
-            }
-            else
-            {
-                _adsRuntimeScenario.IsEnabled = true;
-                _adsRuntimeScenario.EnableAppOpen = _adsSettings.EnableAppOpen;
-                _adsRuntimeScenario.ShouldWaitAppOpen = _adsSettings.ShouldWaitAppOpen;
-                _adsRuntimeScenario.InterstitialAfterLevels = _adsSettings.InterstitialAfterLevels;
-                _adsRuntimeScenario.ShowBanner = _adsSettings.EnableBanners && !AdsDisabledDebug;
-                _adsRuntimeScenario.ShowMrec = _adsSettings.EnableMrec && !AdsDisabledDebug;
-                _adsRuntimeScenario.FromLevel = _adsSettings.FromLevel;
-            }
-
-            var level = _progressService.GetLevelProgress();
-            var cycles = _progressService.GetCyclesProgress();
-            var canEnableBanners = cycles > 0 || _adsSettings.BannerFromLevel <= level + 1;
-
-#if TEL_METICA
-            if (_adsSettings.EnableMetica)
-            {
-                GameObject.Instantiate(_meticaPrefab);
-            }
+            _metica?.IsMeticaEnabled ?? false;
 #else
-            _adsSettings.EnableMetica = false;
+            false;
 #endif
 
-            GameObject.Instantiate(_adsManagerPrefab);
-            // GameObject.Instantiate(_appMetricaPrefab);
+        private bool CanShowBanner =>
+            _progressService.GetCyclesProgress() > 0 ||
+            _progressService.GetLevelProgress() + 1 >= _settings.BannerFromLevel;
 
-            _adjustPrefab.startManually = true;
-            _adjustPrefab.environment = PlatformInfo.IsTestFlightOrSandboxReceipt() ? AdjustEnvironment.Sandbox : _adjustPrefab.environment;
-            GameObject.Instantiate(_adjustPrefab);
-            InitializeAdjust(_adjustPrefab);
+        private readonly ReactiveProperty<bool> _notReady = new(false);
+        private readonly ReactiveProperty<bool> _adsEnabled = new(true);
 
-            new AdsAnalyticsModule(_diContainer).AddTo(_disposables);
-            new AdsSignalsModule(_diContainer).AddTo(_disposables);
+        private IConsentService _consentService;
+        private IProgressService _progressService;
+        private IAnalyticsService _analyticsService;
 
-            // global::AdsManager.Instance.OnInitialized += OnInitialized;
-            ApplyPendingBannerSettings();
-            global::AdsManager.Instance.EnableAppOpen = _adsRuntimeScenario.EnableAppOpen;
-            global::AdsManager.Instance.SetAppOpenAutoShow(true);
-            global::AdsManager.Instance.OnConsentObtained += OnConsentObtained;
-            global::AdsManager.Instance.Initialize_AdNetworks(_adsSettings, _adsRuntimeScenario, canEnableBanners)
-                .ContinueWith(() => PeriodicAdCheck()).Forget();
+        private IBanner _banner;
+        private IInterstitial _interstitial;
+        private IRewarded _rewarded;
+        private IMrec _mrec;
+        private bool _shouldShowBanner = false;
 
-            _shouldWaitAppOpen = new ReactiveProperty<bool>(_adsRuntimeScenario.ShouldWaitAppOpen);
+#if TEL_METICA
+        private MeticaInitializer _metica;
+#endif
 
-            ShouldWaitAppOpen = _shouldWaitAppOpen.CombineLatest(global::AdsManager.Instance.ShouldWaitAppOpen,
-                (timer, appOpen) => timer && appOpen).ToReadOnlyReactiveProperty();
+        private readonly CompositeDisposable _disposables = new();
+        private readonly CompositeDisposable _removableAdsDisposable = new();
+        private readonly SerialDisposable _pendingCallback = new();
 
-            _isInitialized = true;
+        [Inject]
+        private void Construct(IConsentService consentService, IProgressService progressService, IAnalyticsService analyticsService)
+        {
+            _consentService = consentService;
+            _progressService = progressService;
+            _analyticsService = analyticsService;
+        }
 
-            _cancellationTokenSource = new CancellationTokenSource();
-            UniTaskUtility.ExecuteAfterSeconds(MaxWaitingTime,
-                () =>
-                {
-                    _shouldWaitAppOpen.Value = false;
-                    global::AdsManager.Instance.ShouldWaitAppOpen.Value = false;
-                }, _cancellationTokenSource.Token);
+        protected override UniTask OnInitializeAsync(CancellationToken cancellationToken)
+        {
+            _adsEnabled.Value = !_progressService.GetAdsDisabled();
 
-            await UniTask.WaitUntil(() => ShouldWaitAppOpen.CurrentValue == false, cancellationToken: cancellationToken);
-            await base.OnInitializeAsync(cancellationToken);
+            InitializeNetworksAsync(LifetimeCancellationToken).Forget();
+
+            return UniTask.CompletedTask;
         }
 
         protected override void OnRelease()
         {
-            _isInitialized = false;
-            _interstitialTimerTween?.Kill();
-            _currentAdPlacement = "";
-
+            _removableAdsDisposable.Dispose();
             _disposables.Dispose();
-
-            _cancellationTokenSource?.Cancel();
-            _cancellationTokenSource = null;
-
-#if TEL_META
-            _facebookModule = null;
-#endif
-
-            global::AdsManager.Instance?.OnRelease();
-            _pendingBannerSize = null;
-            _pendingBannerPos = null;
+            base.OnRelease();
         }
 
-        public void ShowInterstitial(int levelIndex, System.Action callback, string placement = "")
+        public bool ShowBanner(bool shouldShow)
         {
-            bool shouldShow = ShouldShowInterstital(levelIndex);
-
-            if (shouldShow && IsInterstitialReady)
-            {
-                OnAdReceivedOnceRewardEvent = (adType) =>
-                {
-                    OnAdReceivedOnceRewardEvent = null;
-                    callback?.Invoke();
-                };
-
-                if (!ShowInterstitial(placement))
-                {
-                    OnAdReceivedOnceRewardEvent?.Invoke("");
-                }
-            }
-            else
-            {
-                callback?.Invoke();
-            }
+            var hasBanner = _shouldShowBanner;
+            _shouldShowBanner = shouldShow && CanShowBanner;
+            if (_shouldShowBanner) _banner?.Show();
+            else _banner?.Hide();
+            return hasBanner;
         }
 
-        public bool ShowInterstitial(System.Action callback, string placement = "")
+        public void DisableBanner()
         {
-            if (!_adsRuntimeScenario.IsEnabled || !IsInterstitialReady)
-            {
-                callback?.Invoke();
-                return false;
-            }
-
-            OnAdReceivedOnceRewardEvent = (adType) =>
-                {
-                    OnAdReceivedOnceRewardEvent = null;
-                    callback?.Invoke();
-                };
-
-            if (!ShowInterstitial(placement))
-            {
-                OnAdReceivedOnceRewardEvent.Invoke(string.Empty);
-                return false;
-            }
-
-            return true;
+            _banner?.Dispose();
+            _banner = null;
         }
 
-        public bool ShowInterstitial(string placement = "")
+        public void ShowInterstitial(string placement, Action onClose, bool skip = false)
         {
-            if (_currentAdPlacement != "" || !_isInitialized)
+            var hasInterstitial = _interstitial?.HasInterstitial(false) == true;
+            OnInterstitialAttempt.OnNext(hasInterstitial);
+
+            if (skip || SkipAds || !hasInterstitial)
             {
-                ResetInterstitialByTimer();
-                return false;
-            }
-
-            _currentAdPlacement = string.IsNullOrEmpty(placement) ? AdType_New.Interstital.ToString() : placement;
-
-            if (AdsDisabledDebug)
-            {
-                OnAdReceivedReward();
-                return true;
-            }
-
-            // OnAdClickedEvent?.Invoke(_currentAdType);
-            OnInterstitialAdShowRequested?.Invoke(global::AdsManager.Instance.HasInterstitial);
-
-            global::AdsManager.Instance.ShowInterstitial(() => OnAdReceivedReward(), _currentAdPlacement);
-            return true;
-        }
-
-        public bool CanShowRewarded()
-        {
-            var levelIndex = _progressService.GetLevelProgress();
-            return CanShowRewarded(levelIndex);
-        }
-
-        public bool CanShowRewarded(int levelIndex)
-        {
-            var cycles = _progressService.GetCyclesProgress();
-            return cycles > 0 || _adsSettings.RewardedFromLevel <= levelIndex + 1;
-        }
-
-        public void ShowRewarded(string adPlacement)
-        {
-            _currentAdPlacement = adPlacement;
-            OnAdClickedEvent?.Invoke(_currentAdPlacement);
-
-            if (AdsDisabledDebug)
-            {
-                OnAdReceivedReward();
+                onClose?.Invoke();
                 return;
             }
 
-            global::AdsManager.Instance.ShowRewarded(() => OnAdReceivedReward(), adPlacement);
+            _pendingCallback.Disposable = _interstitial.OnReward.Take(1).Subscribe(_ => onClose?.Invoke());
+            _interstitial.Show(placement);
         }
 
-        public void ShowRewarded(string placement, System.Action action)
+        public void ShowInterstitial(int level, string placement, Action onClose)
         {
-            OnAdReceivedOnceRewardEvent = (adType) =>
-                {
-                    OnAdReceivedOnceRewardEvent = null;
-                    action?.Invoke();
-                };
-
-            ShowRewarded(placement);
+            ShowInterstitial(placement, onClose, skip: level < _settings.FromLevel);
         }
 
-        public void ShowAppOpen(System.Action action)
+        public void ShowRewarded(string placement, Action onRewardCallback)
         {
-            if (AdsDisabledDebug)
+            OnAdClicked.OnNext(placement);
+
+            _pendingCallback.Disposable = OnReceivedReward.Take(1).Subscribe(_ => onRewardCallback?.Invoke());
+
+            if (SkipAds)
             {
-                action?.Invoke();
+                OnReceivedReward.OnNext(Unit.Default);
                 return;
             }
 
-            AdsManager.Instance.ShowAppOpen(action);
-        }
-
-        public bool ShowBanners(bool shouldShow)
-        {
-            if (_adsRuntimeScenario.IsEnabled && _adsSettings.EnableBanners)
+            if (Application.internetReachability == NetworkReachability.NotReachable)
             {
-                var hasBanners = _adsRuntimeScenario.ShowBanner;
-                _adsRuntimeScenario.ShowBanner = shouldShow;
-                if (shouldShow)
-                {
-                    AdsManager.Instance.ResumeAllBanners();
-                    AdsManager.Instance.DoEnableBanner();
-                }
-                else
-                {
-                    AdsManager.Instance.HideAllBanners();
-                }
-                return hasBanners;
+                MobileToast.Show("Sorry, No Internet Connection!", true);
+                return;
             }
 
-            return false;
+            _rewarded?.Show(placement);
         }
 
-        public void EnableBanners()
-        {
-            if (_adsRuntimeScenario.IsEnabled && _adsSettings.EnableBanners)
-            {
-                var levelIndex = _progressService.GetLevelProgress();
-                var cycles = _progressService.GetCyclesProgress();
-                if (cycles > 0 || _adsSettings.BannerFromLevel <= levelIndex + 1)
-                {
-                    AdsManager.Instance.DoEnableBanner();
-                }
-            }
-        }
-
-        public void DisableBanners()
-        {
-            if (_adsRuntimeScenario.IsEnabled && _adsRuntimeScenario.ShowBanner)
-            {
-                _adsRuntimeScenario.ShowBanner = false;
-                AdsManager.Instance.HideBanner();
-            }
-        }
-
-        public bool ShowMrec(bool shouldShow)
-        {
-            if (!_adsRuntimeScenario.IsEnabled || !_adsSettings.EnableMrec)
-                return false;
-
-            _adsRuntimeScenario.ShowMrec = shouldShow;
-            if (shouldShow)
-                AdsManager.Instance.ShowMREC();
-            else
-                AdsManager.Instance.HideMREC();
-
-            return true;
-        }
-
-        public bool ShowMrec(bool shouldShow, int x, int y)
-        {
-            if (!_adsRuntimeScenario.IsEnabled || !_adsSettings.EnableMrec)
-                return false;
-
-            _adsRuntimeScenario.ShowMrec = shouldShow;
-            if (shouldShow)
-                AdsManager.Instance.ShowMREC(x, y);
-            else
-                AdsManager.Instance.HideMREC();
-
-            return true;
-        }
+        public void ShowMrec() => _mrec?.Show();
+        public void ShowMrec(int x, int y) => _mrec?.Show(x, y);
+        public void HideMrec() => _mrec?.Hide();
 
         public void DisableAds(bool shouldDisable)
         {
-            _adsDisabled = shouldDisable;
-            _progressService.SetBoolProp(ProgressBoolProp.DisableAds, _adsDisabled);
-            _adsRuntimeScenario.IsEnabled = false;
-            _adsRuntimeScenario.EnableAppOpen = false;
-            _adsRuntimeScenario.ShouldWaitAppOpen = false;
-            _adsRuntimeScenario.InterstitialAfterLevels = new List<int>();
-            _adsRuntimeScenario.ShowBanner = false;
-            _adsRuntimeScenario.ShowMrec = false;
-            _adsRuntimeScenario.FromLevel = 0;
-            if (_adsDisabled && AdsManager.Instance != null)
+            _progressService.SetAdsDisabled(shouldDisable);
+            _adsEnabled.Value = !shouldDisable;
+            if (shouldDisable) _removableAdsDisposable.Dispose();
+        }
+
+        private async UniTask InitializeNetworksAsync(CancellationToken cancellationToken)
+        {
+            try
             {
-                AdsManager.Instance.DestroyBanner();
-                AdsManager.Instance.DestroyMREC();
-                AdsManager.Instance.SetAppOpenAutoShow(false);
-            }
+                Debug.Log("[Ads] Waiting for consent");
+                await _consentService.IsResolved.WaitTrue(cancellationToken);
 
-            _adsEnabled.Value = !_adsDisabled;
-        }
+                var isPersonalized = _consentService.IsPersonalized.CurrentValue;
+                var testMode = _settings.Config.TestMode;
 
-        public void ShowInterstitialByTimer()
-        {
-            _interstitialTimerTween?.Kill();
-            _interstitialTimerTween = DOVirtual.DelayedCall(_interstitialTimer, () => ShowInterstitial()).SetLoops(-1);
-        }
+                Debug.Log($"[Ads] Initializing AdMob (personalized={isPersonalized}, testMode={testMode})");
+                await AdmobInitializer.Initialize(isPersonalized, _consentService.IsForFamily, cancellationToken);
 
-        // Later it might be needed for starting interstitials
-        private void OnInitialized()
-        {
-            // global::AdsManager.Instance.OnInitialized -= OnInitialized;
-            _isInitialized = true;
-            ResetInterstitialByTimer();
-        }
-
-        private void OnConsentObtained(bool isPersonalized)
-        {
-            global::AdsManager.Instance.OnConsentObtained += OnConsentObtained;
-            var firebaseService = _diContainer.Resolve<IFirebaseService>();
-
-            firebaseService.UpdateConsentStatus(isPersonalized);
-
-#if TEL_META
-            if (_adsSettings.AdsAnalyticsSettings.EnableMeta)
-            {
-                _facebookModule = new FacebookModule();
-                _facebookModule.Initialize(isPersonalized);
-            }
+                Debug.Log("[Ads] Initializing AppLovin Max");
+                await MaxInitializer.Initialize(isPersonalized, testMode, cancellationToken);
+#if TEL_METICA
+                if (_settings.EnableMetica) { _metica = new MeticaInitializer(); await _metica.Initialize(_settings.MeticaPrefab); }
 #endif
 
-            // GameAnalyticsSDK.GameAnalytics.SetCustomDimension01(ConsentInformation.ConsentStatus.ToString());
-        }
+                BuildRewarded();
+                if (_adsEnabled.Value) BuildRemovableAds();
+                BuildModules();
 
-        private void ResetInterstitialByTimer()
-        {
-            if (_interstitialTimerTween == null) return;
-
-            _interstitialTimerTween.Kill();
-            _interstitialTimerTween = DOVirtual.DelayedCall(_interstitialTimer, () => ShowInterstitial()).SetLoops(-1);
-        }
-
-        private void OnAdReceivedReward()
-        {
-            ResetInterstitialByTimer();
-
-            OnAdReceivedRewardEvent?.Invoke(_currentAdPlacement);
-            OnAdReceivedOnceRewardEvent?.Invoke(_currentAdPlacement);
-            _currentAdPlacement = "";
-        }
-
-        private void OnRewardedAdLoadedCallback()
-        {
-            OnRewardedAdReady?.Invoke();
-        }
-
-        private void OnAdDisplayedReward()
-        {
-            OnAdDisplayedRewardEvent?.Invoke(_currentAdPlacement);
-        }
-
-        private void PeriodicAdCheck()
-        {
-            if (this.IsRewardedAdReady)
-            {
-                OnRewardedAdReady?.Invoke();
+                Debug.Log("[Ads] Networks initialized");
+                OnInitialized.OnNext(Unit.Default);
             }
-
-            DOVirtual.DelayedCall(1.0f, () => PeriodicAdCheck());
-        }
-
-        private bool ShouldShowInterstital(int levelIndex)
-        {
-            if (_adsRuntimeScenario.IsEnabled && levelIndex + 1 >= _adsRuntimeScenario.FromLevel)
+            catch (Exception exception)
             {
-                return _adsRuntimeScenario.InterstitialAfterLevels.Count == 0 ||
-                    _adsRuntimeScenario.InterstitialAfterLevels.Any(interstitialLevel => interstitialLevel == levelIndex + 1);
-            }
-
-            return false;
-        }
-
-        public void SetBannerSettings(BannerWidth bannerSize, AdPosition bannerPos)
-        {
-            _pendingBannerSize = bannerSize;
-            _pendingBannerPos = bannerPos;
-
-            if (AdsManager.Instance != null)
-            {
-                ApplyPendingBannerSettings();
+                Debug.LogError($"[Ads] Network initialization failed: {exception}");
             }
         }
 
-        private void ApplyPendingBannerSettings()
+        private void BuildModules()
         {
-            if (_pendingBannerSize.HasValue)
-            {
-                AdsManager.Instance.BannerSize = _pendingBannerSize.Value;
-            }
-            if (_pendingBannerPos.HasValue)
-            {
-                AdsManager.Instance.BannerPos = _pendingBannerPos.Value;
-            }
+            new AdsFirebaseModule(this).AddTo(_disposables);
+            new AdsAdjustModule(this).AddTo(_disposables);
+            new AdsMetricaModule(this).AddTo(_disposables);
+            new AdsAnalyticsModule(this, _analyticsService, _progressService).AddTo(_disposables);
+            new AdsFirebaseSignalsModule(this, _progressService).AddTo(_disposables);
         }
 
-        private static void InitializeAdjust(Adjust adjustPrefab)
+        private void BuildRemovableAds()
         {
-            var adjustConfig = new AdjustConfig(
-                adjustPrefab.appToken,
-                adjustPrefab.environment,
-                adjustPrefab.logLevel == AdjustLogLevel.Suppress);
-            adjustConfig.LogLevel = adjustPrefab.logLevel;
-            adjustConfig.IsSendingInBackgroundEnabled = adjustPrefab.sendInBackground;
-            adjustConfig.IsDeferredDeeplinkOpeningEnabled = adjustPrefab.launchDeferredDeeplink;
-            adjustConfig.DefaultTracker = adjustPrefab.defaultTracker;
-            adjustConfig.IsCoppaComplianceEnabled = adjustPrefab.coppaCompliance;
-            adjustConfig.IsCostDataInAttributionEnabled = adjustPrefab.costDataInAttribution;
-            adjustConfig.IsPreinstallTrackingEnabled = adjustPrefab.preinstallTracking;
-            adjustConfig.PreinstallFilePath = adjustPrefab.preinstallFilePath;
-            adjustConfig.IsAdServicesEnabled = adjustPrefab.adServices;
-            adjustConfig.IsIdfaReadingEnabled = adjustPrefab.idfaReading;
-            adjustConfig.IsLinkMeEnabled = adjustPrefab.linkMe;
-            adjustConfig.IsSkanAttributionEnabled = adjustPrefab.skanAttribution;
-#if UNITY_IOS && !UNITY_EDITOR
-            adjustConfig.AttConsentWaitingInterval = 120;
+            if (_settings.EnableInterstitial) BuildInterstitial();
+            if (_settings.EnableBanner) BuildBanner();
+            if (_settings.EnableMrec) BuildMrec();
+        }
+
+        private void BuildRewarded()
+        {
+            IRewarded appLovinRewarded = new MaxRewardedProvider(_settings.Config.AppLovin.RewardedId);
+#if TEL_METICA
+            if (_metica != null) appLovinRewarded = new MeticaRewardedProvider(appLovinRewarded, _metica);
 #endif
-            Adjust.InitSdk(adjustConfig);
+            _rewarded = new RewardedAdMediator(new IRewarded[]
+            {
+                appLovinRewarded,
+                new AdmobRewardedProvider(_settings.Config.Admob.RewardedId, _settings.Config.TestMode),
+            });
+            _pendingCallback.AddTo(_disposables);
+            _rewarded.OnReward.Subscribe(OnReceivedReward.OnNext).AddTo(_disposables);
+            SubscribeTo(_rewarded, () => _rewarded = null, _disposables);
+        }
+
+        private void BuildBanner()
+        {
+            var config = _settings.Config;
+            var bannerWidth = _settings.BannerSize == BannerWidth.Full ? 0 : 320;
+
+            _banner = new BannerAdMediator(new IBanner[]
+            {
+                new MaxBannerProvider(config.AppLovin.BannerId, _settings.BannerPosition, bannerWidth),
+                new AdmobBannerProvider(config.Admob.BannerId, _settings.BannerPosition, bannerWidth, config.TestMode),
+            });
+            SubscribeTo(_banner, () => _banner = null, _removableAdsDisposable);
+
+            ShowBanner(_shouldShowBanner);
+        }
+
+        private void BuildInterstitial()
+        {
+            var config = _settings.Config;
+            IInterstitial appLovinInterstitial = new MaxInterstitialProvider(config.AppLovin.InterstitialId);
+#if TEL_METICA
+            if (_metica != null) appLovinInterstitial = new MeticaInterstitialProvider(appLovinInterstitial, _metica);
+#endif
+            _interstitial = new InterstitialAdMediator(new IInterstitial[]
+            {
+                appLovinInterstitial,
+                new AdmobInterstitialProvider(config.Admob.InterstitialId, config.TestMode),
+            });
+            SubscribeTo(_interstitial, () => _interstitial = null, _removableAdsDisposable);
+        }
+
+        private void BuildMrec()
+        {
+            var config = _settings.Config;
+            _mrec = new MrecAdMediator(new IMrec[]
+            {
+                new MaxMrecProvider(config.AppLovin.MrecId, _settings.MrecPosition),
+                new AdmobMrecProvider(config.Admob.MrecId, _settings.MrecPosition, config.TestMode),
+            });
+            SubscribeTo(_mrec, () => _mrec = null, _removableAdsDisposable);
+        }
+
+        private void SubscribeTo<T>(T ad, Action setNull, CompositeDisposable bag) where T : IAd
+        {
+            ad.AddTo(bag);
+            ad.OnImpression.Subscribe(OnImpression.OnNext).AddTo(bag);
+            Disposable.Create(setNull).AddTo(bag);
         }
     }
 }

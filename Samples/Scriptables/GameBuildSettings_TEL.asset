@@ -15,32 +15,28 @@ MonoBehaviour:
   Android:
     Adjust: 
     GoogleAds:
-      AppKey: 
-      AppOpenId: 
-      BannerId: 
+      AppKey:
+      BannerId:
       MrecId: 
       InterstitialId: 
       RewardedId: 
     ApplovinAds:
-      AppKey: 
-      AppOpenId: 
-      BannerId: 
+      AppKey:
+      BannerId:
       MrecId: 
       InterstitialId: 
       RewardedId: 
   Ios:
     Adjust: 
     GoogleAds:
-      AppKey: 
-      AppOpenId: 
-      BannerId: 
+      AppKey:
+      BannerId:
       MrecId: 
       InterstitialId: 
       RewardedId: 
     ApplovinAds:
-      AppKey: 
-      AppOpenId: 
-      BannerId: 
+      AppKey:
+      BannerId:
       MrecId: 
       InterstitialId: 
       RewardedId: 

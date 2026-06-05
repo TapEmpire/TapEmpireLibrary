@@ -26,7 +26,7 @@ namespace TapEmpire.Services.Shop
             base.Initialize(data);
             _adsButton.onClick.Subscribe(OnClick).AddTo(_disposables);
 
-            if (!_adsService.CanShowRewarded() || Application.internetReachability == NetworkReachability.NotReachable)
+            if (!_adsService.CanShowRewarded || Application.internetReachability == NetworkReachability.NotReachable)
             {
                 _adsButton.gameObject.SetActive(false);
             }

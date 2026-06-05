@@ -56,7 +56,7 @@ namespace TapEmpire.Services.Offer
         {
             if (_disableBanners)
             {
-                _shouldEnableBanners = _adsService.ShowBanners(false);
+                _shouldEnableBanners = _adsService.ShowBanner(false);
             }
 
             _closeButton.onClick.Subscribe(DerivedModel.Close).AddTo(_disposables);
@@ -77,7 +77,7 @@ namespace TapEmpire.Services.Offer
         {
             if (_disableBanners)
             {
-                _adsService.ShowBanners(_shouldEnableBanners);
+                _adsService.ShowBanner(_shouldEnableBanners);
             }
 
             _visualDisposables.Dispose();

@@ -62,7 +62,7 @@ namespace TapEmpire.Services.Shop
             UpdateTimer();
 
             if (_data.Type == ProductType.Ads &&
-                (!_adsService.CanShowRewarded() || Application.internetReachability == NetworkReachability.NotReachable))
+                (!_adsService.CanShowRewarded || Application.internetReachability == NetworkReachability.NotReachable))
             {
                 this.gameObject.SetActive(false);
             }

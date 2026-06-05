@@ -30,7 +30,7 @@ namespace TapEmpire.Modules
 
         private void UpdateData(CampaignSettings settings)
         {
-            AdsSettings.EnableBanners = settings.EnableBanners;
+            AdsSettings.EnableBanner = settings.EnableBanner;
             AdsSettings.FromLevel = settings.FromLevel;
             AdsSettings.TimerData = settings.TimerData.ToList();
             AdsSettings.RewardedFromLevel = settings.RewardedFromLevel;
@@ -42,7 +42,7 @@ namespace TapEmpire.Modules
     public class CampaignSettings
     {
         public string Name;
-        public bool EnableBanners = true;
+        public bool EnableBanner = true;
         public int FromLevel = 0;
         public List<TimerData> TimerData = new();
         public int RewardedFromLevel = 0;

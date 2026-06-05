@@ -11,8 +11,5 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: fb91a82bb19524983b75aaf3c50bcb40, type: 3}
   m_Name: AdsSettings_TEL
-  m_EditorClassIdentifier: 
-  EnableAppOpen: 1
-  ShouldWaitAppOpen: 0
-  AppOpenWaitTime: 10
-  InterstitialAfterLevels: 
+  m_EditorClassIdentifier:
+  InterstitialAfterLevels:
