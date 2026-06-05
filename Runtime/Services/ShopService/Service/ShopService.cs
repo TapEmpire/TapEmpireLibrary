@@ -116,7 +116,7 @@ namespace TapEmpire.Services.Shop
         {
             _areFreeItemsAvailable.Value = _freeItemsKeys.Any(item =>
                 !HasTimeStampToday(item.Key).Item1 &&
-                (item.Type != ProductType.Ads || _adsService.CanShowRewarded()));
+                (item.Type != ProductType.Ads || _adsService.CanShowRewarded));
         }
 
         private void SetMidnightTimer()

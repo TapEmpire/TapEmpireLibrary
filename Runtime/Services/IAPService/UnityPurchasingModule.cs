@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using AdjustSdk;
 using Cysharp.Threading.Tasks;
 using R3;
+using TapEmpire.Services;
 using Unity.Services.Core;
 using Unity.Services.Core.Environments;
 using UnityEngine;
@@ -271,7 +271,7 @@ namespace TapEmpire.Services
                 return;
             }
 
-            VerifyAdjust(order, isRestore);
+            VerifyRemote(order, isRestore);
         }
 
         private void OnPurchaseFailed(FailedOrder order)
@@ -328,20 +328,18 @@ namespace TapEmpire.Services
 #endif
         }
 
-        private void VerifyAdjust(PendingOrder order, bool isRestore)
+        private void VerifyRemote(PendingOrder order, bool isRestore)
         {
-            Action<AdjustPurchaseVerificationResult> callback = (AdjustPurchaseVerificationResult result) =>
+            Action<bool> callback = isSuccess =>
             {
-                Debug.Log($"IAP Adjust verification result: {result.VerificationStatus}");
-                bool isSuccess = result.VerificationStatus == "success";
-
-                ThreadDispatcher.Enqueue(() => ProvidePurchase(order, isSuccess, isRestore));
+                Debug.Log($"IAP verification result: {isSuccess}");
+                ProvidePurchase(order, isSuccess, isRestore);
             };
 
 #if !IGNORE_VERIFICATION
             if (!_hasVerification)
             {
-                callback.Invoke(new AdjustPurchaseVerificationResult() { Code = 200, Message = "Ignore", VerificationStatus = "success" });
+                callback.Invoke(true);
                 return;
             }
 #endif
@@ -349,16 +347,13 @@ namespace TapEmpire.Services
             var unityReceipt = JsonUtility.FromJson<UnityReceipt>(order.Info.Receipt);
 
 #if UNITY_EDITOR || IGNORE_VERIFICATION
-            callback.Invoke(new AdjustPurchaseVerificationResult() { Code = 200, Message = "Ignore", VerificationStatus = "success" });
+            callback.Invoke(true);
 #elif UNITY_ANDROID
             var googleReceiptJson = JsonUtility.FromJson<GooglePlayReceiptJson>(unityReceipt.Payload);
             var googleReceipt = JsonUtility.FromJson<GooglePlayReceiptFixed>(googleReceiptJson.json);
-
-            var adjustPlayStorePurchase = new AdjustPlayStorePurchase(googleReceipt.productId, googleReceipt.purchaseToken);
-            Adjust.VerifyPlayStorePurchase(adjustPlayStorePurchase, callback);
+            AttributionService.VerifyAndroidPurchase(googleReceipt.productId, googleReceipt.purchaseToken, callback);
 #elif UNITY_IOS
-            var adjustAppStorePurchase = new AdjustAppStorePurchase(order.Info.TransactionID, order.CartOrdered.Items()[0].Product.definition.id);
-            Adjust.VerifyAppStorePurchase(adjustAppStorePurchase, callback);
+            AttributionService.VerifyApplePurchase(order.Info.TransactionID, order.CartOrdered.Items()[0].Product.definition.id, callback);
 #endif
         }
 

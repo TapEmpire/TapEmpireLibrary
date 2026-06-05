@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using AdjustSdk;
+using LunarConsolePlugin;
 using TapEmpire.Services;
 using TapEmpire.Settings;
 using TEL.Utilities;
@@ -151,16 +152,22 @@ namespace TapEmpire.Build
             startSettings.IgnoreConnection &= config == Configuration.Debug;
             EditorUtility.SetDirty(startSettings);
 
-            var adjust = AssetDatabase.LoadAssetAtPath<Adjust>($"{paths.DefaultServicesPath}/Adjust Variant.prefab");
-            adjust.environment = config == Configuration.Debug
+            var attributionSettings = AssetDatabase.LoadAssetAtPath<AttributionSettings>($"{paths.DefaultScriptablesPath}/AttributionSettings.asset");
+            attributionSettings.Environment = config == Configuration.Debug
                 ? AdjustEnvironment.Sandbox
                 : AdjustEnvironment.Production;
-            EditorUtility.SetDirty(adjust);
+            EditorUtility.SetDirty(attributionSettings);
 
-            var adsManager = AssetDatabase.LoadAssetAtPath<AdsManager>($"{paths.DefaultServicesPath}/AdsManager Variant.prefab");
-            adsManager.TestAds = config == Configuration.Debug;
-            EditorUtility.SetDirty(adsManager);
+            var adsConfig = AssetDatabase.LoadAssetAtPath<AdsConfig>($"{paths.DefaultScriptablesPath}/AdsConfig.asset");
+            adsConfig.TestMode = config == Configuration.Debug;
+            EditorUtility.SetDirty(adsConfig);
 
+            var console = UnityEngine.Object.FindObjectOfType<LunarConsole>(true);
+            if (console)
+            {
+                console.gameObject.SetActive(config == Configuration.Debug);
+                EditorTools.SetDirty(console);
+            }
         }
 
         private static void ApplyPlatform(PlatformType platform, ProjectPathSettings paths)
@@ -168,23 +175,14 @@ namespace TapEmpire.Build
             var buildSettings = AssetDatabase.LoadAssetAtPath<GameBuildSettings>(paths.GameBuildSettingsPath);
             var platformData = platform == PlatformType.Android ? buildSettings.Android : buildSettings.Ios;
 
-            var adjust = AssetDatabase.LoadAssetAtPath<Adjust>($"{paths.DefaultServicesPath}/Adjust Variant.prefab");
-            adjust.appToken = platformData.Adjust.AppToken;
-            EditorUtility.SetDirty(adjust);
+            var attributionSettings = AssetDatabase.LoadAssetAtPath<AttributionSettings>($"{paths.DefaultScriptablesPath}/AttributionSettings.asset");
+            attributionSettings.AppToken = platformData.Adjust.AppToken;
+            EditorUtility.SetDirty(attributionSettings);
 
-            var adsManager = AssetDatabase.LoadAssetAtPath<AdsManager>($"{paths.DefaultServicesPath}/AdsManager Variant.prefab");
-            adsManager.AppID = platformData.GoogleAds.AppKey;
-            adsManager.AppOpenID = platformData.GoogleAds.AppOpenId;
-            adsManager.BannerID = platformData.GoogleAds.BannerId;
-            adsManager.MrecID = platformData.GoogleAds.MrecId;
-            adsManager.InterstitialID = platformData.GoogleAds.InterstitialId;
-            adsManager.RewardedID = platformData.GoogleAds.RewardedId;
-            adsManager.MaxSDKKey = platformData.ApplovinAds.AppKey;
-            adsManager.MaxBanner = platformData.ApplovinAds.BannerId;
-            adsManager.MaxMrec = platformData.ApplovinAds.MrecId;
-            adsManager.MaxInterstitial = platformData.ApplovinAds.InterstitialId;
-            adsManager.MaxRewarded = platformData.ApplovinAds.RewardedId;
-            EditorUtility.SetDirty(adsManager);
+            var adsConfig = AssetDatabase.LoadAssetAtPath<AdsConfig>($"{paths.DefaultScriptablesPath}/AdsConfig.asset");
+            adsConfig.Admob.CopyFrom(platformData.GoogleAds);
+            adsConfig.AppLovin.CopyFrom(platformData.ApplovinAds);
+            EditorUtility.SetDirty(adsConfig);
 
             var servicesInstaller = AssetDatabase.LoadAssetAtPath<ServicesInstaller>($"{paths.DefaultScriptablesPath}/ServicesInstaller.asset");
             var iapService = servicesInstaller.GetService<IIapService>();
