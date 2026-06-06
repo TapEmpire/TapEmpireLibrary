@@ -64,7 +64,7 @@ namespace TapEmpire.Services
 
         private readonly CompositeDisposable _disposables = new();
         private readonly CompositeDisposable _removableAdsDisposable = new();
-        private readonly SerialDisposable _pendingCallback = new();
+        private readonly UniqueDisposable _pendingCallback = new();
 
         [Inject]
         private void Construct(IConsentService consentService, IProgressService progressService, IAnalyticsService analyticsService)
