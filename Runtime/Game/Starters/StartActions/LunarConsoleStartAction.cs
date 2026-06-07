@@ -12,6 +12,9 @@ namespace TapEmpire.Game
         [Inject]
         private ISystemService _systemService;
 
+        [Inject]
+        private DiContainer _diContainer;
+
         [SerializeField]
         private LunarConsole _prefab;
 
@@ -19,7 +22,8 @@ namespace TapEmpire.Game
         {
             if (_systemService.StaticSettings.Debug && _prefab != null)
             {
-                UnityEngine.Object.Instantiate(_prefab);
+                var instance = UnityEngine.Object.Instantiate(_prefab);
+                _diContainer.InjectGameObject(instance.gameObject);
             }
         }
     }

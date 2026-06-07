@@ -18,7 +18,7 @@ namespace TapEmpire.Services
             _adUnitId = testMode ? AdmobTestAdUnits.Banner : adUnitId;
 
             int bannerWidth = width > 0 ? width : AdSize.FullWidth;
-            var adSize = new AdSize(bannerWidth, 0);
+            var adSize = AdSize.GetCurrentOrientationAnchoredAdaptiveBannerAdSizeWithWidth(bannerWidth);
 
             _bannerView = new BannerView(_adUnitId, adSize, position.ToAdmobPosition());
 
@@ -56,8 +56,9 @@ namespace TapEmpire.Services
             UpdateLayout();
         }
 
-        private void OnAdLoadFailed(LoadAdError _)
+        private void OnAdLoadFailed(LoadAdError error)
         {
+            Debug.LogWarning($"[Ads] AdMob banner load failed: {error}");
             IsLoaded.Value = false;
         }
 

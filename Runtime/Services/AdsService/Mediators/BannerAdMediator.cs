@@ -11,27 +11,26 @@ namespace TapEmpire.Services
         public ReactiveProperty<Vector2> Layout { get; } = new(Vector2.zero);
         public Subject<AdImpressionData> OnImpression { get; } = new();
 
-        private readonly IReadOnlyList<IBanner> _providers;
+        private readonly List<IBanner> _providers = new();
         private readonly CompositeDisposable _disposables = new();
 
         private bool _shouldShow;
 
-        public BannerAdMediator(IReadOnlyList<IBanner> providers)
+        public void AddProvider(IBanner provider)
         {
-            _providers = providers;
+            _providers.Insert(0, provider);
 
-            foreach (var provider in _providers)
-            {
-                provider.OnImpression.Subscribe(OnImpression.OnNext).AddTo(_disposables);
-                provider.IsLoaded
-                    .Subscribe(_ => IsLoaded.Value = _providers.Any(provider => provider.IsLoaded.Value))
-                    .AddTo(_disposables);
-                provider.Layout
-                    .Subscribe(layout => Layout.Value = layout)
-                    .AddTo(_disposables);
-            }
-
-            _providers[0].IsLoaded.Subscribe(Refresh).AddTo(_disposables);
+            provider.OnImpression.Subscribe(OnImpression.OnNext).AddTo(_disposables);
+            provider.IsLoaded
+                .Subscribe(_ =>
+                {
+                    IsLoaded.Value = _providers.Any(entry => entry.IsLoaded.Value);
+                    Refresh();
+                })
+                .AddTo(_disposables);
+            provider.Layout
+                .Subscribe(layout => Layout.Value = layout)
+                .AddTo(_disposables);
         }
 
         public void Show()
@@ -47,9 +46,9 @@ namespace TapEmpire.Services
             foreach (var provider in _providers) provider.Hide();
         }
 
-        private void Refresh(bool isLoaded)
+        private void Refresh()
         {
-            if (isLoaded)
+            if (_providers[0].IsLoaded.Value)
             {
                 foreach (var provider in _providers.Skip(1)) provider.Hide();
                 Apply(_providers[0]);

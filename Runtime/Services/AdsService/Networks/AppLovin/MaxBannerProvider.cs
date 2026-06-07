@@ -62,6 +62,7 @@ namespace TapEmpire.Services
 
         private void OnAdLoadFailed(string adUnitId, MaxSdkBase.ErrorInfo errorInfo)
         {
+            Debug.LogWarning($"[Ads] Max banner load failed: {errorInfo}");
             IsLoaded.Value = false;
         }
 

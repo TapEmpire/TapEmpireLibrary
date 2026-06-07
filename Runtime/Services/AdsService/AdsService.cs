@@ -52,10 +52,10 @@ namespace TapEmpire.Services
         private IProgressService _progressService;
         private IAnalyticsService _analyticsService;
 
-        private IBanner _banner;
-        private IInterstitial _interstitial;
-        private IRewarded _rewarded;
-        private IMrec _mrec;
+        private BannerAdMediator _banner;
+        private InterstitialAdMediator _interstitial;
+        private RewardedAdMediator _rewarded;
+        private MrecAdMediator _mrec;
         private bool _shouldShowBanner = false;
 
 #if TEL_METICA
@@ -64,7 +64,7 @@ namespace TapEmpire.Services
 
         private readonly CompositeDisposable _disposables = new();
         private readonly CompositeDisposable _removableAdsDisposable = new();
-        private readonly SerialDisposable _pendingCallback = new();
+        private readonly UniqueDisposable _pendingCallback = new();
 
         [Inject]
         private void Construct(IConsentService consentService, IProgressService progressService, IAnalyticsService analyticsService)
@@ -167,18 +167,21 @@ namespace TapEmpire.Services
                 var isPersonalized = _consentService.IsPersonalized.CurrentValue;
                 var testMode = _settings.Config.TestMode;
 
-                Debug.Log($"[Ads] Initializing AdMob (personalized={isPersonalized}, testMode={testMode})");
+                BuildMediators();
+                BuildModules();
+
+                Debug.Log("[Ads] Initializing AdMob");
                 await AdmobInitializer.Initialize(isPersonalized, _consentService.IsForFamily, cancellationToken);
+                AddAdmobProviders();
 
                 Debug.Log("[Ads] Initializing AppLovin Max");
                 await MaxInitializer.Initialize(isPersonalized, testMode, cancellationToken);
 #if TEL_METICA
                 if (_settings.EnableMetica) { _metica = new MeticaInitializer(); await _metica.Initialize(_settings.MeticaPrefab); }
 #endif
+                AddMaxProviders();
 
-                BuildRewarded();
-                if (_adsEnabled.Value) BuildRemovableAds();
-                BuildModules();
+                ShowBanner(_shouldShowBanner);
 
                 Debug.Log("[Ads] Networks initialized");
                 OnInitialized.OnNext(Unit.Default);
@@ -198,68 +201,73 @@ namespace TapEmpire.Services
             new AdsFirebaseSignalsModule(this, _progressService).AddTo(_disposables);
         }
 
-        private void BuildRemovableAds()
+        private void BuildMediators()
         {
-            if (_settings.EnableInterstitial) BuildInterstitial();
-            if (_settings.EnableBanner) BuildBanner();
-            if (_settings.EnableMrec) BuildMrec();
-        }
-
-        private void BuildRewarded()
-        {
-            IRewarded appLovinRewarded = new MaxRewardedProvider(_settings.Config.AppLovin.RewardedId);
-#if TEL_METICA
-            if (_metica != null) appLovinRewarded = new MeticaRewardedProvider(appLovinRewarded, _metica);
-#endif
-            _rewarded = new RewardedAdMediator(new IRewarded[]
-            {
-                appLovinRewarded,
-                new AdmobRewardedProvider(_settings.Config.Admob.RewardedId, _settings.Config.TestMode),
-            });
+            _rewarded = new RewardedAdMediator();
             _pendingCallback.AddTo(_disposables);
             _rewarded.OnReward.Subscribe(OnReceivedReward.OnNext).AddTo(_disposables);
             SubscribeTo(_rewarded, () => _rewarded = null, _disposables);
+
+            if (_adsEnabled.Value)
+            {
+                if (_settings.EnableInterstitial)
+                {
+                    _interstitial = new InterstitialAdMediator();
+                    SubscribeTo(_interstitial, () => _interstitial = null, _removableAdsDisposable);
+                }
+
+                if (_settings.EnableBanner)
+                {
+                    _banner = new BannerAdMediator();
+                    SubscribeTo(_banner, () => _banner = null, _removableAdsDisposable);
+                }
+
+                if (_settings.EnableMrec)
+                {
+                    _mrec = new MrecAdMediator();
+                    SubscribeTo(_mrec, () => _mrec = null, _removableAdsDisposable);
+                }
+            }
         }
 
-        private void BuildBanner()
+        private void AddAdmobProviders()
         {
             var config = _settings.Config;
             var bannerWidth = _settings.BannerSize == BannerWidth.Full ? 0 : 320;
 
-            _banner = new BannerAdMediator(new IBanner[]
-            {
-                new MaxBannerProvider(config.AppLovin.BannerId, _settings.BannerPosition, bannerWidth),
-                new AdmobBannerProvider(config.Admob.BannerId, _settings.BannerPosition, bannerWidth, config.TestMode),
-            });
-            SubscribeTo(_banner, () => _banner = null, _removableAdsDisposable);
-
-            ShowBanner(_shouldShowBanner);
+            _rewarded.AddProvider(new AdmobRewardedProvider(config.Admob.RewardedId, config.TestMode));
+            _interstitial?.AddProvider(new AdmobInterstitialProvider(config.Admob.InterstitialId, config.TestMode));
+            _banner?.AddProvider(new AdmobBannerProvider(config.Admob.BannerId, _settings.BannerPosition, bannerWidth, config.TestMode));
+            _mrec?.AddProvider(new AdmobMrecProvider(config.Admob.MrecId, _settings.MrecPosition, config.TestMode));
         }
 
-        private void BuildInterstitial()
+        private void AddMaxProviders()
         {
             var config = _settings.Config;
-            IInterstitial appLovinInterstitial = new MaxInterstitialProvider(config.AppLovin.InterstitialId);
+            var bannerWidth = _settings.BannerSize == BannerWidth.Full ? 0 : 320;
+
+            _rewarded.AddProvider(CreateMaxRewarded(config.AppLovin.RewardedId));
+            _interstitial?.AddProvider(CreateMaxInterstitial(config.AppLovin.InterstitialId));
+            _banner?.AddProvider(new MaxBannerProvider(config.AppLovin.BannerId, _settings.BannerPosition, bannerWidth));
+            _mrec?.AddProvider(new MaxMrecProvider(config.AppLovin.MrecId, _settings.MrecPosition));
+        }
+
+        private IRewarded CreateMaxRewarded(string adUnitId)
+        {
+            IRewarded provider = new MaxRewardedProvider(adUnitId);
 #if TEL_METICA
-            if (_metica != null) appLovinInterstitial = new MeticaInterstitialProvider(appLovinInterstitial, _metica);
+            if (_metica != null) provider = new MeticaRewardedProvider(provider, _metica);
 #endif
-            _interstitial = new InterstitialAdMediator(new IInterstitial[]
-            {
-                appLovinInterstitial,
-                new AdmobInterstitialProvider(config.Admob.InterstitialId, config.TestMode),
-            });
-            SubscribeTo(_interstitial, () => _interstitial = null, _removableAdsDisposable);
+            return provider;
         }
 
-        private void BuildMrec()
+        private IInterstitial CreateMaxInterstitial(string adUnitId)
         {
-            var config = _settings.Config;
-            _mrec = new MrecAdMediator(new IMrec[]
-            {
-                new MaxMrecProvider(config.AppLovin.MrecId, _settings.MrecPosition),
-                new AdmobMrecProvider(config.Admob.MrecId, _settings.MrecPosition, config.TestMode),
-            });
-            SubscribeTo(_mrec, () => _mrec = null, _removableAdsDisposable);
+            IInterstitial provider = new MaxInterstitialProvider(adUnitId);
+#if TEL_METICA
+            if (_metica != null) provider = new MeticaInterstitialProvider(provider, _metica);
+#endif
+            return provider;
         }
 
         private void SubscribeTo<T>(T ad, Action setNull, CompositeDisposable bag) where T : IAd

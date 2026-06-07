@@ -18,6 +18,7 @@ namespace TapEmpire.Services
         private IDisposable _adDisposable;
         private CancellableTask _retryDisposable;
         private int _retryAttempt;
+        private string _lastPlacement;
 
         public AdmobRewardedProvider(string adUnitId, bool testMode)
         {
@@ -37,6 +38,7 @@ namespace TapEmpire.Services
 
         public void Show(string placement)
         {
+            _lastPlacement = placement;
             _rewardedAd?.Show(_ => OnReward.OnNext(Unit.Default));
         }
 
@@ -99,7 +101,7 @@ namespace TapEmpire.Services
 
         private void OnAdPaid(AdValue value)
         {
-            OnImpression.OnNext(AdmobImpressionData.Create(value, AdFormat.Rewarded, _rewardedAdUnitId));
+            OnImpression.OnNext(AdmobImpressionData.Create(value, AdFormat.Rewarded, _rewardedAdUnitId, _lastPlacement));
         }
     }
 }
