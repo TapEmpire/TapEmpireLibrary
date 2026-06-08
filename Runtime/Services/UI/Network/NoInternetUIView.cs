@@ -6,7 +6,7 @@ using UnityEngine.UI;
 
 namespace TapEmpire.UI
 {
-    public class NoInternetUIView : UIView<NoInternetUIViewModel>, IFadeAbleView
+    public class NoInternetUIView : UIView<NoInternetUIViewModel>, IFadeAbleView, IInjectable
     {
         [SerializeField]
         private Transform _bounceRoot;

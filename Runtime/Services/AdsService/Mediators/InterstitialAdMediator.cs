@@ -10,20 +10,18 @@ namespace TapEmpire.Services
         public Subject<AdImpressionData> OnImpression { get; } = new();
         public Subject<Unit> OnReward { get; } = new();
 
-        private readonly IReadOnlyList<IInterstitial> _providers;
+        private readonly List<IInterstitial> _providers = new();
         private readonly CompositeDisposable _disposables = new();
 
-        public InterstitialAdMediator(IReadOnlyList<IInterstitial> providers)
+        public void AddProvider(IInterstitial provider)
         {
-            _providers = providers;
-            foreach (var provider in _providers)
-            {
-                provider.OnImpression.Subscribe(OnImpression.OnNext).AddTo(_disposables);
-                provider.OnReward.Subscribe(OnReward.OnNext).AddTo(_disposables);
-                provider.IsLoaded
-                    .Subscribe(_ => IsLoaded.Value = _providers.Any(provider => provider.IsLoaded.Value))
-                    .AddTo(_disposables);
-            }
+            _providers.Insert(0, provider);
+
+            provider.OnImpression.Subscribe(OnImpression.OnNext).AddTo(_disposables);
+            provider.OnReward.Subscribe(OnReward.OnNext).AddTo(_disposables);
+            provider.IsLoaded
+                .Subscribe(_ => IsLoaded.Value = _providers.Any(entry => entry.IsLoaded.Value))
+                .AddTo(_disposables);
         }
 
         public bool HasInterstitial(bool doRequest = false)

@@ -10,25 +10,24 @@ namespace TapEmpire.Services
         public ReactiveProperty<bool> IsLoaded { get; } = new(false);
         public Subject<AdImpressionData> OnImpression { get; } = new();
 
-        private readonly IReadOnlyList<IMrec> _providers;
+        private readonly List<IMrec> _providers = new();
         private readonly CompositeDisposable _disposables = new();
 
         private bool _shouldShow;
         private Vector2Int? _customPosition;
 
-        public MrecAdMediator(IReadOnlyList<IMrec> providers)
+        public void AddProvider(IMrec provider)
         {
-            _providers = providers;
+            _providers.Insert(0, provider);
 
-            foreach (var provider in _providers)
-            {
-                provider.OnImpression.Subscribe(OnImpression.OnNext).AddTo(_disposables);
-                provider.IsLoaded
-                    .Subscribe(_ => IsLoaded.Value = _providers.Any(provider => provider.IsLoaded.Value))
-                    .AddTo(_disposables);
-            }
-
-            _providers[0].IsLoaded.Subscribe(Refresh).AddTo(_disposables);
+            provider.OnImpression.Subscribe(OnImpression.OnNext).AddTo(_disposables);
+            provider.IsLoaded
+                .Subscribe(_ =>
+                {
+                    IsLoaded.Value = _providers.Any(entry => entry.IsLoaded.Value);
+                    Refresh();
+                })
+                .AddTo(_disposables);
         }
 
         public void Show()
@@ -51,9 +50,9 @@ namespace TapEmpire.Services
             foreach (var provider in _providers) provider.Hide();
         }
 
-        private void Refresh(bool isLoaded)
+        private void Refresh()
         {
-            if (isLoaded)
+            if (_providers[0].IsLoaded.Value)
             {
                 foreach (var provider in _providers.Skip(1)) provider.Hide();
                 Apply(_providers[0]);
