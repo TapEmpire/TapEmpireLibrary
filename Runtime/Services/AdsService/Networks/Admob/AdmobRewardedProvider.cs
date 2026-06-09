@@ -66,6 +66,7 @@ namespace TapEmpire.Services
             _rewardedAd = ad;
 
             ad.OnAdPaid += OnAdPaid;
+            ad.OnAdFullScreenContentOpened += OnAdOpened;
             ad.OnAdFullScreenContentClosed += OnAdClosed;
             ad.OnAdFullScreenContentFailed += OnAdShowFailed;
 
@@ -76,6 +77,11 @@ namespace TapEmpire.Services
             });
 
             IsLoaded.Value = true;
+        }
+
+        private void OnAdOpened()
+        {
+            FullScreenAdEvents.NotifyOpened();
         }
 
         private void OnLoadFailed()
@@ -90,12 +96,14 @@ namespace TapEmpire.Services
         private void OnAdClosed()
         {
             IsLoaded.Value = false;
+            FullScreenAdEvents.NotifyClosed();
             LoadRewarded();
         }
 
         private void OnAdShowFailed(AdmobAdError _)
         {
             IsLoaded.Value = false;
+            FullScreenAdEvents.NotifyClosed();
             LoadRewarded();
         }
 
