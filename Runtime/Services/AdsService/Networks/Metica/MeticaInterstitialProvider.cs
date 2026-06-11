@@ -9,6 +9,7 @@ namespace TapEmpire.Services
     public class MeticaInterstitialProvider : IInterstitial
     {
         public ReactiveProperty<bool> IsLoaded { get; }
+        public ReactiveProperty<bool> IsShowing { get; }
         public Subject<AdImpressionData> OnImpression { get; }
         public Subject<Unit> OnReward { get; }
 
@@ -28,6 +29,7 @@ namespace TapEmpire.Services
                 _inner = null;
 
                 IsLoaded = new ReactiveProperty<bool>(false);
+                IsShowing = new ReactiveProperty<bool>(false);
                 OnImpression = new Subject<AdImpressionData>();
                 OnReward = new Subject<Unit>();
 
@@ -43,6 +45,7 @@ namespace TapEmpire.Services
             {
                 _inner = inner;
                 IsLoaded = inner.IsLoaded;
+                IsShowing = inner.IsShowing;
                 OnImpression = inner.OnImpression;
                 OnReward = inner.OnReward;
 
@@ -64,8 +67,15 @@ namespace TapEmpire.Services
 
         public void Show(string placement)
         {
-            if (_takeover) MeticaAds.ShowInterstitial();
-            else _inner.Show(placement);
+            if (_takeover)
+            {
+                IsShowing.Value = true;
+                MeticaAds.ShowInterstitial();
+            }
+            else
+            {
+                _inner.Show(placement);
+            }
         }
 
         public void Dispose()
@@ -106,12 +116,14 @@ namespace TapEmpire.Services
         private void OnMeticaShowFailed(MeticaAd ad, object error)
         {
             IsLoaded.Value = false;
+            IsShowing.Value = false;
             MeticaAds.LoadInterstitial();
         }
 
         private void OnMeticaHidden(MeticaAd ad)
         {
             IsLoaded.Value = false;
+            IsShowing.Value = false;
             OnReward.OnNext(Unit.Default);
             MeticaAds.LoadInterstitial();
         }

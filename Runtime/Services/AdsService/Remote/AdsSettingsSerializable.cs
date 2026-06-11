@@ -14,6 +14,7 @@ namespace TapEmpire.Services
             public bool? EnableMetica;
             public bool? EnableBanner;
             public bool? EnableMrec;
+            public bool? EnableAdSessionGuard;
             public int? FromLevel;
             public int? BannerFromLevel;
             public int? RewardedFromLevel;
@@ -24,6 +25,7 @@ namespace TapEmpire.Services
                 EnableMetica = settings.EnableMetica;
                 EnableBanner = settings.EnableBanner;
                 EnableMrec = settings.EnableMrec;
+                EnableAdSessionGuard = settings.EnableAdSessionGuard;
                 FromLevel = settings.FromLevel;
                 BannerFromLevel = settings.BannerFromLevel;
                 RewardedFromLevel = settings.RewardedFromLevel;
@@ -35,6 +37,7 @@ namespace TapEmpire.Services
                 settings.EnableMetica = EnableMetica ?? settings.EnableMetica;
                 settings.EnableBanner = EnableBanner ?? settings.EnableBanner;
                 settings.EnableMrec = EnableMrec ?? settings.EnableMrec;
+                settings.EnableAdSessionGuard = EnableAdSessionGuard ?? settings.EnableAdSessionGuard;
                 settings.FromLevel = FromLevel ?? settings.FromLevel;
                 settings.BannerFromLevel = BannerFromLevel ?? settings.BannerFromLevel;
                 settings.RewardedFromLevel = RewardedFromLevel ?? settings.RewardedFromLevel;

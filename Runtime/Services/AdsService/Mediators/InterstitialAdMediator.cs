@@ -7,6 +7,7 @@ namespace TapEmpire.Services
     public class InterstitialAdMediator : IInterstitial
     {
         public ReactiveProperty<bool> IsLoaded { get; } = new(false);
+        public ReactiveProperty<bool> IsShowing { get; } = new(false);
         public Subject<AdImpressionData> OnImpression { get; } = new();
         public Subject<Unit> OnReward { get; } = new();
 
@@ -21,6 +22,9 @@ namespace TapEmpire.Services
             provider.OnReward.Subscribe(OnReward.OnNext).AddTo(_disposables);
             provider.IsLoaded
                 .Subscribe(_ => IsLoaded.Value = _providers.Any(entry => entry.IsLoaded.Value))
+                .AddTo(_disposables);
+            provider.IsShowing
+                .Subscribe(_ => IsShowing.Value = _providers.Any(entry => entry.IsShowing.Value))
                 .AddTo(_disposables);
         }
 
