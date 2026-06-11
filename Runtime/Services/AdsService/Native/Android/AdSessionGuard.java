@@ -5,11 +5,9 @@ import android.app.Application;
 import android.os.Bundle;
 import android.os.Process;
 import android.os.SystemClock;
-import android.util.Log;
 
 public class AdSessionGuard implements Application.ActivityLifecycleCallbacks {
 
-    private static final String TAG = "AdSessionGuard";
     private static AdSessionGuard instance;
 
     private boolean isAdActive;
@@ -17,26 +15,17 @@ public class AdSessionGuard implements Application.ActivityLifecycleCallbacks {
     private long pausedAtMs;
 
     public static void init(Activity activity, long timeoutSeconds) {
-        if (instance != null) {
-            Log.d(TAG, "init: already initialized, skipping");
-            return;
-        }
+        if (instance != null) return;
         instance = new AdSessionGuard(activity, timeoutSeconds);
-        Log.d(TAG, "init: initialized with timeout=" + timeoutSeconds + "s");
     }
 
     public static void setTimeout(long timeoutSeconds) {
         if (instance == null) return;
         instance.timeoutMs = timeoutSeconds * 1000L;
-        Log.d(TAG, "setTimeout: " + timeoutSeconds + "s");
     }
 
     public static void setAdActive(boolean active) {
-        if (instance == null) {
-            Log.w(TAG, "setAdActive(" + active + "): instance is null, not initialized");
-            return;
-        }
-        Log.d(TAG, "setAdActive(" + active + ") prev=" + instance.isAdActive);
+        if (instance == null) return;
         instance.isAdActive = active;
         if (!active) {
             instance.pausedAtMs = 0;
@@ -50,7 +39,6 @@ public class AdSessionGuard implements Application.ActivityLifecycleCallbacks {
 
     @Override
     public void onActivityPaused(Activity activity) {
-        Log.d(TAG, "onActivityPaused: isAdActive=" + isAdActive);
         if (isAdActive) {
             pausedAtMs = SystemClock.elapsedRealtime();
         }
@@ -58,13 +46,10 @@ public class AdSessionGuard implements Application.ActivityLifecycleCallbacks {
 
     @Override
     public void onActivityResumed(Activity activity) {
-        Log.d(TAG, "onActivityResumed: pausedAtMs=" + pausedAtMs + " isAdActive=" + isAdActive);
         if (pausedAtMs > 0) {
             long elapsed = SystemClock.elapsedRealtime() - pausedAtMs;
             pausedAtMs = 0;
-            Log.d(TAG, "onActivityResumed: elapsed=" + elapsed + "ms timeout=" + timeoutMs + "ms");
             if (elapsed >= timeoutMs) {
-                Log.w(TAG, "onActivityResumed: KILLING process, elapsed " + elapsed + "ms >= timeout " + timeoutMs + "ms");
                 Process.killProcess(Process.myPid());
             }
         }

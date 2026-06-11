@@ -37,7 +37,6 @@ namespace TapEmpire.Services
             using var unityPlayer = new AndroidJavaClass("com.unity3d.player.UnityPlayer");
             using var activity = unityPlayer.GetStatic<AndroidJavaObject>("currentActivity");
             guardClass.CallStatic("init", activity, timeoutSeconds);
-            Debug.Log($"[AdSessionGuard] Initialized with timeout: {timeoutSeconds}s");
 #endif
         }
 
@@ -51,7 +50,6 @@ namespace TapEmpire.Services
 
         private static void SetAdActiveNative(bool active)
         {
-            Debug.Log($"[AdSessionGuard] SetAdActive({active})");
 #if UNITY_ANDROID && !UNITY_EDITOR
             using var guardClass = new AndroidJavaClass(NativeClassName);
             guardClass.CallStatic("setAdActive", active);
