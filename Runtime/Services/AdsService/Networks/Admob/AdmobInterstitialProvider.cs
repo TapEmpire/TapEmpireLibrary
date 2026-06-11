@@ -39,6 +39,7 @@ namespace TapEmpire.Services
         public void Show(string placement)
         {
             _lastPlacement = placement;
+            FullScreenAdEvents.NotifyOpened();
             _interstitialAd?.Show();
         }
 
@@ -81,7 +82,6 @@ namespace TapEmpire.Services
 
         private void OnAdOpened()
         {
-            FullScreenAdEvents.NotifyOpened();
         }
 
         private void OnLoadFailed()

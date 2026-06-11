@@ -40,6 +40,7 @@ namespace TapEmpire.Services
 
         public void Show(string placement)
         {
+            FullScreenAdEvents.NotifyOpened();
             MaxSdk.ShowInterstitial(_adUnitId, placement);
         }
 
@@ -74,12 +75,14 @@ namespace TapEmpire.Services
         private void OnAdDisplayFailed(string adUnitId, MaxSdkBase.ErrorInfo errorInfo, MaxSdkBase.AdInfo adInfo)
         {
             IsLoaded.Value = false;
+            FullScreenAdEvents.NotifyClosed();
             LoadInterstitial();
         }
 
         private void OnAdHidden(string adUnitId, MaxSdkBase.AdInfo adInfo)
         {
             IsLoaded.Value = false;
+            FullScreenAdEvents.NotifyClosed();
             OnReward.OnNext(Unit.Default);
             LoadInterstitial();
         }
