@@ -71,7 +71,7 @@ namespace TapEmpire.Services
             base.OnRelease();
         }
 
-        public void Add(T resource, int amount, string reason = "", ResourceAcquireType acquireType = ResourceAcquireType.Free)
+        public virtual void Add(T resource, int amount, string reason = "", ResourceAcquireType acquireType = ResourceAcquireType.Free)
         {
             var value = _resources[resource].Add(amount);
 
@@ -108,7 +108,7 @@ namespace TapEmpire.Services
             _resources.ForEach(pair => pair.Value.RefreshFromProgress());
         }
 
-        public void AddVirtual(T resource, int amount, string reason, ResourceAcquireType acquireType = ResourceAcquireType.Free)
+        public virtual void AddVirtual(T resource, int amount, string reason, ResourceAcquireType acquireType = ResourceAcquireType.Free)
         {
             if (!string.IsNullOrEmpty(reason))
             {
@@ -118,7 +118,7 @@ namespace TapEmpire.Services
             _onVirtualAdded.OnNext(resource);
         }
 
-        public Sprite GetFlyingSprite(T type)
+        public virtual Sprite GetFlyingSprite(T type)
         {
             return GetSettings(type).FlyingSprite;
         }
