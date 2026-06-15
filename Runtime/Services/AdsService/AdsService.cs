@@ -63,9 +63,9 @@ namespace TapEmpire.Services
         private MeticaInitializer _metica;
 #endif
 
-        private readonly CompositeDisposable _disposables = new();
-        private readonly CompositeDisposable _removableAdsDisposable = new();
-        private readonly UniqueDisposable _pendingCallback = new();
+        private CompositeDisposable _disposables = new();
+        private CompositeDisposable _removableAdsDisposable = new();
+        private UniqueDisposable _pendingCallback = new();
 
         [Inject]
         private void Construct(IConsentService consentService, IProgressService progressService, IAnalyticsService analyticsService, ISystemService systemService)
@@ -78,6 +78,10 @@ namespace TapEmpire.Services
 
         protected override UniTask OnInitializeAsync(CancellationToken cancellationToken)
         {
+            _disposables = new();
+            _removableAdsDisposable = new();
+            _pendingCallback = new();
+
             _adsEnabled.Value = !_progressService.GetAdsDisabled();
 
             InitializeNetworksAsync(LifetimeCancellationToken).Forget();
