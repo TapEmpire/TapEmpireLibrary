@@ -9,6 +9,7 @@ namespace TapEmpire.Services
     public class AdmobRewardedProvider : IRewarded
     {
         public ReactiveProperty<bool> IsLoaded { get; } = new(false);
+        public ReactiveProperty<bool> IsShowing { get; } = new(false);
         public Subject<AdImpressionData> OnImpression { get; } = new();
         public Subject<Unit> OnReward { get; } = new();
 
@@ -39,6 +40,7 @@ namespace TapEmpire.Services
         public void Show(string placement)
         {
             _lastPlacement = placement;
+            IsShowing.Value = true;
             _rewardedAd?.Show(_ => OnReward.OnNext(Unit.Default));
         }
 
@@ -90,12 +92,14 @@ namespace TapEmpire.Services
         private void OnAdClosed()
         {
             IsLoaded.Value = false;
+            IsShowing.Value = false;
             LoadRewarded();
         }
 
         private void OnAdShowFailed(AdmobAdError _)
         {
             IsLoaded.Value = false;
+            IsShowing.Value = false;
             LoadRewarded();
         }
 

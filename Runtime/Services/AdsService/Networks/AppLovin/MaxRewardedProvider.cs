@@ -7,6 +7,7 @@ namespace TapEmpire.Services
     public class MaxRewardedProvider : IRewarded
     {
         public ReactiveProperty<bool> IsLoaded { get; } = new(false);
+        public ReactiveProperty<bool> IsShowing { get; } = new(false);
         public Subject<AdImpressionData> OnImpression { get; } = new();
         public Subject<Unit> OnReward { get; } = new();
 
@@ -41,6 +42,7 @@ namespace TapEmpire.Services
 
         public void Show(string placement)
         {
+            IsShowing.Value = true;
             MaxSdk.ShowRewardedAd(_adUnitId, placement);
         }
 
@@ -76,12 +78,14 @@ namespace TapEmpire.Services
         private void OnAdDisplayFailed(string adUnitId, MaxSdkBase.ErrorInfo errorInfo, MaxSdkBase.AdInfo adInfo)
         {
             IsLoaded.Value = false;
+            IsShowing.Value = false;
             LoadRewardedAd();
         }
 
         private void OnAdHidden(string adUnitId, MaxSdkBase.AdInfo adInfo)
         {
             IsLoaded.Value = false;
+            IsShowing.Value = false;
             LoadRewardedAd();
         }
 
