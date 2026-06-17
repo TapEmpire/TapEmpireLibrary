@@ -22,6 +22,8 @@ namespace TapEmpire.Services.Shop
         private ShopSettings _shopSettings;
 
         protected Button PurchaseButton => _purchaseButton;
+        protected string Placement => _placement;
+        protected TMP_Text AmountText => _amount;
 
         [Inject]
         private void Construct(IResourcesService<ResourceType> resourcesService, IAnimationService<ResourceType> animationService,
@@ -33,7 +35,7 @@ namespace TapEmpire.Services.Shop
             _shopSettings = shopService.ShopSettings;
         }
 
-        public  override void Initialize(ProductData data)
+        public override void Initialize(ProductData data)
         {
             base.Initialize(data);
             _data = data;
@@ -44,10 +46,7 @@ namespace TapEmpire.Services.Shop
 
             _priceText.text = $"{price.Amount}";
 
-            if (_amount != null)
-            {
-                _amount.text = $"x{reward.Amount}";
-            }
+            SetAmountText(reward);
 
             if (data.Icon != null)
             {
@@ -60,10 +59,23 @@ namespace TapEmpire.Services.Shop
                 _special.sprite = _shopSettings.InfoIcons[data.InfoType];
             }
 
-            _purchaseButton.enabled = HasAmount();
+            SetPurchaseButtonState();
             _customButton?.SetActive(_purchaseButton.enabled);
 
             _resourcesService.GetResourceData(price.Resource).Amount.Subscribe(OnCoinsChanged).AddTo(_disposables);
+        }
+
+        protected virtual void SetAmountText(ProductReward<ResourceType> reward)
+        {
+            if (_amount != null)
+            {
+                _amount.text = $"x{reward.Amount}";
+            }
+        }
+
+        protected virtual void SetPurchaseButtonState()
+        {
+            _purchaseButton.enabled = HasAmount();
         }
 
         protected virtual void OnPurchase()
