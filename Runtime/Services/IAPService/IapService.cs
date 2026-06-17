@@ -52,7 +52,11 @@ namespace TapEmpire.Services
         private string _placement = null;
 
         [Inject]
-        private void Construct(DiContainer diContainer, IProgressService progressService, IAdsService adsService, IUIService uiService)
+        private void Construct(
+            DiContainer diContainer,
+            IProgressService progressService,
+            IAdsService adsService,
+            IUIService uiService)
         {
             _adsService = adsService;
             _progressService = progressService;

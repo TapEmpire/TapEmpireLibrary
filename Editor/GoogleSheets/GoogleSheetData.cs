@@ -9,6 +9,7 @@ using UnityEditor.Localization;
 using UnityEngine;
 using UnityEngine.Localization.Tables;
 using UnityEngine.SocialPlatforms;
+using TapEmpire.Services.Localization;
 using UnityEngine.UI;
 
 namespace TapEmpire.Utility.GoogleSheet
@@ -157,7 +158,7 @@ namespace TapEmpire.Utility.GoogleSheet
                     var table = dict[containerEntry.Locale];
                     // if (containerEntry.Locale == "en") continue;
 
-                    CreateOrUpdateEntry(table, containerEntry.LocalizedString, container.Key);
+                    table.CreateOrUpdateEntry(container.Key, containerEntry.LocalizedString);
                 }
 
                 foreach (var table in dict.Values)
@@ -192,18 +193,6 @@ namespace TapEmpire.Utility.GoogleSheet
             EditorUtility.SetDirty(GoogleSheetData.Instance);
         }
 
-        private void CreateOrUpdateEntry(StringTable table, string localizedString, string entryName)
-        {
-            var entry = table.GetEntry(entryName);
-            if (entry != null)
-            {
-                entry.Value = localizedString;
-            }
-            else
-            {
-                table.AddEntry(entryName, localizedString);
-            }
-        }
     }
 
     public class TranslationEntryContainer

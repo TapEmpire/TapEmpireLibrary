@@ -23,7 +23,7 @@ namespace TapEmpire.LiveOps.UI
         protected CompositeDisposable _disposables = new();
 
         public string Name => _liveOps.Name;
-        public Observable<ILiveOps> OnFinished => _liveOps.OnFinished;
+        public virtual Observable<ILiveOps> OnFinished => _liveOps.OnFinished;
 
         public virtual void Initialize(ILiveOps liveOps)
         {

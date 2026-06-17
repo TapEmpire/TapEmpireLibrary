@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
-using AdjustSdk;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using TapEmpire.Utility;
+using TapEmpire.Services;
 using Zenject;
 using Sirenix.OdinInspector;
 using R3;
@@ -35,6 +35,7 @@ namespace TapEmpire.Services
         private DiContainer _diContainer = null;
         private IProgressService _progressService = null;
         private ISystemService _systemService = null;
+        private IAttributionService _attributionService = null;
 
         private bool _isInitialized = false;
         private List<Action> _delayedEvents = new();
@@ -43,14 +44,19 @@ namespace TapEmpire.Services
 
         private Dictionary<string, string> _globalParameters = new();
         private Dictionary<string, string> _adjustParameters = new();
-        private IDisposable _focusDisposable = null;
+        private CompositeDisposable _disposables = new();
 
         [Inject]
-        private void Construct(DiContainer diContainer, IProgressService progressService, ISystemService systemService)
+        private void Construct(
+            DiContainer diContainer,
+            IProgressService progressService,
+            ISystemService systemService,
+            IAttributionService attributionService)
         {
             _diContainer = diContainer;
             _progressService = progressService;
             _systemService = systemService;
+            _attributionService = attributionService;
         }
 
         protected override UniTask OnInitializeAsync(CancellationToken cancellationToken)
@@ -73,7 +79,7 @@ namespace TapEmpire.Services
             _globalParameters.Clear();
             _adjustParameters.Clear();
 
-            _focusDisposable?.Dispose();
+            _disposables.Dispose();
 
             _innerService?.Release();
         }
@@ -158,7 +164,10 @@ namespace TapEmpire.Services
             _adjustParameters.Add(AnalyticsParameters.AdjustAbTest, abTest);
             _adjustParameters.Add(AnalyticsParameters.AdjustAbGroup, abGroup);
 
-            Adjust.GetAttribution(attribution => OnConfigChanged(attribution));
+            _attributionService.CampaignName
+                .Where(x => !string.IsNullOrEmpty(x))
+                .Subscribe(OnConfigChanged)
+                .AddTo(_disposables);
 
             if (isFirstLaunch)
             {
@@ -166,8 +175,7 @@ namespace TapEmpire.Services
                 _progressService.SetVersion();
             }
 
-            _focusDisposable?.Dispose();
-            _focusDisposable = _systemService.OnApplicationFocusChanged.Subscribe(OnApplicationFocus);
+            _systemService.OnApplicationFocusChanged.Subscribe(OnApplicationFocus).AddTo(_disposables);
             OnApplicationFocus(true); // Hack
 
             _isInitialized = true;
@@ -175,11 +183,11 @@ namespace TapEmpire.Services
             _delayedEvents.Clear();
         }
 
-        private void OnConfigChanged(AdjustAttribution attribution)
+        private void OnConfigChanged(string campaign)
         {
-            _innerService.SetUserProperty(AnalyticsParameters.AdjustAttribution, attribution.Campaign);
-            _progressService.SetCampaignName(attribution.Campaign);
-            _campaignName.Value = attribution.Campaign;
+            _innerService.SetUserProperty(AnalyticsParameters.AdjustAttribution, campaign);
+            _progressService.SetCampaignName(campaign);
+            _campaignName.Value = campaign;
         }
 
         public void logEventDelayed(string eventName, Dictionary<string, object> parameters = null)
@@ -203,16 +211,10 @@ namespace TapEmpire.Services
 
         public void LogAdjustEvent(IDictionary<string, object> properties)
         {
-            AdjustEvent adjustEvent = new AdjustEvent(AdjustEventToken);
-
-            foreach (var pair in properties)
-            {
-                adjustEvent.AddCallbackParameter(pair.Key, pair.Value.ToString());
-            }
-
-            _adjustParameters.ForEach(pair => adjustEvent.AddCallbackParameter(pair.Key, pair.Value.ToString()));
-
-            Adjust.TrackEvent(adjustEvent);
+            var callbackParams = new Dictionary<string, string>();
+            properties.ForEach(pair => callbackParams[pair.Key] = pair.Value.ToString());
+            _adjustParameters.ForEach(pair => callbackParams[pair.Key] = pair.Value);
+            AttributionService.TrackEvent(AdjustEventToken, callbackParams);
         }
 
         public void SetCampaignName(string campaignName)

@@ -34,9 +34,9 @@ namespace TapEmpire.Modules
         {
             Settings.UpdateData();
 
-            if (Settings.AdsSettings.EnableBanners == false)
+            if (Settings.AdsSettings.EnableBanner == false)
             {
-                _adsService.DisableBanners();
+                _adsService.DisableBanner();
             }
         }
     }

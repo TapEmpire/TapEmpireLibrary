@@ -44,8 +44,9 @@ namespace TapEmpire.UI
         public ObservableDictionary<string, RectTransform> ShibariContext => _shibariContext;
 
         [Inject]
-        private void Construct(ISceneContextsService sceneContextsService)
+        private void Construct(DiContainer diContainer, ISceneContextsService sceneContextsService)
         {
+            _coreDiContainer = diContainer;
             _sceneContextsService = sceneContextsService;
         }
 

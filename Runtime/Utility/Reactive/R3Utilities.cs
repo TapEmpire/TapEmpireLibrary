@@ -1,7 +1,9 @@
 using System;
+using System.Threading;
+using Cysharp.Threading.Tasks;
 using R3;
 
-namespace TapEmpire.Utilities
+namespace TapEmpire.Utility
 {
     public static class R3Utilities
     {
@@ -18,5 +20,17 @@ namespace TapEmpire.Utilities
                 return Disposable.Empty;
             });
         }
+
+        public static IDisposable OnceTrue(this Observable<bool> source, Action onNext)
+            => source.Where(v => v).Take(1).Subscribe(_ => onNext());
+
+        public static async UniTask WaitTrue(this Observable<bool> source, CancellationToken cancellationToken = default)
+            => await source.Where(v => v).FirstAsync(cancellationToken: cancellationToken);
+
+        public static IDisposable OnceWhen<T>(this Observable<T> source, Func<T, bool> predicate, Action<T> onNext)
+            => source.Where(predicate).Take(1).Subscribe(onNext);
+
+        public static async UniTask<T> WaitWhen<T>(this Observable<T> source, Func<T, bool> predicate, CancellationToken cancellationToken = default)
+            => await source.Where(predicate).FirstAsync(cancellationToken: cancellationToken);
     }
 }

@@ -33,14 +33,14 @@ namespace TapEmpire.Feature.Tutorial
             _progressService = progressService;
             _adsService = adsService;
 
-            _areBannersShown = adsService.ShowBanners(false);
+            _areBannersShown = adsService.ShowBanner(false);
         }
 
         public void OnNextPressed()
         {
             _progressService.SetTutorialProgress(_tutorialPostfix, 1);
             OnStepDone.OnNext(Unit.Default);
-            _adsService.ShowBanners(_areBannersShown);
+            _adsService.ShowBanner(_areBannersShown);
             _uiService.CloseViewAsync(this, CancellationToken.None).Forget();
         }
     }

@@ -7,8 +7,10 @@ using R3;
 using Debug = UnityEngine.Debug;
 using System.Diagnostics;
 using System;
+using TapEmpire.Services;
 using TapEmpire.Utility;
 using System.Collections.Generic;
+using Zenject;
 
 namespace TapEmpire.Services
 {
@@ -24,10 +26,27 @@ namespace TapEmpire.Services
 
         private bool _isFirebaseAvailable = false;
 
+        private IConsentService _consentService;
+        private IDisposable _consentSubscription;
+
+        [Inject]
+        private void Construct(IConsentService consentService)
+        {
+            _consentService = consentService;
+        }
+
         protected override async UniTask OnInitializeAsync(CancellationToken cancellationToken)
         {
             await _InitializeInternal(cancellationToken);
-            // return UniTask.CompletedTask;
+
+            _consentSubscription = _consentService.IsResolved.OnceTrue(
+                () => UpdateConsentStatus(_consentService.IsPersonalized.CurrentValue));
+        }
+
+        protected override void OnRelease()
+        {
+            _consentSubscription?.Dispose();
+            base.OnRelease();
         }
 
         private async UniTask _InitializeInternal(CancellationToken cancellationToken)

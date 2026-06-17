@@ -24,7 +24,7 @@ namespace WordGame.Services.Offer
 
         public override bool Handle(NoAdsCondition condition)
         {
-            bool hasNoAds = _adsService.AdsDisabled;
+            bool hasNoAds = !_adsService.AdsEnabled.CurrentValue;
             return condition.ShouldHaveNoAds == hasNoAds;
         }
     }

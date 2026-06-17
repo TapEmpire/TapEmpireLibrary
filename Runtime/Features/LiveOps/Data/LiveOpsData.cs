@@ -14,6 +14,8 @@ namespace TapEmpire.Services.LiveOps
         public LiveOpsView LiveOpsPrefab;
         public TutorialUIView TutorialPrefab;
         public LiveOpsDebugComponent DebugComponent;
+        public LiveOpsIcon AnnounceIconPrefab;
+        public virtual bool HasAnnounceIcon => false;
         public abstract string Name { get; }
         public abstract ILiveOps Create(DiContainer container);
         public abstract DateTime GetEndTime(LiveOpsRuntime runtime);
@@ -26,6 +28,7 @@ namespace TapEmpire.Services.LiveOps
         public int Inner = 0; // Stage
         public int Value = 0;
         public int Addend = 0;
+        public int LastSeenValue = 0;
         public DateTime StartedAt;
 
         public LiveOpsRuntime() { }
