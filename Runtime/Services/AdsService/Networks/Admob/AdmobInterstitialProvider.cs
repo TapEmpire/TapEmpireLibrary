@@ -9,6 +9,7 @@ namespace TapEmpire.Services
     public class AdmobInterstitialProvider : IInterstitial
     {
         public ReactiveProperty<bool> IsLoaded { get; } = new(false);
+        public ReactiveProperty<bool> IsShowing { get; } = new(false);
         public Subject<AdImpressionData> OnImpression { get; } = new();
         public Subject<Unit> OnReward { get; } = new();
 
@@ -39,6 +40,7 @@ namespace TapEmpire.Services
         public void Show(string placement)
         {
             _lastPlacement = placement;
+            IsShowing.Value = true;
             _interstitialAd?.Show();
         }
 
@@ -90,6 +92,7 @@ namespace TapEmpire.Services
         private void OnAdClosed()
         {
             IsLoaded.Value = false;
+            IsShowing.Value = false;
             OnReward.OnNext(Unit.Default);
             LoadInterstitial();
         }
@@ -97,6 +100,7 @@ namespace TapEmpire.Services
         private void OnAdShowFailed(AdmobAdError _)
         {
             IsLoaded.Value = false;
+            IsShowing.Value = false;
             LoadInterstitial();
         }
 

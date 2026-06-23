@@ -143,7 +143,7 @@ namespace TapEmpire.Services.Offer
                     _offerChoices[index].Resources[index2].Icon.transform.position, false));
         }
 
-        private void AcquireResources(ResourceType resourceType, int amount, string usageType,
+        protected virtual void AcquireResources(ResourceType resourceType, int amount, string usageType,
             Vector3 startPosition, bool shouldAddResource)
         {
             var animation = _animationService.CollectResource(resourceType, amount, startPosition, false);

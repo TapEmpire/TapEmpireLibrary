@@ -5,6 +5,7 @@ namespace TapEmpire.Services
     public interface IRewarded : IAd
     {
         ReactiveProperty<bool> IsLoaded { get; }
+        ReactiveProperty<bool> IsShowing { get; }
         Subject<Unit> OnReward { get; }
 
         bool HasRewarded(bool doRequest = false);

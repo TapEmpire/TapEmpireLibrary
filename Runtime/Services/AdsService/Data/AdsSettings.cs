@@ -22,6 +22,7 @@ namespace TapEmpire.Services
         public bool EnableBanner = true;
         public bool EnableMrec = true;
         public bool EnableInterstitial = true;
+        public bool EnableAdSessionGuard = false;
 
         [Header("Level gating")]
         public int FromLevel = 0;

@@ -51,7 +51,7 @@ namespace TapEmpire.Services.LiveOps
             return _liveOps.OfType<T>().FirstOrDefault();
         }
 
-        public async UniTask UpdateLiveOps(LiveOpsIconLayout layout = null, bool debug = false)
+        public async UniTask UpdateLiveOps(LiveOpsIconLayout layout = null, bool debug = false, bool forceVisualDelay = false)
         {
             foreach (var liveOps in _liveOps)
                 liveOps.UpdatePrepare(debug);
@@ -76,7 +76,9 @@ namespace TapEmpire.Services.LiveOps
                 lockedVisible.ForEach(liveOps => liveOps.CreateAnnounceIcon()?.AddTo(layout));
             }
 
-            await UniTask.WaitForSeconds(Settings.UpdateDelaySeconds, cancellationToken: default);
+            var willAnimate = forceVisualDelay || active.Any(liveOps => liveOps.ShouldUpdateVisual());
+            var updateDelay = willAnimate ? Settings.UpdateDelaySeconds : Settings.RegularUpdateDelaySeconds;
+            await UniTask.WaitForSeconds(updateDelay, cancellationToken: default);
 
             if (active.Count > 0)
             {

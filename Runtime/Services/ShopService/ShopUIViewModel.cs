@@ -16,6 +16,7 @@ namespace TapEmpire.Services.Shop
         public IAdsService AdsService;
 
         public bool HasCloseButton { get; }
+        public bool HasBottomOffset { get; }
         public Action OnSettingsPressed { get; }
 
         private IUIService _uiService;
@@ -25,9 +26,10 @@ namespace TapEmpire.Services.Shop
 
         public event Action OnClose;
 
-        public ShopUIViewModel(bool hasCloseButton = true, Action onSettingsPressed = null)
+        public ShopUIViewModel(bool hasCloseButton = true, bool hasBottomOffset = false, Action onSettingsPressed = null)
         {
             HasCloseButton = hasCloseButton;
+            HasBottomOffset = hasBottomOffset;
             OnSettingsPressed = onSettingsPressed;
         }
         
