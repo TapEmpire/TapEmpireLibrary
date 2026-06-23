@@ -108,6 +108,12 @@ namespace TapEmpire.Services
             }
         }
 
+        public static void LogEvent(string name, long value) =>
+            LogEvent(name, new[] { new Parameter(FirebaseAnalytics.ParameterValue, value) });
+
+        public static void LogEvent(string name, double value) =>
+            LogEvent(name, new[] { new Parameter(FirebaseAnalytics.ParameterValue, value) });
+
         public void Crash()
         {
             throw new System.Exception("Crashlytics test exception");
