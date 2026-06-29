@@ -7,7 +7,6 @@ using TapEmpire.LiveOps.UI;
 using TapEmpire.UI;
 using UnityEngine;
 using Zenject;
-using Object = UnityEngine.Object;
 
 namespace TapEmpire.Services.LiveOps
 {
@@ -18,7 +17,7 @@ namespace TapEmpire.Services.LiveOps
         public Observable<ILiveOps> OnStarted => _onStarted;
         public Observable<ILiveOps> OnStage => _onStage;
         public Observable<ILiveOps> OnFinished => _onFinished;
-        public Observable<ILiveOps> OnExpired => _onExpired;
+        public Observable<ILiveOps> OnStateUpdate => _onStateUpdate;
         public Observable<LiveOpsRuntime> OnDataChanged => _onDataChanged;
 
         LiveOpsData ILiveOps.Data => _data;
@@ -34,7 +33,7 @@ namespace TapEmpire.Services.LiveOps
         protected readonly Subject<ILiveOps> _onStarted = new();
         protected readonly Subject<ILiveOps> _onStage = new();
         protected readonly Subject<ILiveOps> _onFinished = new();
-        protected readonly Subject<ILiveOps> _onExpired = new();
+        protected readonly Subject<ILiveOps> _onStateUpdate = new();
         protected readonly Subject<LiveOpsRuntime> _onDataChanged = new();
         protected readonly CompositeDisposable _disposables = new();
 
@@ -128,10 +127,15 @@ namespace TapEmpire.Services.LiveOps
 
         protected bool CanActivate() => _conditions.All(condition => condition.Evaluate());
 
+        protected virtual bool CanUpdate()
+        {
+            return false;
+        }
+
         private void OnTick()
         {
-            if (_runtime.State == State.Active && IsExpired())
-                _onExpired.OnNext(this);
+            if (_runtime.State == State.Active && IsExpired() || CanUpdate())
+                _onStateUpdate.OnNext(this);
         }
     }
 }
