@@ -34,8 +34,8 @@ namespace TapEmpire.Services.Generic
 
         protected override void OnRelease()
         {
-            _liveModules.ForEach(pair => pair.Value.Dispose());
-            _liveModules.Clear();
+            _liveModules?.ForEach(pair => pair.Value.Dispose());
+            _liveModules?.Clear();
 
             base.OnRelease();
         }
