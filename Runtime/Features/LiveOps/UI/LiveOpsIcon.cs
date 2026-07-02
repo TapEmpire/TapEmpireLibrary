@@ -4,6 +4,7 @@ using DG.Tweening;
 using R3;
 using TapEmpire.Services;
 using TapEmpire.Services.LiveOps;
+using TapEmpire.Services.Localization;
 using TapEmpire.Utility;
 using TMPro;
 using UnityEngine;
@@ -39,7 +40,7 @@ namespace TapEmpire.LiveOps.UI
 
             if (_liveOps.Data.MinStartLevelIndex > _progressService.GetLevelProgress())
             {
-                _counter.text = $"Level {_liveOps.Data.MinStartLevelIndex}";
+                new LocalizationStringModel(LocalizationConstants.UITable, "level", x => _counter.text = $"{x} {_liveOps.Data.MinStartLevelIndex}").AddTo(_disposables);
             }
             else
             {
