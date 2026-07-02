@@ -1,14 +1,14 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using DG.Tweening;
 using R3;
+using TapEmpire.Services;
 using TapEmpire.Services.LiveOps;
 using TapEmpire.Utility;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using Zenject;
 
 namespace TapEmpire.LiveOps.UI
 {
@@ -22,13 +22,29 @@ namespace TapEmpire.LiveOps.UI
         protected ILiveOps _liveOps = null;
         protected CompositeDisposable _disposables = new();
 
+        private IProgressService _progressService;
+        
         public string Name => _liveOps.Name;
         public virtual Observable<ILiveOps> OnFinished => _liveOps.OnFinished;
 
+        [Inject]
+        private void Construct(IProgressService progressService)
+        {
+            _progressService = progressService;
+        }
+        
         public virtual void Initialize(ILiveOps liveOps)
         {
             _liveOps = liveOps;
-            _button.onClick.Subscribe(OnButtonPressed).AddTo(_disposables);
+
+            if (_liveOps.Data.MinStartLevelIndex > _progressService.GetLevelProgress())
+            {
+                _counter.text = $"Level {_liveOps.Data.MinStartLevelIndex}";
+            }
+            else
+            {
+                _button.onClick.Subscribe(OnButtonPressed).AddTo(_disposables);
+            }
         }
 
         public virtual void Dispose()
