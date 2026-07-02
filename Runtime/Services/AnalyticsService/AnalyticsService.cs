@@ -212,7 +212,7 @@ namespace TapEmpire.Services
         public void LogAdjustEvent(IDictionary<string, object> properties)
         {
             var callbackParams = new Dictionary<string, string>();
-            properties.ForEach(pair => callbackParams[pair.Key] = pair.Value.ToString());
+            properties.ForEach(pair => callbackParams[pair.Key] = pair.Value?.ToString() ?? string.Empty);
             _adjustParameters.ForEach(pair => callbackParams[pair.Key] = pair.Value);
             AttributionService.TrackEvent(AdjustEventToken, callbackParams);
         }
