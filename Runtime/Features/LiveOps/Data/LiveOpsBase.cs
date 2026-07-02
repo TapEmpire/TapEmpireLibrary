@@ -18,6 +18,7 @@ namespace TapEmpire.Services.LiveOps
         public Observable<ILiveOps> OnStage => _onStage;
         public Observable<ILiveOps> OnFinished => _onFinished;
         public Observable<ILiveOps> OnStateUpdate => _onStateUpdate;
+        public virtual bool IsLocked { get; } = false;
         public Observable<LiveOpsRuntime> OnDataChanged => _onDataChanged;
 
         LiveOpsData ILiveOps.Data => _data;
@@ -64,7 +65,18 @@ namespace TapEmpire.Services.LiveOps
         {
             if (_data.IconPrefab == null)
                 return null;
+            
             _icon = _diContainer.InstantiatePrefabForComponent<LiveOpsIcon>(_data.IconPrefab);
+            _icon.Initialize(this);
+            return _icon;
+        }
+        
+        public LiveOpsIcon CreateLockedIcon()
+        {
+            if (_data.IconPrefab == null)
+                return null;
+            
+            _icon = _diContainer.InstantiatePrefabForComponent<LiveOpsIcon>(_data.LockedIconPrefab);
             _icon.Initialize(this);
             return _icon;
         }

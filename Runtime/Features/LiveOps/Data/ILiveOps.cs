@@ -15,9 +15,11 @@ namespace TapEmpire.Services.LiveOps
         Observable<ILiveOps> OnStage { get; }
         Observable<ILiveOps> OnFinished { get; }
         Observable<ILiveOps> OnStateUpdate { get; }
+        bool IsLocked { get; }
 
         LiveOpsIcon CreateIcon();
         LiveOpsIcon CreateAnnounceIcon();
+        LiveOpsIcon CreateLockedIcon();
         UniTask OpenView();
         UniTask OpenTutorial(bool isSkippable = true);
         TimeSpan GetRemainingTime();

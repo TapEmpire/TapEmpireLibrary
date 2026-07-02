@@ -109,6 +109,11 @@ namespace TapEmpire.Services.LiveOps
 
                 if (liveOps.Runtime.State != State.NotStarted)
                     liveOps.CreateIcon()?.AddTo(layout);
+
+                if (liveOps.Data.HasLockedIcon && liveOps.IsLocked)
+                {
+                    liveOps.CreateLockedIcon()?.AddTo(layout);
+                }
             }
         }
 
