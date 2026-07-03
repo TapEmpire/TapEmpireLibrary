@@ -6,6 +6,8 @@ using TapEmpire.Services;
 using TapEmpire.Settings;
 using TEL.Utilities;
 using UnityEditor;
+using UnityEditor.AddressableAssets;
+using UnityEditor.AddressableAssets.Settings;
 using UnityEditor.Build.Reporting;
 using UnityEngine;
 
@@ -17,6 +19,7 @@ namespace TapEmpire.Build
     {
         // GameCI: -executeMethod TapEmpire.Build.GameBuilder.BuildFromCommandLine
         //   -buildConfig Release -platform Ios -buildVersion 1.4.0 -buildNumber 137 [-buildPath <path>]
+        //   [-buildAddressables false]  // skip the Addressables content build step
         public static void BuildFromCommandLine()
         {
             var args = Environment.GetCommandLineArgs();
@@ -28,6 +31,7 @@ namespace TapEmpire.Build
             var appName = GetArg(args, "-appName");
             var gradleDir = GetArg(args, "-gradleDir");
             var jdkPath = GetArg(args, "-jdkPath");
+            var buildAddressables = !bool.TryParse(GetArg(args, "-buildAddressables"), out var ba) || ba;
 
             if (platform == PlatformType.Android)
             {
@@ -50,7 +54,7 @@ namespace TapEmpire.Build
                 }
             }
 
-            Build(config, platform, version, buildNumber, buildPath, appName);
+            Build(config, platform, version, buildNumber, buildPath, appName, buildAddressables);
         }
 
         static void ApplyAndroidKeystoreFromEnv()
@@ -67,9 +71,11 @@ namespace TapEmpire.Build
 
         public static void Build(Configuration config, PlatformType platform,
                                  string version = null, int buildNumber = 0,
-                                 string buildPath = null, string appName = null)
+                                 string buildPath = null, string appName = null,
+                                 bool buildAddressables = true)
         {
             Apply(config, platform);
+            ApplyAddressablesBuildMode(buildAddressables);
 
             if (!string.IsNullOrEmpty(version))
             {
@@ -118,6 +124,22 @@ namespace TapEmpire.Build
 
             if (summary.result != BuildResult.Succeeded)
                 throw new Exception($"[GameBuilder] Build failed: {summary.result}");
+        }
+
+        private static void ApplyAddressablesBuildMode(bool buildAddressables)
+        {
+            var settings = AddressableAssetSettingsDefaultObject.Settings;
+            if (settings == null)
+            {
+                Debug.LogWarning("[GameBuilder] Addressable settings not found — nothing to toggle.");
+                return;
+            }
+
+            settings.BuildAddressablesWithPlayerBuild = buildAddressables
+                ? AddressableAssetSettings.PlayerBuildOption.BuildWithPlayer
+                : AddressableAssetSettings.PlayerBuildOption.DoNotBuildWithPlayer;
+            EditorUtility.SetDirty(settings);
+            Debug.Log($"[GameBuilder] Addressables build on player build: {(buildAddressables ? "ENABLED" : "SKIPPED")}");
         }
 
         public static void Apply(Configuration config, PlatformType platform)

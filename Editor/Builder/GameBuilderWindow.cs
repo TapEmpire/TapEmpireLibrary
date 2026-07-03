@@ -19,6 +19,9 @@ namespace TapEmpire.Build
         [EnumToggleButtons, BoxGroup("BuildMode")]
         public PlatformType PlatformType;
 
+        [ToggleLeft, BoxGroup("BuildMode"), Tooltip("Off = skip the Addressables content build and reuse the existing bundles/catalog.")]
+        public bool BuildAddressables = true;
+
         [ToggleLeft, BoxGroup("Keystore")]
         public bool UseCustomKeystore;
 
@@ -45,7 +48,7 @@ namespace TapEmpire.Build
             else
                 ClearKeystoreSettings();
 
-            GameBuilder.Build(SelectedBuildConfig, PlatformType, _buildVersion);
+            GameBuilder.Build(SelectedBuildConfig, PlatformType, _buildVersion, buildAddressables: BuildAddressables);
         }
 
         [Button, BoxGroup("BuildMode")]
