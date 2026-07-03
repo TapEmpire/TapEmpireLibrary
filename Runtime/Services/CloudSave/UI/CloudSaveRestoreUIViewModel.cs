@@ -51,26 +51,54 @@ namespace TapEmpire.Services
 
         public void OnDeclinePressed()
         {
-            _cloudSaveService.DeclineRestore(_cloudDataTimestampMs);
-            OnResult?.Invoke(false);
-            OnResult = null;
-            UIService.CloseViewAsync(this, CancellationToken.None).Forget();
+            try
+            {
+                _cloudSaveService.DeclineRestore(_cloudDataTimestampMs);
+            }
+            catch (Exception exception)
+            {
+                UnityEngine.Debug.LogException(exception);
+            }
+            finally
+            {
+                CompleteAndClose(false);
+            }
         }
-        
+
         private async UniTaskVoid AcceptAsync()
         {
-            var enableResult = await _cloudSaveService.EnableAsync(CancellationToken.None);
-            if (!enableResult.Success)
+            // OnResult resolves the tcs that blocks the whole startup init — it must fire no matter what throws here
+            var accepted = false;
+            try
             {
-                OnResult?.Invoke(false);
-                OnResult = null;
-                UIService.CloseViewAsync(this, CancellationToken.None).Forget();
-                return;
+                var enableResult = await _cloudSaveService.EnableAsync(CancellationToken.None);
+                if (enableResult.Success)
+                {
+                    var restoreResult = await _cloudSaveService.RestoreAsync(CloudSnapshot, CancellationToken.None);
+                    accepted = restoreResult.Success;
+                }
+            }
+            catch (Exception exception)
+            {
+                UnityEngine.Debug.LogException(exception);
+            }
+            finally
+            {
+                CompleteAndClose(accepted);
+            }
+        }
+
+        private void CompleteAndClose(bool accepted)
+        {
+            try
+            {
+                OnResult?.Invoke(accepted);
+            }
+            catch (Exception exception)
+            {
+                UnityEngine.Debug.LogException(exception);
             }
 
-            var restoreResult = await _cloudSaveService.RestoreAsync(CloudSnapshot, CancellationToken.None);
-            
-            OnResult?.Invoke(restoreResult.Success);
             OnResult = null;
             UIService.CloseViewAsync(this, CancellationToken.None).Forget();
         }

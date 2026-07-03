@@ -64,7 +64,10 @@ namespace TapEmpire.Services
             try
             {
                 Debug.Log("[CloudSave][iOS] Authenticating with Game Center...");
-                var localPlayer = await GKLocalPlayer.Authenticate().AsUniTask().AttachExternalCancellation(cancellationToken);
+                // Game Center auth can stall on a blocked/degraded network — bound the wait so startup can't hang
+                using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+                timeoutCts.CancelAfter(TimeSpan.FromSeconds(15));
+                var localPlayer = await GKLocalPlayer.Authenticate().AsUniTask().AttachExternalCancellation(timeoutCts.Token);
                 _isAuthenticated = localPlayer?.IsAuthenticated ?? false;
                 Debug.Log($"[CloudSave][iOS] Authentication result: IsAuthenticated={_isAuthenticated}");
                 if (_isAuthenticated)
@@ -75,7 +78,13 @@ namespace TapEmpire.Services
             }
             catch (OperationCanceledException)
             {
-                throw;
+                if (cancellationToken.IsCancellationRequested)
+                {
+                    throw;
+                }
+
+                Debug.LogWarning("[CloudSave][iOS] Authentication timed out (15s).");
+                _isAuthenticated = false;
             }
             catch (Exception exception)
             {
@@ -114,15 +123,22 @@ namespace TapEmpire.Services
             try
             {
                 Debug.Log("[CloudSave][iOS] Warmup fetch started.");
+                using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+                timeoutCts.CancelAfter(TimeSpan.FromSeconds(15));
                 var savedGames = await GKLocalPlayer.Local.FetchSavedGames()
                     .AsUniTask()
-                    .AttachExternalCancellation(cancellationToken);
+                    .AttachExternalCancellation(timeoutCts.Token);
 
                 Debug.Log($"[CloudSave][iOS] Warmup fetch completed. Count={savedGames?.Count ?? 0}");
             }
             catch (OperationCanceledException)
             {
-                throw;
+                if (cancellationToken.IsCancellationRequested)
+                {
+                    throw;
+                }
+
+                Debug.LogWarning("[CloudSave][iOS] Warmup fetch timed out (15s).");
             }
             catch (Exception exception)
             {
@@ -140,7 +156,11 @@ namespace TapEmpire.Services
             {
                 Debug.Log($"[CloudSave][iOS] LoadOnce started. SaveName='{SavedGameName}'");
 
-                var savedGames = await GKLocalPlayer.Local.FetchSavedGames().AsUniTask().AttachExternalCancellation(cancellationToken);
+                // Bound the whole load so a stalled Game Center call can't hang the startup probe
+                using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+                timeoutCts.CancelAfter(TimeSpan.FromSeconds(15));
+
+                var savedGames = await GKLocalPlayer.Local.FetchSavedGames().AsUniTask().AttachExternalCancellation(timeoutCts.Token);
 
                 if (savedGames == null || savedGames.Count == 0)
                 {
@@ -169,7 +189,7 @@ namespace TapEmpire.Services
 
                 var nsData = await targetSave.LoadData()
                     .AsUniTask()
-                    .AttachExternalCancellation(cancellationToken);
+                    .AttachExternalCancellation(timeoutCts.Token);
 
                 var data = nsData?.Bytes;
                 if (data == null || data.Length == 0)

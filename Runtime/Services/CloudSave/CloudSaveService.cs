@@ -51,22 +51,30 @@ namespace TapEmpire.Services
             var loginDeclined = IsLoginDeclined();
             Debug.Log($"[CloudSave] Initializing. IsEnabled={IsEnabled}, HasExplicitSetting={hasExplicitSetting}, LoginDeclined={loginDeclined}, Providers={_providers.Length}, ExcludedKeys={_serializer.ExcludedKeysCount}");
 
-            await InitializeProvidersAsync(cancellationToken, allowManualLogin: !loginDeclined);
-
-            // If manual login was shown and provider still unavailable → user declined
-            if (!loginDeclined && !hasExplicitSetting && _activeProvider == null)
+            // Fail-open: cloud save is non-critical, boot must continue with local progress on any failure
+            try
             {
-                Debug.Log("[CloudSave] Provider unavailable after manual login attempt — marking login as declined.");
-                SetLoginDeclined(true);
-            }
+                await InitializeProvidersAsync(cancellationToken, allowManualLogin: !loginDeclined);
 
-            if (!hasExplicitSetting && _activeProvider is { IsAvailable: true })
-            {
-                Debug.Log("[CloudSave] Provider available and no prior user preference — auto-enabling cloud saves.");
-                _progressService.BoolValuesDictionary.SetValue(CloudSaveEnabledKey, true);
-                IsEnabled = true;
+                // If manual login was shown and provider still unavailable → user declined
+                if (!loginDeclined && !hasExplicitSetting && _activeProvider == null)
+                {
+                    Debug.Log("[CloudSave] Provider unavailable after manual login attempt — marking login as declined.");
+                    SetLoginDeclined(true);
+                }
+
+                if (!hasExplicitSetting && _activeProvider is { IsAvailable: true })
+                {
+                    Debug.Log("[CloudSave] Provider available and no prior user preference — auto-enabling cloud saves.");
+                    _progressService.BoolValuesDictionary.SetValue(CloudSaveEnabledKey, true);
+                    IsEnabled = true;
+                }
+                await ResolveStartupRestoreAsync(cancellationToken);
             }
-            await ResolveStartupRestoreAsync(cancellationToken);
+            catch (Exception exception)
+            {
+                Debug.LogException(exception);
+            }
         }
         
         private async UniTask ResolveStartupRestoreAsync(CancellationToken cancellationToken)
@@ -74,6 +82,10 @@ namespace TapEmpire.Services
             try
             {
                 await TryShowRestoreAsync(cancellationToken);
+            }
+            catch (Exception exception)
+            {
+                Debug.LogException(exception);
             }
             finally
             {

@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Threading;
 using Cysharp.Threading.Tasks;
@@ -17,6 +18,10 @@ namespace TapEmpire.Services
     {
         // IAB TCF v2 personalization purposes (1, 2, 3, 4, 7, 9, 10) — string is 0-indexed.
         private static readonly int[] PurposeIndices = { 0, 1, 2, 3, 6, 8, 9 };
+
+        // UMP talks to Google servers; on a blocked/degraded network a callback may never
+        // fire and would hang startup. Bound the wait and continue with safe defaults.
+        private const float ConsentTimeoutSeconds = 12f;
 
         [SerializeField] private ConsentSettings _settings;
 
@@ -46,13 +51,13 @@ namespace TapEmpire.Services
 #endif
             if (_settings.EnableUmp)
             {
-                await GatherConsent();
+                await GatherConsent(cancellationToken);
             }
 
             _isResolved.Value = true;
         }
 
-        private UniTask GatherConsent()
+        private async UniTask GatherConsent(CancellationToken cancellationToken)
         {
             Debug.Log("[Consent] Fetching UMP consent");
             var completion = new UniTaskCompletionSource();
@@ -85,7 +90,27 @@ namespace TapEmpire.Services
                 }
             });
 
-            return completion.Task.ContinueWith(ReadConsentState);
+            try
+            {
+                // Dispose the timer with the CTS so a leaked PlayerLoopTimer can't Cancel() the
+                // disposed source later and throw ObjectDisposedException in the player loop.
+                using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+                using var timeoutTimer = cts.CancelAfterSlim(TimeSpan.FromSeconds(ConsentTimeoutSeconds));
+                await completion.Task.AttachExternalCancellation(cts.Token);
+                ReadConsentState();
+            }
+            catch (OperationCanceledException)
+            {
+                if (cancellationToken.IsCancellationRequested)
+                {
+                    throw;
+                }
+
+                // Timed out waiting for a UMP callback — fail open with privacy-safe, non-personalized defaults.
+                Debug.LogWarning($"[Consent] UMP consent timed out ({ConsentTimeoutSeconds:F0}s) — continuing non-personalized.");
+                _isPersonalized.Value = false;
+                _isEurArea.Value = false;
+            }
         }
 
         private void ReadConsentState()

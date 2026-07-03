@@ -37,7 +37,20 @@ namespace TapEmpire.Services
 
         protected override async UniTask OnInitializeAsync(CancellationToken cancellationToken)
         {
-            await _InitializeInternal(cancellationToken);
+            try
+            {
+                await _InitializeInternal(cancellationToken);
+            }
+            catch (Exception exception)
+            {
+                Debug.LogException(exception);
+            }
+
+            // Fail-open: boot must continue with defaults even if Firebase is unreachable
+            if (RemoteConfiguration == null)
+            {
+                OnConfigLoadingFinished(new EmptyRemoteConfiguration());
+            }
 
             _consentSubscription = _consentService.IsResolved.OnceTrue(
                 () => UpdateConsentStatus(_consentService.IsPersonalized.CurrentValue));
@@ -53,8 +66,21 @@ namespace TapEmpire.Services
         {
             // Initialize Firebase
 
-            // TODO: Catch exceptions
-            var dependencyStatus = await Firebase.FirebaseApp.CheckAndFixDependenciesAsync();
+            var dependencyStatus = Firebase.DependencyStatus.UnavailableOther;
+            try
+            {
+                // Dispose the timer with the CTS — a leaked PlayerLoopTimer would Cancel() the
+                // disposed source later and throw ObjectDisposedException in the player loop.
+                using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+                using var timeoutTimer = cts.CancelAfterSlim(TimeSpan.FromSeconds(15));
+                dependencyStatus = await Firebase.FirebaseApp.CheckAndFixDependenciesAsync()
+                    .AsUniTask()
+                    .AttachExternalCancellation(cts.Token);
+            }
+            catch (Exception exception)
+            {
+                Debug.LogError($"[FirebaseManager] CheckAndFixDependenciesAsync failed or timed out: {exception}");
+            }
 
             if (dependencyStatus == Firebase.DependencyStatus.Available)
             {
@@ -141,7 +167,11 @@ namespace TapEmpire.Services
             try
             {
                 stopWatch.Restart();
-                await FirebaseRemoteConfig.DefaultInstance.FetchAsync(TimeSpan.Zero);
+                using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+                using var timeoutTimer = cts.CancelAfterSlim(TimeSpan.FromSeconds(10));
+                await FirebaseRemoteConfig.DefaultInstance.FetchAsync(TimeSpan.Zero)
+                    .AsUniTask()
+                    .AttachExternalCancellation(cts.Token);
                 stopWatch.Stop();
                 Debug.Log($"firebase manager FirebaseRemoteConfig took {stopWatch.Elapsed.TotalSeconds} total seconds");
             }
@@ -155,23 +185,35 @@ namespace TapEmpire.Services
 
         private async UniTask ActivateRetrievedRemoteConfigValues(CancellationToken cancellationToken)
         {
-            var remoteConfig = FirebaseRemoteConfig.DefaultInstance;
-            var info = remoteConfig.Info;
-
-            if (info.LastFetchStatus != LastFetchStatus.Success)
+            try
             {
-                Debug.LogError(
-                    $"[FirebaseManager] Remote data not loaded.\n{nameof(info.LastFetchStatus)}: {info.LastFetchStatus}");
-                // OnConfigLoadingFinished(new EmptyRemoteConfiguration());
-            }
-            var stopWatch = new Stopwatch();
-            stopWatch.Start();
-            var status = await remoteConfig.ActivateAsync();
-            stopWatch.Stop();
-            Debug.Log($"firebase manager remoteConfig activate took {stopWatch.Elapsed.TotalSeconds} total seconds");
+                var remoteConfig = FirebaseRemoteConfig.DefaultInstance;
+                var info = remoteConfig.Info;
 
-            // ignore status and give firebase stored config.
-            OnConfigLoadingFinished(new RemoteConfiguration(FirebaseRemoteConfig.DefaultInstance.AllValues));
+                if (info.LastFetchStatus != LastFetchStatus.Success)
+                {
+                    Debug.LogError(
+                        $"[FirebaseManager] Remote data not loaded.\n{nameof(info.LastFetchStatus)}: {info.LastFetchStatus}");
+                    // OnConfigLoadingFinished(new EmptyRemoteConfiguration());
+                }
+                var stopWatch = new Stopwatch();
+                stopWatch.Start();
+                using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+                using var timeoutTimer = cts.CancelAfterSlim(TimeSpan.FromSeconds(10));
+                var status = await remoteConfig.ActivateAsync()
+                    .AsUniTask()
+                    .AttachExternalCancellation(cts.Token);
+                stopWatch.Stop();
+                Debug.Log($"firebase manager remoteConfig activate took {stopWatch.Elapsed.TotalSeconds} total seconds");
+
+                // ignore status and give firebase stored config.
+                OnConfigLoadingFinished(new RemoteConfiguration(FirebaseRemoteConfig.DefaultInstance.AllValues));
+            }
+            catch (Exception exception)
+            {
+                Debug.LogError($"[FirebaseManager] Remote config activation failed: {exception}");
+                OnConfigLoadingFinished(new EmptyRemoteConfiguration());
+            }
         }
 
         private void OnConfigLoadingFinished(IRemoteConfiguration remoteConfiguration)

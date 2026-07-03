@@ -131,14 +131,14 @@ namespace TapEmpire.Services
                 Debug.Log($"[CloudSave][Android] Load started. Filename='{SavedGameFilename}'");
                 var savedGameClient = PlayGamesPlatform.Instance.SavedGame;
 
-                var (openStatus, metadata) = await OpenSavedGameAsync(savedGameClient);
+                var (openStatus, metadata) = await OpenSavedGameAsync(savedGameClient, cancellationToken);
                 Debug.Log($"[CloudSave][Android] Open result: {openStatus}, MetadataIsOpen={metadata?.IsOpen}");
                 if (openStatus != SavedGameRequestStatus.Success || metadata == null)
                 {
                     return CloudSaveLoadResult.Failed($"Failed to open saved game: {openStatus}");
                 }
 
-                var (readStatus, data) = await ReadBinaryDataAsync(savedGameClient, metadata);
+                var (readStatus, data) = await ReadBinaryDataAsync(savedGameClient, metadata, cancellationToken);
                 Debug.Log($"[CloudSave][Android] Read result: {readStatus}, DataLength={data?.Length ?? 0}");
                 if (readStatus != SavedGameRequestStatus.Success)
                 {
@@ -179,7 +179,7 @@ namespace TapEmpire.Services
                 Debug.Log($"[CloudSave][Android] Delete started. Filename='{SavedGameFilename}'");
                 var savedGameClient = PlayGamesPlatform.Instance.SavedGame;
 
-                var (openStatus, metadata) = await OpenSavedGameAsync(savedGameClient);
+                var (openStatus, metadata) = await OpenSavedGameAsync(savedGameClient, cancellationToken);
                 Debug.Log($"[CloudSave][Android] Open result: {openStatus}, MetadataIsOpen={metadata?.IsOpen}");
                 if (openStatus != SavedGameRequestStatus.Success || metadata == null)
                 {
@@ -213,7 +213,7 @@ namespace TapEmpire.Services
                 Debug.Log($"[CloudSave][Android] Save started. Filename='{SavedGameFilename}'");
                 var savedGameClient = PlayGamesPlatform.Instance.SavedGame;
 
-                var (openStatus, metadata) = await OpenSavedGameAsync(savedGameClient);
+                var (openStatus, metadata) = await OpenSavedGameAsync(savedGameClient, cancellationToken);
                 Debug.Log($"[CloudSave][Android] Open result: {openStatus}, MetadataIsOpen={metadata?.IsOpen}");
                 if (openStatus != SavedGameRequestStatus.Success || metadata == null)
                 {
@@ -228,7 +228,7 @@ namespace TapEmpire.Services
                     .WithUpdatedDescription($"Updated at {DateTime.UtcNow:u}")
                     .Build();
 
-                var (commitStatus, _) = await CommitUpdateAsync(savedGameClient, metadata, metadataUpdate, data);
+                var (commitStatus, _) = await CommitUpdateAsync(savedGameClient, metadata, metadataUpdate, data, cancellationToken);
                 Debug.Log($"[CloudSave][Android] Commit result: {commitStatus}");
                 return commitStatus == SavedGameRequestStatus.Success
                     ? CloudSaveOperationResult.Completed("Android cloud save completed.")
@@ -245,7 +245,9 @@ namespace TapEmpire.Services
         }
 
 #if UNITY_ANDROID
-        private async UniTask<(SavedGameRequestStatus, ISavedGameMetadata)> OpenSavedGameAsync(ISavedGameClient client)
+        private static readonly TimeSpan SavedGameCallbackTimeout = TimeSpan.FromSeconds(15);
+
+        private async UniTask<(SavedGameRequestStatus, ISavedGameMetadata)> OpenSavedGameAsync(ISavedGameClient client, CancellationToken cancellationToken)
         {
             var tcs = new UniTaskCompletionSource<(SavedGameRequestStatus, ISavedGameMetadata)>();
             client.OpenWithAutomaticConflictResolution(
@@ -254,26 +256,42 @@ namespace TapEmpire.Services
                 ConflictResolutionStrategy.UseMostRecentlySaved,
                 (status, metadata) => tcs.TrySetResult((status, metadata))
             );
-            await UniTask.WaitUntil(() => tcs.Task.Status != UniTaskStatus.Pending);
-            return await tcs.Task;
+            return await WaitForCallbackAsync(tcs, nameof(OpenSavedGameAsync), cancellationToken, (SavedGameRequestStatus.InternalError, (ISavedGameMetadata)null));
         }
 
-        private async UniTask<(SavedGameRequestStatus, byte[])> ReadBinaryDataAsync(ISavedGameClient client, ISavedGameMetadata metadata)
+        private async UniTask<(SavedGameRequestStatus, byte[])> ReadBinaryDataAsync(ISavedGameClient client, ISavedGameMetadata metadata, CancellationToken cancellationToken)
         {
             var tcs = new UniTaskCompletionSource<(SavedGameRequestStatus, byte[])>();
             client.ReadBinaryData(metadata, (status, data) => tcs.TrySetResult((status, data)));
-            await UniTask.WaitUntil(() => tcs.Task.Status != UniTaskStatus.Pending);
-            return await tcs.Task;
+            return await WaitForCallbackAsync(tcs, nameof(ReadBinaryDataAsync), cancellationToken, (SavedGameRequestStatus.InternalError, (byte[])null));
         }
 
         private async UniTask<(SavedGameRequestStatus, ISavedGameMetadata)> CommitUpdateAsync(
             ISavedGameClient client, ISavedGameMetadata metadata,
-            SavedGameMetadataUpdate update, byte[] data)
+            SavedGameMetadataUpdate update, byte[] data, CancellationToken cancellationToken)
         {
             var tcs = new UniTaskCompletionSource<(SavedGameRequestStatus, ISavedGameMetadata)>();
             client.CommitUpdate(metadata, update, data, (status, resultMetadata) => tcs.TrySetResult((status, resultMetadata)));
-            await UniTask.WaitUntil(() => tcs.Task.Status != UniTaskStatus.Pending);
-            return await tcs.Task;
+            return await WaitForCallbackAsync(tcs, nameof(CommitUpdateAsync), cancellationToken, (SavedGameRequestStatus.InternalError, (ISavedGameMetadata)null));
+        }
+
+        // PGS callbacks may never fire on a blocked/degraded network — bound the wait so startup can't hang
+        private static async UniTask<T> WaitForCallbackAsync<T>(UniTaskCompletionSource<T> tcs, string operationName, CancellationToken cancellationToken, T timeoutResult)
+        {
+            using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            timeoutCts.CancelAfter(SavedGameCallbackTimeout);
+            try
+            {
+                await UniTask.WaitUntil(
+                    () => tcs.Task.Status != UniTaskStatus.Pending,
+                    cancellationToken: timeoutCts.Token);
+                return await tcs.Task;
+            }
+            catch (OperationCanceledException)
+            {
+                Debug.LogWarning($"[CloudSave][Android] {operationName} timed out ({SavedGameCallbackTimeout.TotalSeconds}s) or was cancelled.");
+                return timeoutResult;
+            }
         }
 #endif
     }
