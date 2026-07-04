@@ -12,7 +12,7 @@ namespace TapEmpire.Services.Shop
 
         ShopSettings ShopSettings { get; }
 
-        void ShowShop(string placement, bool hasCloseButton = true, Action onSettingsPressed = null);
+        void ShowShop(string placement, bool hasCloseButton = true, bool hasBottomOffset = false, Action onSettingsPressed = null);
 
         void SetTimeStamp(string key);
         (bool, TimeSpan) HasTimeStampToday(string key);

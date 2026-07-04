@@ -41,7 +41,7 @@ namespace TapEmpire.Services.Shop
         private void OnClickResult()
         {
             var reward = _data.Reward.As<ProductReward<ResourceType>>();
-            var from = _icon.transform.position;
+            var from = this != null ? _icon.transform.position : Vector3.zero;
             AcquireResources(reward.Resource, reward.Amount, ResourceUsageType.PopupAds, from, true, ResourceAcquireType.Rewarded);
         }
 

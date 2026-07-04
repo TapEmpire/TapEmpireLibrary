@@ -21,12 +21,19 @@ namespace TapEmpire.UI
         private void OnValueChanged(bool isOn)
         {
             _data.Background.sprite = isOn ? _data.EnabledSprite : _data.DisabledSprite;
-            _data.Text.fontSharedMaterial = isOn ? _data.EnabledMaterial : _data.DisabledMaterial;
+
+            if (_data.Text != null)
+            {
+                _data.Text.fontSharedMaterial = isOn ? _data.EnabledMaterial : _data.DisabledMaterial;
+            }
 
             if (_data.LocalizeEvent != null)
             {
                 _data.LocalizeEvent.StringReference = isOn ? _data.EnabledText : _data.DisabledText;
             }
+
+            _data.EnabledObjects.ForEach(x => x.SetActive(isOn));
+            _data.DisabledObjects.ForEach(x => x.SetActive(!isOn));
         }
 
         protected override void OnDestroy()

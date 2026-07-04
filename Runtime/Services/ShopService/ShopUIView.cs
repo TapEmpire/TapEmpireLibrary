@@ -14,6 +14,9 @@ namespace TapEmpire.Services.Shop
         [SerializeField] private Button _closeButton = null;
         [SerializeField] private Button _settingsButton = null;
         [SerializeField] private Transform _content;
+        [SerializeField] private int _minBottomOffset;
+        [SerializeField] private int _maxBottomOffset;
+        [SerializeField] private VerticalLayoutGroup _verticalLayoutGroup;
 
         private List<ShopSection> _shopSections = new();
         private CompositeDisposable _disposables = new();
@@ -33,6 +36,11 @@ namespace TapEmpire.Services.Shop
                 {
                     _settingsButton.onClick.Subscribe(() => DerivedModel.OnSettingsPressed?.Invoke()).AddTo(_disposables);
                 }
+            }
+
+            if (_verticalLayoutGroup != null)
+            {
+                _verticalLayoutGroup.padding.bottom = DerivedModel.HasBottomOffset ? _maxBottomOffset : _minBottomOffset;
             }
 
             CreateSections(DerivedModel.ShopSettings);

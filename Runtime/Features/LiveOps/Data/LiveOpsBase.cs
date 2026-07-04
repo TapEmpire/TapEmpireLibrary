@@ -112,6 +112,7 @@ namespace TapEmpire.Services.LiveOps
         public void BroadcastUpdate() => _onDataChanged.OnNext(_runtime);
 
         public virtual void UpdatePrepare(bool debug = false) { }
+        public virtual bool ShouldUpdateVisual() => _runtime.Addend > 0;
         public virtual UniTask UpdateVisual(Transform from, bool debug = false) => UniTask.CompletedTask;
         public abstract UniTask UpdatePopups();
 

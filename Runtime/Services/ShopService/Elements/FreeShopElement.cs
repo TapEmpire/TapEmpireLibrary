@@ -1,5 +1,4 @@
 using System;
-using Cysharp.Threading.Tasks;
 using DG.Tweening;
 using R3;
 using TapEmpire.UI;
@@ -19,7 +18,7 @@ namespace TapEmpire.Services.Shop
         [SerializeField] private Button _freeButton;
         [SerializeField] private Button _adsButton;
 
-        [SerializeField] private GameObject _circle;
+        [SerializeField] private GameObject _indicator;
         [SerializeField] private GameObject _timerParent;
         [SerializeField] private TMP_Text _timerText;
         [SerializeField] private Image _timerProgress;
@@ -127,7 +126,7 @@ namespace TapEmpire.Services.Shop
             _freeButton.gameObject.SetActive(isAvailable && _data.Type == ProductType.Free);
             _adsButton.gameObject.SetActive(isAvailable && _data.Type == ProductType.Ads);
             _timerParent.SetActive(!isAvailable);
-            _circle.SetActive(isAvailable);
+            _indicator.SetActive(isAvailable);
         }
 
         protected virtual void OnAnimationComplete(ProductType productType) { }

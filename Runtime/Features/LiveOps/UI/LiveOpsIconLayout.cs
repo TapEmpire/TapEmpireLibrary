@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using R3;
 using UnityEngine;
@@ -6,66 +7,41 @@ namespace TapEmpire.LiveOps.UI
 {
     public class LiveOpsIconLayout : MonoBehaviour
     {
-        [SerializeField] private List<Transform> _placements;
-        [SerializeField] private SerializableDictionary<string, int> _reservedPlacements = new();
-        [SerializeField] private int _firstCommonIndex = 3;
+        [SerializeField] private Transform _specialPlacement;
+        [SerializeField] private string _specialPlacementName;
+        [SerializeField] private PriorityPlacement _left;
+        [SerializeField] private PriorityPlacement _right;
 
-        private readonly List<LiveOpsIcon> _generalIcons = new();
         private readonly CompositeDisposable _disposables = new();
-        private Transform _offerButton;
-        private bool _hasIconBeforeOffer = false;
 
         public void Add(LiveOpsIcon icon)
         {
-            var index = GetPlacementIndex(icon.Name);
-            if (index >= _firstCommonIndex)
-                _generalIcons.Add(icon);
-            icon.transform.SetParent(_placements[index], false);
+            AddItem(icon.Name, icon.transform);
             icon.OnFinished.Subscribe(_ => Remove(icon)).AddTo(_disposables);
-
-            if (index == PreOfferButtonIndex)
-                _hasIconBeforeOffer = true;
-
-            RefreshOfferButton();
         }
 
         public void Remove(LiveOpsIcon icon)
         {
             Destroy(icon.gameObject);
-
-            if (!_generalIcons.Remove(icon))
-            {
-                if (GetPlacementIndex(icon.Name) == PreOfferButtonIndex)
-                    _hasIconBeforeOffer = false;
-                RefreshOfferButton();
-                return;
-            }
-
-            for (var i = 0; i < _generalIcons.Count; i++)
-                _generalIcons[i].transform.SetParent(_placements[_firstCommonIndex + i], false);
+            if (!_left.Remove(icon.Name))
+                _right.Remove(icon.Name);
         }
 
         public void AddOfferButton(Transform offerButton)
         {
-            _offerButton = offerButton;
-            RefreshOfferButton();
+            AddItem("OfferButton", offerButton);
         }
 
-        private int PreOfferButtonIndex => GetPlacementIndex("OfferButton") - 1;
-
-        private void RefreshOfferButton()
+        private void AddItem(string name, Transform transform)
         {
-            var offerIndex = GetPlacementIndex("OfferButton");
-            var index = _hasIconBeforeOffer ? offerIndex : offerIndex - 1;
-            _offerButton.SetParent(_placements[index], false);
-        }
+            if (name == _specialPlacementName)
+            {
+                transform.SetParent(_specialPlacement, false);
+                return;
+            }
 
-        private int GetPlacementIndex(string name)
-        {
-            if (_reservedPlacements.TryGetValue(name, out var index))
-                return index;
-
-            return _firstCommonIndex + _generalIcons.Count;
+            if (!_left.Add(name, transform))
+                _right.Add(name, transform);
         }
 
         private void OnDestroy()
@@ -79,6 +55,43 @@ namespace TapEmpire.LiveOps.UI
         public static void AddTo(this LiveOpsIcon icon, LiveOpsIconLayout layout)
         {
             layout.Add(icon);
+        }
+    }
+
+    [Serializable]
+    public class PriorityPlacement
+    {
+        [SerializeField] private List<Transform> _placements;
+        [SerializeField] private List<string> _priorityOrder;
+
+        private readonly List<(string name, Transform transform)> _activeItems = new();
+
+        public bool Add(string name, Transform transform)
+        {
+            if (!_priorityOrder.Contains(name))
+                return false;
+
+            _activeItems.Add((name, transform));
+            Relayout();
+            return true;
+        }
+
+        public bool Remove(string name)
+        {
+            if (_activeItems.RemoveAll(entry => entry.name == name) == 0)
+                return false;
+
+            Relayout();
+            return true;
+        }
+
+        private void Relayout()
+        {
+            _activeItems.Sort((firstItem, secondItem) =>
+                _priorityOrder.IndexOf(firstItem.name).CompareTo(_priorityOrder.IndexOf(secondItem.name)));
+
+            for (var i = 0; i < _activeItems.Count; i++)
+                _activeItems[i].transform.SetParent(_placements[i], false);
         }
     }
 }

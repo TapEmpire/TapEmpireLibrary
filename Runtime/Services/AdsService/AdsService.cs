@@ -51,6 +51,7 @@ namespace TapEmpire.Services
         private IConsentService _consentService;
         private IProgressService _progressService;
         private IAnalyticsService _analyticsService;
+        private ISystemService _systemService;
 
         private BannerAdMediator _banner;
         private InterstitialAdMediator _interstitial;
@@ -62,20 +63,25 @@ namespace TapEmpire.Services
         private MeticaInitializer _metica;
 #endif
 
-        private readonly CompositeDisposable _disposables = new();
-        private readonly CompositeDisposable _removableAdsDisposable = new();
-        private readonly UniqueDisposable _pendingCallback = new();
+        private CompositeDisposable _disposables = new();
+        private CompositeDisposable _removableAdsDisposable = new();
+        private UniqueDisposable _pendingCallback = new();
 
         [Inject]
-        private void Construct(IConsentService consentService, IProgressService progressService, IAnalyticsService analyticsService)
+        private void Construct(IConsentService consentService, IProgressService progressService, IAnalyticsService analyticsService, ISystemService systemService)
         {
             _consentService = consentService;
             _progressService = progressService;
             _analyticsService = analyticsService;
+            _systemService = systemService;
         }
 
         protected override UniTask OnInitializeAsync(CancellationToken cancellationToken)
         {
+            _disposables = new();
+            _removableAdsDisposable = new();
+            _pendingCallback = new();
+
             _adsEnabled.Value = !_progressService.GetAdsDisabled();
 
             InitializeNetworksAsync(LifetimeCancellationToken).Forget();
@@ -199,6 +205,11 @@ namespace TapEmpire.Services
             new AdsMetricaModule(this).AddTo(_disposables);
             new AdsAnalyticsModule(this, _analyticsService, _progressService).AddTo(_disposables);
             new AdsFirebaseSignalsModule(this, _progressService).AddTo(_disposables);
+
+            if (_settings.EnableAdSessionGuard)
+            {
+                new AdSessionGuardModule(_systemService.SystemSettings, _interstitial, _rewarded).AddTo(_disposables);
+            }
         }
 
         private void BuildMediators()

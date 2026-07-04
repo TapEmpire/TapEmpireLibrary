@@ -24,6 +24,7 @@ namespace TapEmpire.Services.LiveOps
         void SetEndTime(DateTime endTime);
         void Save();
         void UpdatePrepare(bool debug = false);
+        bool ShouldUpdateVisual();
         UniTask UpdateVisual(Transform from, bool debug = false);
         UniTask UpdatePopups();
     }
