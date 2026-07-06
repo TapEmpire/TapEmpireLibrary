@@ -32,10 +32,10 @@ namespace TapEmpire.Services.Offer
         private IResourcesService<ResourceType> _resourcesService;
         private IAnimationService<ResourceType> _animationService;
 
+        protected CompositeDisposable _disposables = new();
         private bool _shouldEnableBanners;
         private bool _isDebug;
         private ResourcesBar _resourcesBar;
-        private CompositeDisposable _disposables = new();
         private CompositeDisposable _visualDisposables = new();
 
         [Inject]
