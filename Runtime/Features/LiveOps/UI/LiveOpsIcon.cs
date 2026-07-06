@@ -38,13 +38,16 @@ namespace TapEmpire.LiveOps.UI
         {
             _liveOps = liveOps;
 
-            if (_liveOps.Data.MinStartLevelIndex > _progressService.GetLevelProgress())
+            var canPrestigeFirstTime = _progressService.CanPrestigeFirstTime();
+            var continuePrestige = _progressService.GetIsPrestige();
+            
+            if (canPrestigeFirstTime || continuePrestige || _liveOps.Data.MinStartLevelIndex < _progressService.GetLevelProgress())
             {
-                new LocalizationStringModel(LocalizationConstants.UITable, "level", x => _counter.text = $"{x} {_liveOps.Data.MinStartLevelIndex}").AddTo(_disposables);
+                _button.onClick.Subscribe(OnButtonPressed).AddTo(_disposables);
             }
             else
             {
-                _button.onClick.Subscribe(OnButtonPressed).AddTo(_disposables);
+                new LocalizationStringModel(LocalizationConstants.UITable, "level", x => _counter.text = $"{x} {_liveOps.Data.MinStartLevelIndex}").AddTo(_disposables);
             }
         }
 
