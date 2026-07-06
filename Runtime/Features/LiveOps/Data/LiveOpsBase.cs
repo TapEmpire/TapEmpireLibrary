@@ -76,9 +76,9 @@ namespace TapEmpire.Services.LiveOps
             if (_data.IconPrefab == null)
                 return null;
             
-            _icon = _diContainer.InstantiatePrefabForComponent<LiveOpsIcon>(_data.LockedIconPrefab);
-            _icon.Initialize(this);
-            return _icon;
+            var icon = _diContainer.InstantiatePrefabForComponent<LiveOpsIcon>(_data.LockedIconPrefab);
+            icon.Initialize(this);
+            return icon;
         }
 
         public LiveOpsIcon CreateAnnounceIcon()
