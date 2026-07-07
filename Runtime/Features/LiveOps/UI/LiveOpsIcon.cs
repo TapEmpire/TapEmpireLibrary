@@ -2,14 +2,11 @@ using System;
 using Cysharp.Threading.Tasks;
 using DG.Tweening;
 using R3;
-using TapEmpire.Services;
 using TapEmpire.Services.LiveOps;
-using TapEmpire.Services.Localization;
 using TapEmpire.Utility;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using Zenject;
 
 namespace TapEmpire.LiveOps.UI
 {
@@ -23,32 +20,12 @@ namespace TapEmpire.LiveOps.UI
         protected ILiveOps _liveOps = null;
         protected CompositeDisposable _disposables = new();
 
-        private IProgressService _progressService;
-        
         public string Name => _liveOps.Name;
         public virtual Observable<ILiveOps> OnFinished => _liveOps.OnFinished;
-
-        [Inject]
-        private void Construct(IProgressService progressService)
-        {
-            _progressService = progressService;
-        }
         
         public virtual void Initialize(ILiveOps liveOps)
         {
             _liveOps = liveOps;
-
-            var canPrestigeFirstTime = _progressService.CanPrestigeFirstTime();
-            var continuePrestige = _progressService.GetIsPrestige();
-            
-            if (canPrestigeFirstTime || continuePrestige || _liveOps.Data.MinStartLevelIndex < _progressService.GetLevelProgress())
-            {
-                _button.onClick.Subscribe(OnButtonPressed).AddTo(_disposables);
-            }
-            else
-            {
-                new LocalizationStringModel(LocalizationConstants.UITable, "level", x => _counter.text = $"{x} {_liveOps.Data.MinStartLevelIndex}").AddTo(_disposables);
-            }
         }
 
         public virtual void Dispose()
