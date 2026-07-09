@@ -152,12 +152,19 @@ namespace TapEmpire.Build
 
         private static string DefaultLocation(Configuration config, PlatformType platform, string appName = null)
         {
-            if (platform == PlatformType.Ios)
-                return "Builds/iOS";
-
-            var ext = config == Configuration.Release ? ".aab" : ".apk";
             var rawName = string.IsNullOrEmpty(appName) ? Application.productName : appName;
             var safeName = rawName.Replace(" ", "");
+
+            if (platform == PlatformType.Ios)
+            {
+                var iosName = $"{safeName}" +
+                              $"-{config.ToString().ToLower()}" +
+                              $"-{PlayerSettings.bundleVersion}" +
+                              $"-build{PlayerSettings.iOS.buildNumber}";
+                return $"Builds/{iosName}";
+            }
+
+            var ext = config == Configuration.Release ? ".aab" : ".apk";
             var name = $"{safeName}" +
                        $"-{config.ToString().ToLower()}" +
                        $"-{PlayerSettings.bundleVersion}" +
