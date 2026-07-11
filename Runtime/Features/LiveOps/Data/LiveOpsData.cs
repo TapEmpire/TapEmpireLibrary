@@ -15,7 +15,9 @@ namespace TapEmpire.Services.LiveOps
         public TutorialUIView TutorialPrefab;
         public LiveOpsDebugComponent DebugComponent;
         public LiveOpsIcon AnnounceIconPrefab;
+        public LiveOpsIcon LockedIconPrefab;
         public virtual bool HasAnnounceIcon => false;
+        public virtual bool HasLockedIcon => LockedIconPrefab != null;
         public abstract string Name { get; }
         public abstract ILiveOps Create(DiContainer container);
         public abstract DateTime GetEndTime(LiveOpsRuntime runtime);

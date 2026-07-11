@@ -74,6 +74,13 @@ namespace TapEmpire.Services.LiveOps
             {
                 active.ForEach(liveOps => liveOps.CreateIcon()?.AddTo(layout));
                 lockedVisible.ForEach(liveOps => liveOps.CreateAnnounceIcon()?.AddTo(layout));
+                inactive.ForEach(liveOps =>
+                {
+                    if (liveOps.Data.HasLockedIcon && liveOps.IsLocked)
+                    {
+                        liveOps.CreateLockedIcon()?.AddTo(layout);
+                    }
+                });
             }
 
             var willAnimate = forceVisualDelay || active.Any(liveOps => liveOps.ShouldUpdateVisual());

@@ -49,7 +49,7 @@ namespace TapEmpire.Services
         public string GetPrice(string key)
         {
             var product = _iapService.GetProductInfo(key);
-            return product.metadata.localizedPriceString;
+            return product?.metadata?.localizedPriceString ?? "---";
         }
 
         private void OnPurchaseSuccess(string productId)

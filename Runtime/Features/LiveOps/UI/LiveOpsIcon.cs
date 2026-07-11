@@ -1,6 +1,4 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using DG.Tweening;
 using R3;
@@ -24,11 +22,10 @@ namespace TapEmpire.LiveOps.UI
 
         public string Name => _liveOps.Name;
         public virtual Observable<ILiveOps> OnFinished => _liveOps.OnFinished;
-
+        
         public virtual void Initialize(ILiveOps liveOps)
         {
             _liveOps = liveOps;
-            _button.onClick.Subscribe(OnButtonPressed).AddTo(_disposables);
         }
 
         public virtual void Dispose()

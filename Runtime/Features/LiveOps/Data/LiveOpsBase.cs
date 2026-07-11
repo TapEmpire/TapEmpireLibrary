@@ -7,7 +7,6 @@ using TapEmpire.LiveOps.UI;
 using TapEmpire.UI;
 using UnityEngine;
 using Zenject;
-using Object = UnityEngine.Object;
 
 namespace TapEmpire.Services.LiveOps
 {
@@ -18,7 +17,8 @@ namespace TapEmpire.Services.LiveOps
         public Observable<ILiveOps> OnStarted => _onStarted;
         public Observable<ILiveOps> OnStage => _onStage;
         public Observable<ILiveOps> OnFinished => _onFinished;
-        public Observable<ILiveOps> OnExpired => _onExpired;
+        public Observable<ILiveOps> OnStateUpdate => _onStateUpdate;
+        public virtual bool IsLocked { get; } = false;
         public Observable<LiveOpsRuntime> OnDataChanged => _onDataChanged;
 
         LiveOpsData ILiveOps.Data => _data;
@@ -34,7 +34,7 @@ namespace TapEmpire.Services.LiveOps
         protected readonly Subject<ILiveOps> _onStarted = new();
         protected readonly Subject<ILiveOps> _onStage = new();
         protected readonly Subject<ILiveOps> _onFinished = new();
-        protected readonly Subject<ILiveOps> _onExpired = new();
+        protected readonly Subject<ILiveOps> _onStateUpdate = new();
         protected readonly Subject<LiveOpsRuntime> _onDataChanged = new();
         protected readonly CompositeDisposable _disposables = new();
 
@@ -65,9 +65,20 @@ namespace TapEmpire.Services.LiveOps
         {
             if (_data.IconPrefab == null)
                 return null;
+            
             _icon = _diContainer.InstantiatePrefabForComponent<LiveOpsIcon>(_data.IconPrefab);
             _icon.Initialize(this);
             return _icon;
+        }
+        
+        public LiveOpsIcon CreateLockedIcon()
+        {
+            if (_data.IconPrefab == null)
+                return null;
+            
+            var icon = _diContainer.InstantiatePrefabForComponent<LiveOpsIcon>(_data.LockedIconPrefab);
+            icon.Initialize(this);
+            return icon;
         }
 
         public LiveOpsIcon CreateAnnounceIcon()
@@ -128,10 +139,15 @@ namespace TapEmpire.Services.LiveOps
 
         protected bool CanActivate() => _conditions.All(condition => condition.Evaluate());
 
+        protected virtual bool CanUpdate()
+        {
+            return false;
+        }
+
         private void OnTick()
         {
-            if (_runtime.State == State.Active && IsExpired())
-                _onExpired.OnNext(this);
+            if (_runtime.State == State.Active && IsExpired() || CanUpdate())
+                _onStateUpdate.OnNext(this);
         }
     }
 }
