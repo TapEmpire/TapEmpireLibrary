@@ -25,7 +25,6 @@ namespace TapEmpire.Editor
 post_install do |installer|
   problematic_targets = ['AppMetricaLibraryAdapter']
 
-  # Fix xcconfig files
   installer.pods_project.targets.each do |target|
     if problematic_targets.include?(target.name)
       target.build_configurations.each do |config|
