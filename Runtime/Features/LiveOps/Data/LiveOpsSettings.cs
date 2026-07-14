@@ -8,6 +8,7 @@ namespace TapEmpire.Services.LiveOps
     {
         [SerializeReference] public List<LiveOpsData> LiveOps;
         public float UpdateDelaySeconds = 1.5f;
+        public float RegularUpdateDelaySeconds = 0.3f;
         public float UpdateVisualIntervalSeconds = 0.1f;
     }
 }

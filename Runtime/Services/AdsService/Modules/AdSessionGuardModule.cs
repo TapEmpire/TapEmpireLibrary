@@ -10,7 +10,7 @@ namespace TapEmpire.Services
 
         private readonly CompositeDisposable _disposables = new();
 
-        public AdSessionGuardModule(SystemSettings systemSettings, IInterstitial interstitial, IRewarded rewarded)
+        public AdSessionGuardModule(SystemSettings systemSettings, IInterstitial interstitial)
         {
             InitNative((long)systemSettings.SessionInterval);
 
@@ -18,11 +18,7 @@ namespace TapEmpire.Services
                 .Subscribe(settings => SetTimeoutNative((long)settings.SessionInterval))
                 .AddTo(_disposables);
 
-            Observable<bool> interstitialShowing = interstitial?.IsShowing ?? Observable.Return(false);
-            Observable<bool> rewardedShowing = rewarded?.IsShowing ?? Observable.Return(false);
-
-            interstitialShowing
-                .CombineLatest(rewardedShowing, (isInterstitialShowing, isRewardedShowing) => isInterstitialShowing || isRewardedShowing)
+            (interstitial?.IsShowing ?? Observable.Return(false))
                 .DistinctUntilChanged()
                 .Subscribe(SetAdActiveNative)
                 .AddTo(_disposables);

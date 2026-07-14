@@ -32,7 +32,7 @@ namespace TapEmpire.Services.Shop
         protected string GetPrice(string key)
         {
             var product = _iapService.GetProductInfo(key);
-            return product.metadata.localizedPriceString;
+            return product?.metadata?.localizedPriceString ?? "---";
         }
 
         protected T GetProduct<T>(string key) where T : class

@@ -208,7 +208,7 @@ namespace TapEmpire.Services
 
             if (_settings.EnableAdSessionGuard)
             {
-                new AdSessionGuardModule(_systemService.SystemSettings, _interstitial, _rewarded).AddTo(_disposables);
+                new AdSessionGuardModule(_systemService.SystemSettings, _interstitial).AddTo(_disposables);
             }
         }
 

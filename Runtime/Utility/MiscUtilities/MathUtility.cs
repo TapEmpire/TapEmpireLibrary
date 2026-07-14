@@ -18,6 +18,11 @@ namespace TapEmpire.Utility
             return (value + 1 >= max) ? 0 : value + 1;
         }
 
+        public static int LoopValue(int value, int min, int max, int addend)
+        {
+            return min + ((value - min + addend) % (max - min));
+        }
+
         public static int LoopValueBack(int value, int max)
         {
             return (value > 0) ? value - 1 : max - 1;

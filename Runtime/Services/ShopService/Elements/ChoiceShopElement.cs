@@ -24,7 +24,7 @@ namespace TapEmpire.Services.Shop
         public override void Initialize(ProductData data)
         {
             base.Initialize(data);
-            _adsButton.onClick.Subscribe(OnClick).AddTo(_disposables);
+            _adsButton.onClick.Subscribe(OnAdsClick).AddTo(_disposables);
 
             if (!_adsService.CanShowRewarded || Application.internetReachability == NetworkReachability.NotReachable)
             {
@@ -32,13 +32,13 @@ namespace TapEmpire.Services.Shop
             }
         }
 
-        private void OnClick()
+        private void OnAdsClick()
         {
             var reward = _data.Reward.As<ProductReward<ResourceType>>();
-            _adsService.ShowRewarded($"{AdType.Resources_}{reward.Resource}", OnClickResult);
+            _adsService.ShowRewarded($"{AdType.Resources_}{reward.Resource}", OnAdsClickResult);
         }
 
-        private void OnClickResult()
+        protected virtual void OnAdsClickResult()
         {
             var reward = _data.Reward.As<ProductReward<ResourceType>>();
             var from = this != null ? _icon.transform.position : Vector3.zero;

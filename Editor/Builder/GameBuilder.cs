@@ -39,8 +39,8 @@ namespace TapEmpire.Build
 
                 if (!string.IsNullOrEmpty(gradleDir))
                 {
-                    UnityEditor.Android.AndroidExternalToolsSettings.gradlePath = gradleDir;
-                    Debug.Log($"[GameBuilder] Custom Gradle → {UnityEditor.Android.AndroidExternalToolsSettings.gradlePath}");
+                    UnityEditor.Android.AndroidExternalToolsSettings.Gradle.path = gradleDir;
+                    Debug.Log($"[GameBuilder] Custom Gradle → {UnityEditor.Android.AndroidExternalToolsSettings.Gradle.path}");
                 }
 
                 if (!string.IsNullOrEmpty(jdkPath))

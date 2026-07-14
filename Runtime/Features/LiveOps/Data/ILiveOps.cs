@@ -14,16 +14,19 @@ namespace TapEmpire.Services.LiveOps
         Observable<ILiveOps> OnStarted { get; }
         Observable<ILiveOps> OnStage { get; }
         Observable<ILiveOps> OnFinished { get; }
-        Observable<ILiveOps> OnExpired { get; }
+        Observable<ILiveOps> OnStateUpdate { get; }
+        bool IsLocked { get; }
 
         LiveOpsIcon CreateIcon();
         LiveOpsIcon CreateAnnounceIcon();
+        LiveOpsIcon CreateLockedIcon();
         UniTask OpenView();
         UniTask OpenTutorial(bool isSkippable = true);
         TimeSpan GetRemainingTime();
         void SetEndTime(DateTime endTime);
         void Save();
         void UpdatePrepare(bool debug = false);
+        bool ShouldUpdateVisual();
         UniTask UpdateVisual(Transform from, bool debug = false);
         UniTask UpdatePopups();
     }
