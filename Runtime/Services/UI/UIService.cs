@@ -31,7 +31,9 @@ namespace TapEmpire.UI
         private RectTransform _canvasRectTransform;
         [NonSerialized]
         private Transform _customCanvasRectTransform;
-        
+        [NonSerialized]
+        private RectTransform _overlayLayer;
+
         [NonSerialized]
         private Dictionary<IUIViewModel, UIView> _views = new();
 
@@ -79,6 +81,11 @@ namespace TapEmpire.UI
             Object.DontDestroyOnLoad(customCanvasObject);
             _customCanvasRectTransform = customCanvasObject.transform;
             
+            var overlayFxLayer = _canvasRectTransform.Find("OverlayLayer");
+            _overlayLayer = overlayFxLayer != null ? (RectTransform)overlayFxLayer : null;
+            if (_overlayLayer == null)
+                Debug.LogError("UIService: Canvas prefab is missing the 'OverlayLayer' child.");
+
             _sceneContextsService.OnSceneContextInstalled += SceneContextsService_OnSceneContextInstalled;
             return base.OnInitializeAsync(cancellationToken);
         }
@@ -263,5 +270,7 @@ namespace TapEmpire.UI
         }
 
         public IUILocker UILocker => null;
+
+        public RectTransform OverlayLayer => _overlayLayer;
     }
 }
