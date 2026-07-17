@@ -1,5 +1,6 @@
 using System;
 using DG.Tweening;
+using Firebase.Crashlytics;
 using R3;
 using TapEmpire.UI;
 using TapEmpire.Utility;
@@ -82,6 +83,12 @@ namespace TapEmpire.Services.Shop
 
         private void OnClickResult(string resourceUsage, ResourceAcquireType acquireType)
         {
+            if (this == null)
+            {
+                Crashlytics.LogException(new Exception($"[MANUAL] FreeShopElement.OnClickResult: element destroyed before ad callback. resourceUsage={resourceUsage}"));
+                return;
+            }
+
             var from = _icon.transform.position;
             var reward = _data.Reward.As<ProductReward<ResourceType>>();
             var sequence = AcquireResources(reward.Resource, reward.Amount, resourceUsage, from, true, acquireType);
