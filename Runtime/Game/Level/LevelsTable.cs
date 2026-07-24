@@ -13,9 +13,6 @@ namespace TapEmpire.Level
 
         public List<LevelSettings> Levels => _levels;
 
-        public List<T> As<T>() where T : LevelSettings
-        {
-            return Levels.Select(level => level as T).ToList();
-        }
+        public IEnumerable<T> LevelsAs<T>() where T : LevelSettings => Levels.OfType<T>();
     }
 }
