@@ -29,6 +29,8 @@ namespace TapEmpire.UI
         public ObservableDictionary<string, RectTransform> ShibariContext { get; }
         
         IUILocker UILocker { get; }
+        
+        RectTransform OverlayLayer { get; }
 
         void SetViewsCanvasesInteractionState(bool state);
         

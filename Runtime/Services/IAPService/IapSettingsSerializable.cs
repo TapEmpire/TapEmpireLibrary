@@ -39,6 +39,7 @@ namespace TapEmpire.Services
                         if (existingOffers.TryGetValue(offer.Key, out var existingOffer))
                         {
                             existingOffer.CopyIncludedProducts(offer);
+                            existingOffer.Rarity = offer.Rarity;
                         }
                     }
                 }
