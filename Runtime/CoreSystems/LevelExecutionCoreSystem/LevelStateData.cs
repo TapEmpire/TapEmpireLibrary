@@ -10,13 +10,6 @@ namespace TapEmpire.CoreSystems
         public int StepsTotal { get; private set; } = 0;
         public LevelState LevelState { get; private set; } = LevelState.Active;
 
-        public bool IsOver => StepsDone >= StepsTotal;
-
-        public void SetStepsTotal(int value)
-        {
-            StepsTotal = value;
-        }
-
         public void Initialize(int stepsTotal, int stepsDone = 0)
         {
             StepsDone = stepsDone;
@@ -26,6 +19,10 @@ namespace TapEmpire.CoreSystems
         public int AddStepDone()
         {
             ++StepsDone;
+            if (StepsDone >= StepsTotal)
+            {
+                LevelState = LevelState.Won;
+            }
             OnDataChanged.OnNext(this);
 
             return StepsDone;
