@@ -145,11 +145,14 @@ namespace TapEmpire.Build
 
         private static void ApplyBuildMode(Configuration config, ProjectPathSettings paths)
         {
+            var systemSettings = AssetDatabase.LoadAssetAtPath<SystemSettings>(paths.SystemSettingsPath);
+            systemSettings.Debug = config == Configuration.Debug;
+            systemSettings.IgnoreConnection &= config == Configuration.Debug;
+            EditorUtility.SetDirty(systemSettings);
+
             var startSettings = AssetDatabase.LoadAssetAtPath<GameStartSettings>(paths.GameStartSettingsPath);
-            startSettings.Debug = config == Configuration.Debug;
             startSettings.SkipInters &= config == Configuration.Debug;
             startSettings.AutoRestartLevel &= config == Configuration.Debug;
-            startSettings.IgnoreConnection &= config == Configuration.Debug;
             EditorUtility.SetDirty(startSettings);
 
             var attributionSettings = AssetDatabase.LoadAssetAtPath<AttributionSettings>($"{paths.DefaultScriptablesPath}/AttributionSettings.asset");

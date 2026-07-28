@@ -17,7 +17,6 @@ namespace TapEmpire.Services
         public Observable<Unit> OnTick => _secondTick;
 
         [field: SerializeField] public SystemSettings SystemSettings { get; private set; }
-        [field: SerializeField] public GameStartSettings StaticSettings { get; private set; }
         [SerializeField] private MonoCallbacksService _monoCallbackServicePrefab = null;
 
         public bool CanPlayOffline => CanPlayOfflineInternal();
@@ -89,7 +88,7 @@ namespace TapEmpire.Services
         {
             return _progressService.GetPlayOffline(SystemSettings.PlayOfflineForPayers) && _progressService.GetIsPayer() ||
                 _progressService.GetPlayOfflineNoAds(SystemSettings.PlayOfflineNoAds) && _progressService.GetAdsDisabled() ||
-                StaticSettings.IgnoreConnection;
+                SystemSettings.IgnoreConnection;
         }
 
         private void OnDataChanged(SystemSettings settings)
