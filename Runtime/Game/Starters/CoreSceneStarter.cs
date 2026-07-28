@@ -90,17 +90,6 @@ namespace TapEmpire.Game
             // _levelExecutionCoreSystem.StartLevel(level);
         }
 
-        private int GetStartLevelIndex()
-        {
-            #if UNITY_EDITOR
-            if (_startSettings.Debug && !_startSettings.EditorStartFromPrefLevel)
-            {
-                return _startSettings.EditorDebugStartLevelIndex;
-            }
-            #endif
-            return _progressService.GetLevelProgress();
-        }
-
         private void OnDestroy()
         {
             _coreSystemsContainer.Release();

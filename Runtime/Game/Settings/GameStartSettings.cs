@@ -1,4 +1,4 @@
-﻿using R3;
+using R3;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
@@ -9,63 +9,17 @@ namespace TapEmpire.Settings
     {
         public readonly Subject<GameStartSettings> OnDataChanged = new ();
 
-        [SerializeField]
-        private bool _debug;
+        public bool Debug;
 
-        [SerializeField, ShowIf(nameof(Debug))]
-        private bool _autoRestartLevel;
+        [ShowIf(nameof(Debug))]
+        public bool AutoRestartLevel;
 
-        [SerializeField, ShowIf(nameof(Debug))]
-        private bool _skipInters;
+        [ShowIf(nameof(Debug))]
+        public bool SkipInters;
 
         public bool IgnoreConnection = false;
 
-        [SerializeField, ShowIf(nameof(Debug))]
-        private bool _hideRewardsAds;
-
-        [SerializeField, ShowIf(nameof(Debug))]
-        private bool _editorStartFromPrefLevel;
-        
-        [SerializeField, ShowIf(nameof(Debug)), HideIf(nameof(_editorStartFromPrefLevel))]
-        private int _editorEditorDebugStartLevelIndexIndex = -1;
-
-        [field:SerializeField] public int FrameRate { get; private set; } = 60;
-
-        public bool Debug
-        {
-            get => _debug;
-            set => _debug = value;
-        }
-
-        public bool AutoRestartLevel
-        {
-            get => _autoRestartLevel;
-            set => _autoRestartLevel = value;
-        }
-
-        public bool SkipInters
-        {
-            get => _skipInters;
-            set => _skipInters = value;
-        }
-
-        public bool HideRewardsAds
-        {
-            get => _hideRewardsAds;
-            set => _hideRewardsAds = value;
-        } 
-
-        public int EditorDebugStartLevelIndex
-        {
-            get => _editorEditorDebugStartLevelIndexIndex;
-            set => _editorEditorDebugStartLevelIndexIndex = value;
-        }
-
-        public bool EditorStartFromPrefLevel
-        {
-            get => _editorStartFromPrefLevel;
-            set => _editorStartFromPrefLevel = value;
-        }
+        public int FrameRate = 60;
 
         public void BroadcastUpdate() => OnDataChanged.OnNext(this);
     }
