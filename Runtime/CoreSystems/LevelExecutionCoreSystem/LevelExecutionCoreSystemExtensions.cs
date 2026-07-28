@@ -1,21 +1,9 @@
-﻿using UnityEngine;
-using TapEmpire.Utility;
+﻿using TapEmpire.Utility;
 
 namespace TapEmpire.CoreSystems
 {
     public static class LevelExecutionCoreSystemExtensions
     {
-        public static bool TryGetCamera(this ILevelExecutionCoreSystem self, out Camera camera)
-        {
-            if (self.ExecutionData.Value == null || self.ExecutionData.Value.Camera == null)
-            {
-                camera = null;
-                return false;
-            }
-            camera = self.ExecutionData.Value.Camera;
-            return true;
-        }
-
         public static int GetLevelIndex(this ILevelExecutionCoreSystem self)
         {
             return self.ExecutionData.Value.LevelIndex;

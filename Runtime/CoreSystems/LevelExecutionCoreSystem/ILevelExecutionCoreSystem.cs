@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using R3;
 using TapEmpire.Level;
 
@@ -10,17 +9,14 @@ namespace TapEmpire.CoreSystems
         ReactiveProperty<LevelExecutionData> ExecutionData { get; }
         IReadOnlyList<LevelSettings> Levels { get; }
 
-        Subject<LevelExecutionData> OnLevelStartedR3 { get; }
-        Subject<LevelEndReason> OnLevelCompletedR3 { get; }
-
-        event Action<LevelExecutionData> OnLevelStarted;
-        event Action<LevelEndReason> OnLevelCompleted;
-        event Action<int> OnCycleCompleted;
+        Subject<LevelExecutionData> OnLevelStarted { get; }
+        Subject<LevelEndReason> OnLevelCompleted { get; }
+        Subject<int> OnCycleCompleted { get; }
 
         void StartLevel(int levelIndex);
         void Continue();
         void ExitLevel(LevelEndReason reason);
-        void RestartLevel(bool isDebug = false);
+        void RestartLevel();
         void SetShouldSkipAd(bool shouldSkip);
     }
 }
