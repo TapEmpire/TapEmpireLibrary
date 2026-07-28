@@ -48,6 +48,20 @@ namespace TapEmpire.CoreSystems
             _executionAction?.Dispose();
         }
 
+        protected async UniTask InitializeLevelView(LevelSettings levelSettings, int levelIndex)
+        {
+            var levelView = await InstantiateLevelView(levelSettings);
+
+            ExecutionData.Value = new LevelExecutionData(levelSettings, levelView, levelIndex);
+            ExecutionData.Value.LevelStateData.OnDataChanged.Subscribe(OnLevelStateChanged).AddTo(_disposables);
+
+            InitializeModules();
+        }
+
+        protected virtual void OnLevelStateChanged(LevelStateData levelStateData)
+        {
+        }
+
         protected async UniTask<LevelView> InstantiateLevelView(LevelSettings levelSettings)
         {
             if (levelSettings.LevelViewPrefab != null && levelSettings.LevelViewPrefab.RuntimeKeyIsValid())
