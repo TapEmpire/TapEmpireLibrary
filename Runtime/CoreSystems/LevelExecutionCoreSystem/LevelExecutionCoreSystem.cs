@@ -185,7 +185,9 @@ namespace TapEmpire.CoreSystems
 
             _adsService.ShowBanner(true);
 
-            UniTaskUtility.Delay(LoadingScreenCloseDelay, () => _sceneManagementService.CloseLoadingScreen(default));
+            // TODO revisit: fire and forget with no cancellation token.
+            UniTaskUtility.ExecuteAfterSeconds(LoadingScreenCloseDelay,
+                () => _sceneManagementService.CloseLoadingScreen(default), default).Forget();
         }
 
         protected virtual void DestroyLevel()
