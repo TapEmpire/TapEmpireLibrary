@@ -2,8 +2,6 @@ using System;
 
 namespace TapEmpire.Services
 {
-    // Mid-level save state. Games store their own payload by deriving from LevelSaveData;
-    // the library only ever reads the base part, so it stays game agnostic.
     public static partial class ProgressServiceExtensions
     {
         public const string LevelSaveDataKey = "LevelSaveData";
@@ -18,8 +16,6 @@ namespace TapEmpire.Services
             self.SetSerializableObject(LevelSaveDataKey, data);
         }
 
-        // Cleared by writing an empty value rather than deleting the key, so that the cleared
-        // state is part of the cloud save snapshot and cannot be undone by an import.
         public static void CleanLevelSaveData(this IProgressService self)
         {
             self.StringValuesDictionary.SetValue(LevelSaveDataKey, string.Empty);

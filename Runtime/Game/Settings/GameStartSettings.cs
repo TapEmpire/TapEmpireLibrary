@@ -10,8 +10,6 @@ namespace TapEmpire.Settings
 
         public bool AutoRestartLevel;
 
-        public bool SkipInters;
-
         public void BroadcastUpdate() => OnDataChanged.OnNext(this);
     }
 }

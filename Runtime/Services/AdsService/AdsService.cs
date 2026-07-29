@@ -24,7 +24,11 @@ namespace TapEmpire.Services
         public ReadOnlyReactiveProperty<bool> AdsEnabled => _adsEnabled;
         public ReadOnlyReactiveProperty<bool> IsInterstitialReady => _interstitial?.IsLoaded ?? _notReady;
         public ReadOnlyReactiveProperty<bool> IsRewardedReady => _rewarded?.IsLoaded ?? _notReady;
-        public bool SkipAds { get; set; }
+        public bool SkipAds
+        {
+            get => _settings.Config.SkipAds;
+            set => _settings.Config.SkipAds = value;
+        }
 
         public bool CanShowRewarded =>
             _progressService.GetCyclesProgress() > 0 ||

@@ -151,7 +151,6 @@ namespace TapEmpire.Build
             EditorUtility.SetDirty(systemSettings);
 
             var startSettings = AssetDatabase.LoadAssetAtPath<GameStartSettings>(paths.GameStartSettingsPath);
-            startSettings.SkipInters &= config == Configuration.Debug;
             startSettings.AutoRestartLevel &= config == Configuration.Debug;
             EditorUtility.SetDirty(startSettings);
 
@@ -163,6 +162,7 @@ namespace TapEmpire.Build
 
             var adsConfig = AssetDatabase.LoadAssetAtPath<AdsConfig>($"{paths.DefaultScriptablesPath}/AdsConfig.asset");
             adsConfig.TestMode = config == Configuration.Debug;
+            adsConfig.SkipAds &= config == Configuration.Debug;
             EditorUtility.SetDirty(adsConfig);
 
             var console = UnityEngine.Object.FindObjectOfType<LunarConsole>(true);
