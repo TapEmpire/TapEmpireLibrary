@@ -150,9 +150,9 @@ namespace TapEmpire.Build
             systemSettings.IgnoreConnection &= config == Configuration.Debug;
             EditorUtility.SetDirty(systemSettings);
 
-            var startSettings = AssetDatabase.LoadAssetAtPath<GameStartSettings>(paths.GameStartSettingsPath);
-            startSettings.AutoRestartLevel &= config == Configuration.Debug;
-            EditorUtility.SetDirty(startSettings);
+            var gameSettings = AssetDatabase.LoadAssetAtPath<GameSettings>(paths.GameSettingsPath);
+            gameSettings.AutoRestartLevel &= config == Configuration.Debug;
+            EditorUtility.SetDirty(gameSettings);
 
             var attributionSettings = AssetDatabase.LoadAssetAtPath<AttributionSettings>($"{paths.DefaultScriptablesPath}/AttributionSettings.asset");
             attributionSettings.Environment = config == Configuration.Debug

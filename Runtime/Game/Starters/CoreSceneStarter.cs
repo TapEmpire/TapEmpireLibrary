@@ -11,10 +11,6 @@ namespace TapEmpire.Game
 {
     public class CoreSceneStarter : MonoBehaviour
     {
-        [Header("Settings")]
-        [SerializeField]
-        private GameStartSettings _startSettings;
-
         [Header("Context")]
         [SerializeField]
         private SceneContext _coreSceneContext;
