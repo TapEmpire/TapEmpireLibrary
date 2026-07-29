@@ -41,6 +41,21 @@ namespace TapEmpire.Services
             return _levelsTable.Levels[_progressService.GetLevelProgress()];
         }
 
+        protected void UpdateCycles(string lastVersion, string version, int fromLevel)
+        {
+            if (string.IsNullOrEmpty(lastVersion) ||
+                string.Compare(lastVersion, version, StringComparison.InvariantCulture) > 0)
+            {
+                return;
+            }
+
+            if (_progressService.GetCyclesProgress() > 0)
+            {
+                _progressService.ClearCyclesProgress();
+                _progressService.SetLevelProgress(fromLevel);
+            }
+        }
+
         private void SortLevels()
         {
             if (_sortTable == null)
