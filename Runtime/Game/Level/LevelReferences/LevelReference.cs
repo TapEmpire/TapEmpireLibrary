@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Sirenix.OdinInspector;
+using TapEmpire.Utility;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -25,6 +26,11 @@ namespace TapEmpire.Level
     public class BoolReference : LevelReference<bool>
     {
         public BoolReference(bool value) : base(value) { }
+    }
+
+    public class Vector2Reference : LevelReference<Vector2>
+    {
+        public Vector2Reference(Vector2 value) : base(value) { }
     }
 
     public class Vector3Reference : LevelReference<Vector3>
@@ -65,5 +71,10 @@ namespace TapEmpire.Level
     public class ButtonReference : LevelReference<Button>
     {
         public ButtonReference(Button value) : base(value) { }
+    }
+
+    public class BoundsProviderReference : LevelReference<BoundsProvider>
+    {
+        public BoundsProviderReference(BoundsProvider value) : base(value) { }
     }
 }
