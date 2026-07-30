@@ -11,9 +11,8 @@ namespace TapEmpire.CoreSystems
     [Serializable]
     public class InputCoreSystem : Initializable, IInputCoreSystem, ITickable
     {
-        [SerializeField] private InputMode _inputMode = InputMode.Drag;
+        [field: SerializeField] public InputMode InputMode { get; private set; } = InputMode.Drag;
 
-        public InputMode InputMode => _inputMode;
         public ReactiveProperty<bool> BlockModeProperty { get; private set; }
 
         public Observable<Vector2> OnScreenInputStart => _onScreenInputStart;
@@ -122,7 +121,7 @@ namespace TapEmpire.CoreSystems
                         IsInputEnd = true;
                         IsInputStart = false;
                         IsInputHold = false;
-                        if (_inputMode.HasFlag(InputMode.Tap))
+                        if (InputMode.HasFlag(InputMode.Tap))
                         {
                             CheckTouch(inputScreenPosition);
                         }
