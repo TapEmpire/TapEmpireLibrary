@@ -78,14 +78,6 @@ namespace TapEmpire.CoreSystems
             return base.OnInitializeAsync(cancellationToken);
         }
 
-        protected override void OnRelease()
-        {
-            _onScreenInputStart.Dispose();
-            _onScreenInputEnd.Dispose();
-            _onScreenTapEnd.Dispose();
-            BlockModeProperty?.Dispose();
-        }
-
         public void Tick()
         {
             if (BlockModeProperty.Value || IsSimulated)
