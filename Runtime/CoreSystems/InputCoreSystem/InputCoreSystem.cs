@@ -11,7 +11,9 @@ namespace TapEmpire.CoreSystems
     [Serializable]
     public class InputCoreSystem : Initializable, IInputCoreSystem, ITickable
     {
-        public ReactiveProperty<InputMode> InputModeProperty { get; private set; }
+        [SerializeField] private InputMode _inputMode = InputMode.Drag;
+
+        public InputMode InputMode => _inputMode;
         public ReactiveProperty<bool> BlockModeProperty { get; private set; }
 
         public Observable<Vector2> OnScreenInputStart => _onScreenInputStart;
@@ -73,7 +75,6 @@ namespace TapEmpire.CoreSystems
 
         protected override UniTask OnInitializeAsync(CancellationToken cancellationToken)
         {
-            InputModeProperty = new ReactiveProperty<InputMode>(InputMode.Drag);
             BlockModeProperty = new ReactiveProperty<bool>(false);
             return base.OnInitializeAsync(cancellationToken);
         }
@@ -83,7 +84,6 @@ namespace TapEmpire.CoreSystems
             _onScreenInputStart.Dispose();
             _onScreenInputEnd.Dispose();
             _onScreenTapEnd.Dispose();
-            InputModeProperty?.Dispose();
             BlockModeProperty?.Dispose();
         }
 
@@ -122,7 +122,10 @@ namespace TapEmpire.CoreSystems
                         IsInputEnd = true;
                         IsInputStart = false;
                         IsInputHold = false;
-                        CheckTouch(inputScreenPosition);
+                        if (_inputMode.HasFlag(InputMode.Tap))
+                        {
+                            CheckTouch(inputScreenPosition);
+                        }
                         break;
 
                     default:
