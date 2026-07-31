@@ -32,6 +32,7 @@ namespace TapEmpire.CoreSystems
         private Camera _camera;
         private IDisposable _subscription;
         private ContactFilter2D _overlapFilter;
+        private RaycastHit2D[] _raycastResults = new RaycastHit2D[1];
 
         [Inject]
         private void Construct(IInputCoreSystem inputCoreSystem, ILevelExecutionCoreSystem levelExecutionCoreSystem)
@@ -80,11 +81,10 @@ namespace TapEmpire.CoreSystems
         {
             if (_camera == null) return default;
 
-            var results = new RaycastHit2D[1];
             var origin = _camera.ScreenToWorldPoint(_inputCoreSystem.InputPosition);
-            var hitCount = Physics2D.Raycast(origin, Vector2.zero, CreateFilter(layerMask, false), results, float.MaxValue);
+            var hitCount = Physics2D.Raycast(origin, Vector2.zero, CreateFilter(layerMask, false), _raycastResults, float.MaxValue);
 
-            return hitCount > 0 ? results[0] : default;
+            return hitCount > 0 ? _raycastResults[0] : default;
         }
 
         private static ContactFilter2D CreateFilter(LayerMask layerMask, bool useTriggers)
