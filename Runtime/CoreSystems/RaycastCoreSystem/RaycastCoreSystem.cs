@@ -68,7 +68,7 @@ namespace TapEmpire.CoreSystems
             return Physics2D.OverlapAreaAll(pointA, pointB, _layers);
         }
 
-        public Collider2D[] OverlapCollider(Collider2D target)
+        public Collider2D[] Overlap(Collider2D target)
         {
             var hits = new Collider2D[MaxOverlapResults];
             var count = target.Overlap(_overlapFilter, hits);
