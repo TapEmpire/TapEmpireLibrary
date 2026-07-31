@@ -16,6 +16,15 @@ namespace TapEmpire.CoreSystems
 
         [SerializeField] private LayerMask _layers = default;
 
+        public Vector2 InputWorldPoint
+        {
+            get
+            {
+                _inputWorldPoint ??= (Vector2)_camera.ScreenToWorldPoint(_inputCoreSystem.InputPosition);
+                return _inputWorldPoint.Value;
+            }
+        }
+
         public RaycastHit2D RaycastHit2D
         {
             get
@@ -28,6 +37,7 @@ namespace TapEmpire.CoreSystems
         private IInputCoreSystem _inputCoreSystem;
         private ILevelExecutionCoreSystem _levelExecutionCoreSystem;
 
+        private Vector2? _inputWorldPoint;
         private RaycastHit2D? _raycastHit2D;
         private Camera _camera;
         private IDisposable _subscription;
@@ -81,8 +91,7 @@ namespace TapEmpire.CoreSystems
         {
             if (_camera == null) return default;
 
-            var origin = _camera.ScreenToWorldPoint(_inputCoreSystem.InputPosition);
-            var hitCount = Physics2D.Raycast(origin, Vector2.zero, CreateFilter(layerMask, false), _raycastResults, float.MaxValue);
+            var hitCount = Physics2D.Raycast(InputWorldPoint, Vector2.zero, CreateFilter(layerMask, false), _raycastResults, float.MaxValue);
 
             return hitCount > 0 ? _raycastResults[0] : default;
         }
@@ -99,6 +108,7 @@ namespace TapEmpire.CoreSystems
 
         public void Tick()
         {
+            _inputWorldPoint = null;
             _raycastHit2D = null;
         }
     }

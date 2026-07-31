@@ -4,6 +4,8 @@ namespace TapEmpire.CoreSystems
 {
     public interface IRaycastCoreSystem : ICoreSystem
     {
+        Vector2 InputWorldPoint { get; }
+
         RaycastHit2D RaycastHit2D { get; }
 
         RaycastHit2D RaycastHit2DLayered(LayerMask layerMask);
