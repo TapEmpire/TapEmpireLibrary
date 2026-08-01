@@ -15,6 +15,8 @@ namespace TapEmpire.Level
         public string CustomName;
         public int IndexName;
 
+        public T As<T>() where T : LevelSettings => this as T;
+
 #if UNITY_EDITOR
         public virtual void OnValidate()
         {
