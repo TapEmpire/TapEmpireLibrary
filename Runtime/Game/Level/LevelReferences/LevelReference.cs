@@ -18,6 +18,12 @@ namespace TapEmpire.Level
         public LevelReference(T value) => _value = value;
     }
 
+    [Serializable]
+    public class ArrayReference<T> : LevelReference<T[]>
+    {
+        public ArrayReference(T[] value) : base(value) { }
+    }
+
     public class IntReference : LevelReference<int>
     {
         public IntReference(int value) : base(value) { }
