@@ -14,7 +14,8 @@ namespace TapEmpire.CoreSystems
     {
         private const int MaxOverlapResults = 10;
 
-        [SerializeField] private LayerMask _layers = default;
+        [SerializeField] private LayerMask _raycastLayers = default;
+        [SerializeField] private LayerMask _overlapLayers = default;
 
         public Vector2 InputWorldPoint
         {
@@ -29,7 +30,7 @@ namespace TapEmpire.CoreSystems
         {
             get
             {
-                _raycastHit2D ??= DoRaycast(_layers);
+                _raycastHit2D ??= DoRaycast(_raycastLayers);
                 return _raycastHit2D.Value;
             }
         }
@@ -43,6 +44,7 @@ namespace TapEmpire.CoreSystems
         private IDisposable _subscription;
         private ContactFilter2D _overlapFilter;
         private RaycastHit2D[] _raycastResults = new RaycastHit2D[1];
+        private Collider2D[] _overlapResults = new Collider2D[MaxOverlapResults];
 
         [Inject]
         private void Construct(IInputCoreSystem inputCoreSystem, ILevelExecutionCoreSystem levelExecutionCoreSystem)
@@ -50,7 +52,7 @@ namespace TapEmpire.CoreSystems
             _inputCoreSystem = inputCoreSystem;
             _levelExecutionCoreSystem = levelExecutionCoreSystem;
 
-            _overlapFilter = CreateFilter(_layers, true);
+            _overlapFilter = CreateFilter(_overlapLayers, true);
         }
 
         protected override UniTask OnInitializeAsync(CancellationToken cancellationToken)
@@ -76,15 +78,18 @@ namespace TapEmpire.CoreSystems
 
         public Collider2D[] OverlapAreaAll(Vector2 pointA, Vector2 pointB)
         {
-            return Physics2D.OverlapAreaAll(pointA, pointB, _layers);
+            return Physics2D.OverlapAreaAll(pointA, pointB, _overlapLayers);
         }
 
         public Collider2D[] Overlap(Collider2D target)
         {
-            var hits = new Collider2D[MaxOverlapResults];
-            var count = target.Overlap(_overlapFilter, hits);
+            var count = target.Overlap(_overlapFilter, _overlapResults);
+            return _overlapResults[..count];
+        }
 
-            return hits.Take(count).Where(collider => target.IsTouching(collider, _overlapFilter)).ToArray();
+        public Collider2D[] OverlapTouching(Collider2D target)
+        {
+            return Overlap(target).Where(collider => target.IsTouching(collider, _overlapFilter)).ToArray();
         }
 
         private RaycastHit2D DoRaycast(LayerMask layerMask)
@@ -92,7 +97,6 @@ namespace TapEmpire.CoreSystems
             if (_camera == null) return default;
 
             var hitCount = Physics2D.Raycast(InputWorldPoint, Vector2.zero, CreateFilter(layerMask, false), _raycastResults, float.MaxValue);
-
             return hitCount > 0 ? _raycastResults[0] : default;
         }
 
