@@ -14,6 +14,7 @@ namespace TapEmpire.CoreSystems
         {
             StepsDone = stepsDone;
             StepsTotal = stepsTotal;
+            OnDataChanged.OnNext(this);
         }
 
         public int AddStepDone()
