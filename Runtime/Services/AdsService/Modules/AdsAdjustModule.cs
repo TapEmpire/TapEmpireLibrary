@@ -12,7 +12,7 @@ namespace TapEmpire.Services
         public AdsAdjustModule(IAdsService adsService)
         {
             _settings = adsService.Settings;
-            _subscription = adsService.OnImpression.Subscribe(OnImpression);
+            _subscription = adsService.OnImpressionUnsafe.Subscribe(OnImpression);
         }
 
         public void Dispose() => _subscription?.Dispose();

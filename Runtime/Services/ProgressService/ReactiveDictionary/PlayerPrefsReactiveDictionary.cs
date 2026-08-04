@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -6,7 +7,7 @@ namespace TapEmpire.Services
 {
     public abstract class PlayerPrefsReactiveDictionary<TValue> : ICachedReactiveDictionary<TValue>
     {
-        private readonly Dictionary<string, TValue> _dictionary = new ();
+        private readonly ConcurrentDictionary<string, TValue> _dictionary = new ();
 
         public event Action<string, TValue> OnSetValue;
         public event Action<string> OnDeleteKey;
@@ -27,7 +28,7 @@ namespace TapEmpire.Services
 
         public void DeleteKey(string key)
         {
-            _dictionary.Remove(key);
+            _dictionary.TryRemove(key, out _);
             PlayerPrefs.DeleteKey(key);
             OnDeleteKey?.Invoke(key);
         }

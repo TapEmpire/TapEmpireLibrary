@@ -1,4 +1,5 @@
 using R3;
+using TapEmpire.Utility;
 using UnityEngine;
 
 namespace TapEmpire.Services
@@ -56,14 +57,20 @@ namespace TapEmpire.Services
 
         private void OnAdLoaded(string adUnitId, MaxSdkBase.AdInfo adInfo)
         {
-            IsLoaded.Value = true;
-            UpdateLayout();
+            UniTaskUtility.RunOnMainThread(() =>
+            {
+                IsLoaded.Value = true;
+                UpdateLayout();
+            });
         }
 
         private void OnAdLoadFailed(string adUnitId, MaxSdkBase.ErrorInfo errorInfo)
         {
-            Debug.LogWarning($"[Ads] Max banner load failed: {errorInfo}");
-            IsLoaded.Value = false;
+            UniTaskUtility.RunOnMainThread(() =>
+            {
+                Debug.LogWarning($"[Ads] Max banner load failed: {errorInfo}");
+                IsLoaded.Value = false;
+            });
         }
 
         private void OnAdRevenuePaid(string adUnitId, MaxSdkBase.AdInfo adInfo)

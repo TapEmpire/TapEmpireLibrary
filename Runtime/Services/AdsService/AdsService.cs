@@ -19,6 +19,7 @@ namespace TapEmpire.Services
         public Subject<string> OnAdClicked { get; } = new();
         public Subject<bool> OnInterstitialAttempt { get; } = new();
         public Subject<AdImpressionData> OnImpression { get; } = new();
+        public Subject<AdImpressionData> OnImpressionUnsafe { get; } = new();
 
         public AdsSettings Settings => _settings;
         public ReadOnlyReactiveProperty<bool> AdsEnabled => _adsEnabled;
@@ -284,7 +285,11 @@ namespace TapEmpire.Services
         private void SubscribeTo<T>(T ad, Action setNull, CompositeDisposable bag) where T : IAd
         {
             ad.AddTo(bag);
-            ad.OnImpression.Subscribe(OnImpression.OnNext).AddTo(bag);
+            ad.OnImpression.Subscribe(data =>
+            {
+                OnImpressionUnsafe.OnNext(data);
+                UniTaskUtility.RunOnMainThread(() => OnImpression.OnNext(data));
+            }).AddTo(bag);
             Disposable.Create(setNull).AddTo(bag);
         }
     }

@@ -60,32 +60,44 @@ namespace TapEmpire.Services
 
         private void OnAdLoaded(string adUnitId, MaxSdkBase.AdInfo adInfo)
         {
-            _retryAttempt = 0;
-            IsLoaded.Value = true;
+            UniTaskUtility.RunOnMainThread(() =>
+            {
+                _retryAttempt = 0;
+                IsLoaded.Value = true;
+            });
         }
 
         private void OnAdLoadFailed(string adUnitId, MaxSdkBase.ErrorInfo errorInfo)
         {
-            IsLoaded.Value = false;
-            _retryAttempt++;
-            var seconds = (float)Math.Pow(2, Math.Min(6, _retryAttempt));
-            _retryDisposable?.Dispose();
-            _retryDisposable = UniTaskUtility.Delay(seconds, LoadInterstitial);
+            UniTaskUtility.RunOnMainThread(() =>
+            {
+                IsLoaded.Value = false;
+                _retryAttempt++;
+                var seconds = (float)Math.Pow(2, Math.Min(6, _retryAttempt));
+                _retryDisposable?.Dispose();
+                _retryDisposable = UniTaskUtility.Delay(seconds, LoadInterstitial);
+            });
         }
 
         private void OnAdDisplayFailed(string adUnitId, MaxSdkBase.ErrorInfo errorInfo, MaxSdkBase.AdInfo adInfo)
         {
-            IsLoaded.Value = false;
-            IsShowing.Value = false;
-            LoadInterstitial();
+            UniTaskUtility.RunOnMainThread(() =>
+            {
+                IsLoaded.Value = false;
+                IsShowing.Value = false;
+                LoadInterstitial();
+            });
         }
 
         private void OnAdHidden(string adUnitId, MaxSdkBase.AdInfo adInfo)
         {
-            IsLoaded.Value = false;
-            IsShowing.Value = false;
-            OnReward.OnNext(Unit.Default);
-            LoadInterstitial();
+            UniTaskUtility.RunOnMainThread(() =>
+            {
+                IsLoaded.Value = false;
+                IsShowing.Value = false;
+                OnReward.OnNext(Unit.Default);
+                LoadInterstitial();
+            });
         }
 
         private void OnAdRevenuePaid(string adUnitId, MaxSdkBase.AdInfo adInfo)

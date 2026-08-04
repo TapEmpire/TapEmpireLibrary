@@ -19,6 +19,7 @@ namespace TapEmpire.Services
                 await SetTestDeviceIds(cancellationToken);
             }
 
+            MaxSdkBase.InvokeEventsOnUnityMainThread = false;
             MaxSdk.SetVerboseLogging(testMode);
             MaxSdk.SetHasUserConsent(isPersonalized);
 

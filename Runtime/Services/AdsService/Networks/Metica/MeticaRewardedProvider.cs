@@ -102,36 +102,48 @@ namespace TapEmpire.Services
 
         private void OnMeticaLoaded(MeticaAd ad)
         {
-            _retryAttempt = 0;
-            IsLoaded.Value = true;
+            UniTaskUtility.RunOnMainThread(() =>
+            {
+                _retryAttempt = 0;
+                IsLoaded.Value = true;
+            });
         }
 
         private void OnMeticaLoadFailed(object error)
         {
-            IsLoaded.Value = false;
-            _retryAttempt++;
-            var seconds = (float)Math.Pow(2, Math.Min(6, _retryAttempt));
-            _retryDisposable?.Dispose();
-            _retryDisposable = UniTaskUtility.Delay(seconds, MeticaAds.LoadRewarded);
+            UniTaskUtility.RunOnMainThread(() =>
+            {
+                IsLoaded.Value = false;
+                _retryAttempt++;
+                var seconds = (float)Math.Pow(2, Math.Min(6, _retryAttempt));
+                _retryDisposable?.Dispose();
+                _retryDisposable = UniTaskUtility.Delay(seconds, MeticaAds.LoadRewarded);
+            });
         }
 
         private void OnMeticaShowFailed(MeticaAd ad, object error)
         {
-            IsLoaded.Value = false;
-            IsShowing.Value = false;
-            MeticaAds.LoadRewarded();
+            UniTaskUtility.RunOnMainThread(() =>
+            {
+                IsLoaded.Value = false;
+                IsShowing.Value = false;
+                MeticaAds.LoadRewarded();
+            });
         }
 
         private void OnMeticaHidden(MeticaAd ad)
         {
-            IsLoaded.Value = false;
-            IsShowing.Value = false;
-            MeticaAds.LoadRewarded();
+            UniTaskUtility.RunOnMainThread(() =>
+            {
+                IsLoaded.Value = false;
+                IsShowing.Value = false;
+                MeticaAds.LoadRewarded();
+            });
         }
 
         private void OnMeticaRewarded(MeticaAd ad)
         {
-            OnReward.OnNext(Unit.Default);
+            UniTaskUtility.RunOnMainThread(() => OnReward.OnNext(Unit.Default));
         }
 
         private void OnMeticaRevenuePaid(MeticaAd ad)
@@ -140,13 +152,13 @@ namespace TapEmpire.Services
         }
 
         private void OnMaxLoaded(string adUnitId, MaxSdkBase.AdInfo adInfo) =>
-            MeticaAds.NotifyAdLoadSuccess(adInfo.ToMeticaAd());
+            UniTaskUtility.RunOnMainThread(() => MeticaAds.NotifyAdLoadSuccess(adInfo.ToMeticaAd()));
 
         private void OnMaxLoadFailed(string adUnitId, MaxSdkBase.ErrorInfo errorInfo) =>
-            MeticaAds.NotifyAdLoadFailed(adUnitId, errorInfo.Message);
+            UniTaskUtility.RunOnMainThread(() => MeticaAds.NotifyAdLoadFailed(adUnitId, errorInfo.Message));
 
         private void OnMaxRevenuePaid(string adUnitId, MaxSdkBase.AdInfo adInfo) =>
-            MeticaAds.NotifyAdShowSuccess(adInfo.ToMeticaAd());
+            UniTaskUtility.RunOnMainThread(() => MeticaAds.NotifyAdShowSuccess(adInfo.ToMeticaAd()));
     }
 }
 #endif

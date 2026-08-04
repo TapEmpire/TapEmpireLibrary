@@ -121,5 +121,13 @@ namespace TapEmpire.Utility
                 }
             });
         }
+
+        public static void RunOnMainThread(Action action)
+        {
+            if (PlayerLoopHelper.IsMainThread)
+                action();
+            else
+                UniTask.Post(action);
+        }
     }
 }

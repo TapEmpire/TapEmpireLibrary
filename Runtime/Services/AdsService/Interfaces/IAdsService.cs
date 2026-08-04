@@ -10,6 +10,7 @@ namespace TapEmpire.Services
         Subject<string> OnAdClicked { get; }
         Subject<bool> OnInterstitialAttempt { get; }
         Subject<AdImpressionData> OnImpression { get; }
+        Subject<AdImpressionData> OnImpressionUnsafe { get; }
 
         AdsSettings Settings { get; }
 

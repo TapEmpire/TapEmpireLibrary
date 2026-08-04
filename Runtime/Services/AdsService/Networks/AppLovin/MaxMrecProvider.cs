@@ -1,4 +1,5 @@
 using R3;
+using TapEmpire.Utility;
 
 namespace TapEmpire.Services
 {
@@ -50,12 +51,12 @@ namespace TapEmpire.Services
 
         private void OnAdLoaded(string adUnitId, MaxSdkBase.AdInfo adInfo)
         {
-            IsLoaded.Value = true;
+            UniTaskUtility.RunOnMainThread(() => IsLoaded.Value = true);
         }
 
         private void OnAdLoadFailed(string adUnitId, MaxSdkBase.ErrorInfo errorInfo)
         {
-            IsLoaded.Value = false;
+            UniTaskUtility.RunOnMainThread(() => IsLoaded.Value = false);
         }
 
         private void OnAdRevenuePaid(string adUnitId, MaxSdkBase.AdInfo adInfo)
