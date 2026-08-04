@@ -69,6 +69,11 @@ namespace TapEmpire.Level
         public CameraReference(Camera value) : base(value) { }
     }
 
+    public class Collider2DReference : LevelReference<Collider2D>
+    {
+        public Collider2DReference(Collider2D value) : base(value) { }
+    }
+
     public class SpriteRendererReference : LevelReference<SpriteRenderer>
     {
         public SpriteRendererReference(SpriteRenderer value) : base(value) { }
