@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 namespace TapEmpire.CoreSystems
@@ -12,8 +13,8 @@ namespace TapEmpire.CoreSystems
 
         Collider2D[] OverlapAreaAll(Vector2 pointA, Vector2 pointB);
 
-        Collider2D[] Overlap(Collider2D target);
+        ArraySegment<Collider2D> Overlap(Collider2D target);
 
-        Collider2D[] OverlapTouching(Collider2D target);
+        ArraySegment<Collider2D> OverlapTouching(Collider2D target);
     }
 }

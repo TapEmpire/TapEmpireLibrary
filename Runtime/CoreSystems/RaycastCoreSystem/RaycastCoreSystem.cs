@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using R3;
@@ -81,15 +80,28 @@ namespace TapEmpire.CoreSystems
             return Physics2D.OverlapAreaAll(pointA, pointB, _overlapLayers);
         }
 
-        public Collider2D[] Overlap(Collider2D target)
+        // The result is a view over a shared buffer, not a copy: the next Overlap or OverlapTouching
+        // call overwrites it. Finish iterating before calling either of them again.
+        public ArraySegment<Collider2D> Overlap(Collider2D target)
         {
             var count = target.Overlap(_overlapFilter, _overlapResults);
-            return _overlapResults[..count];
+            return new ArraySegment<Collider2D>(_overlapResults, 0, count);
         }
 
-        public Collider2D[] OverlapTouching(Collider2D target)
+        public ArraySegment<Collider2D> OverlapTouching(Collider2D target)
         {
-            return Overlap(target).Where(collider => target.IsTouching(collider, _overlapFilter)).ToArray();
+            var count = target.Overlap(_overlapFilter, _overlapResults);
+            var touching = 0;
+
+            for (var i = 0; i < count; i++)
+            {
+                if (target.IsTouching(_overlapResults[i], _overlapFilter))
+                {
+                    _overlapResults[touching++] = _overlapResults[i];
+                }
+            }
+
+            return new ArraySegment<Collider2D>(_overlapResults, 0, touching);
         }
 
         private RaycastHit2D DoRaycast(LayerMask layerMask)
