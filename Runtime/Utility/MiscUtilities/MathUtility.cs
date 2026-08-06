@@ -13,6 +13,12 @@ namespace TapEmpire.Utility
             return value < max ? value : 0;
         }
 
+        public static float SmoothStep(float min, float max, float value)
+        {
+            var t = Mathf.InverseLerp(min, max, value);
+            return t * t * (3f - 2f * t);
+        }
+
         public static int LoopValue(int value, int max)
         {
             return (value + 1 >= max) ? 0 : value + 1;
