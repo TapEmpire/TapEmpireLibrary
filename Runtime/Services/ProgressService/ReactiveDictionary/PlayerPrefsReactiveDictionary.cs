@@ -33,8 +33,8 @@ namespace TapEmpire.Services
             OnDeleteKey?.Invoke(key);
         }
 
-        public IReadOnlyCollection<string> GetCachedKeys() => 
-            _dictionary.Keys;
+        public IReadOnlyCollection<string> GetCachedKeys() =>
+            (IReadOnlyCollection<string>)_dictionary.Keys;
 
         private void SetCacheValue(string key, TValue value)
         {
