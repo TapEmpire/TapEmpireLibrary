@@ -20,8 +20,12 @@ namespace TapEmpire.UI
             set => _header.text = value;
         }
 
-        public virtual IDisposable Initialize()
+        protected IDebugUIView View { get; private set; }
+
+        public virtual IDisposable Initialize(IDebugUIView view)
         {
+            View = view;
+
             if (_applyButton != null)
             {
                 _applyButton.onClick.Subscribe(Apply).AddTo(_disposables);

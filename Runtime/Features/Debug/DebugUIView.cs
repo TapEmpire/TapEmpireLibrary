@@ -10,7 +10,7 @@ using UnityEngine.UI;
 
 namespace TapEmpire.UI
 {
-    public abstract class DebugUIView<TViewModel> : UIView<TViewModel>, IInjectable
+    public abstract class DebugUIView<TViewModel> : UIView<TViewModel>, IInjectable, IDebugUIView
         where TViewModel : IUIViewModel
     {
         [SerializeField] private Button _openButton;
@@ -18,7 +18,7 @@ namespace TapEmpire.UI
         [SerializeField] private GameObject _contentContainer;
         [SerializeField] private List<DebugPageEntry> _pages;
 
-        private CompositeDisposable _disposables = new();
+        protected readonly CompositeDisposable _disposables = new();
 
         public override UniTask OpenAsync(CancellationToken cancellationToken)
         {
@@ -26,7 +26,7 @@ namespace TapEmpire.UI
             _closeButton.onClick.Subscribe(() => SetContentVisible(false)).AddTo(_disposables);
 
             _pages.ForEach((entry, index) => entry.Button.onClick.Subscribe(() => ShowPage(index)).AddTo(_disposables));
-            _pages.ForEach(entry => entry.Page.Initialize().AddTo(_disposables));
+            _pages.ForEach(entry => entry.Page.Initialize(this).AddTo(_disposables));
 
             ShowPage(0);
             return base.OpenAsync(cancellationToken);

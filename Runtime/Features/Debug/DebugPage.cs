@@ -12,9 +12,12 @@ namespace TapEmpire.UI
 
         protected readonly CompositeDisposable _disposables = new();
 
-        public virtual IDisposable Initialize()
+        protected IDebugUIView View { get; private set; }
+
+        public virtual IDisposable Initialize(IDebugUIView view)
         {
-            _components.ForEach(component => component.Initialize().AddTo(_disposables));
+            View = view;
+            _components.ForEach(component => component.Initialize(view).AddTo(_disposables));
             return this;
         }
 
