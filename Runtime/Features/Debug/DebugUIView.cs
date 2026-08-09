@@ -52,7 +52,7 @@ namespace TapEmpire.UI
         [Button("@_contentContainer.activeSelf ? \"Close container\" : \"Open container\"")]
         private void ToggleVisibility()
         {
-            SetContentVisible(!_contentContainer.activeSelf);
+            _contentContainer.SetActive(!_contentContainer.activeSelf);
         }
 
         [Button("Open page")]
