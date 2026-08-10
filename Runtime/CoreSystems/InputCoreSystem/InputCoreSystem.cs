@@ -1,9 +1,11 @@
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using R3;
 using TapEmpire.Services;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using Zenject;
 
 namespace TapEmpire.CoreSystems
@@ -12,6 +14,8 @@ namespace TapEmpire.CoreSystems
     public class InputCoreSystem : Initializable, IInputCoreSystem, ITickable
     {
         [field: SerializeField] public InputMode InputMode { get; private set; } = InputMode.Drag;
+
+        [SerializeField] private bool _blockInputOverUI = true;
 
         public ReactiveProperty<bool> BlockModeProperty { get; private set; }
 
@@ -34,6 +38,10 @@ namespace TapEmpire.CoreSystems
         private float _maxSqrTapMovement = 100.0f;
         private float _touchStartTime = 0.0f;
         private Vector2 _inputStartPosition = Vector2.zero;
+
+        private bool _uiOwnsInput;
+        private PointerEventData _pointerEventData;
+        private readonly List<RaycastResult> _raycastResults = new();
 
         public Vector2 InputPosition
         {
@@ -82,14 +90,19 @@ namespace TapEmpire.CoreSystems
         {
             if (BlockModeProperty.Value || IsSimulated)
             {
-                IsInputStart = false;
-                IsInputEnd = false;
-                IsInputHold = false;
+                ResetInputFlags();
+                _uiOwnsInput = false;
                 return;
             }
 
             if (TryGetPrimaryInputScreenPosition(out var inputScreenPosition, out var touchPhase))
             {
+                if (IsInputOwnedByUI(touchPhase, inputScreenPosition))
+                {
+                    ResetInputFlags();
+                    return;
+                }
+
                 switch (touchPhase)
                 {
                     case TouchPhase.Began:
@@ -120,18 +133,53 @@ namespace TapEmpire.CoreSystems
                         break;
 
                     default:
-                        IsInputStart = false;
-                        IsInputEnd = false;
-                        IsInputHold = false;
+                        ResetInputFlags();
                         break;
                 }
             }
             else
             {
-                IsInputStart = false;
-                IsInputEnd = false;
-                IsInputHold = false;
+                ResetInputFlags();
+                _uiOwnsInput = false;
             }
+        }
+
+        private void ResetInputFlags()
+        {
+            IsInputStart = false;
+            IsInputEnd = false;
+            IsInputHold = false;
+        }
+
+        private bool IsInputOwnedByUI(TouchPhase touchPhase, Vector2 screenPosition)
+        {
+            if (touchPhase == TouchPhase.Began)
+            {
+                _uiOwnsInput = _blockInputOverUI && IsPointerOverUI(screenPosition);
+            }
+
+            if (!_uiOwnsInput) return false;
+
+            if (touchPhase is TouchPhase.Ended or TouchPhase.Canceled)
+            {
+                _uiOwnsInput = false;
+            }
+
+            return true;
+        }
+
+        private bool IsPointerOverUI(Vector2 screenPosition)
+        {
+            var eventSystem = EventSystem.current;
+            if (eventSystem == null) return false;
+
+            _pointerEventData ??= new PointerEventData(eventSystem);
+            _pointerEventData.position = screenPosition;
+
+            _raycastResults.Clear();
+            eventSystem.RaycastAll(_pointerEventData, _raycastResults);
+
+            return _raycastResults.Count > 0;
         }
 
         private bool TryGetPrimaryInputScreenPosition(out Vector2 screenPosition, out TouchPhase touchPhase)
