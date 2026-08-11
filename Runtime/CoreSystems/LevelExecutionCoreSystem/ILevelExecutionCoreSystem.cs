@@ -14,6 +14,7 @@ namespace TapEmpire.CoreSystems
         Subject<int> OnCycleCompleted { get; }
 
         void StartLevel(int levelIndex);
+        void PauseLevel(bool shouldPause);
         void Continue();
         void ExitLevel(LevelEndReason reason);
         void RestartLevel();

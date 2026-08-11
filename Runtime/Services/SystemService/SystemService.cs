@@ -3,6 +3,7 @@ using System.Threading;
 using Cysharp.Threading.Tasks;
 using R3;
 using TapEmpire.Settings;
+using TapEmpire.Utility;
 using UnityEngine;
 using Zenject;
 using Object = UnityEngine.Object;
@@ -10,7 +11,7 @@ using Object = UnityEngine.Object;
 namespace TapEmpire.Services
 {
     [Serializable]
-    public class SystemService : Initializable, ISystemService, ITickable
+    public class SystemService : Initializable, ISystemService, IAlwaysTickable
     {
         public Subject<bool> OnApplicationFocusChanged => _monoCallbackService.OnApplicationFocusChanged;
         public Subject<Unit> OnSessionStarted { get; private set; } = new Subject<Unit>();
@@ -52,7 +53,7 @@ namespace TapEmpire.Services
             return UniTask.CompletedTask;
         }
 
-        public void Tick()
+        public void AlwaysTick()
         {
             _elapsed += Time.deltaTime;
 

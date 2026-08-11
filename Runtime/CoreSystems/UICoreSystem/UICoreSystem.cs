@@ -98,6 +98,7 @@ namespace TapEmpire.CoreSystems
             if (ShouldBlockFor(viewModel))
             {
                 BlockUI(true);
+                _levelExecutionCoreSystem.PauseLevel(true);
             }
         }
 
@@ -106,6 +107,7 @@ namespace TapEmpire.CoreSystems
             if (ShouldBlockFor(viewModel))
             {
                 BlockUI(false);
+                _levelExecutionCoreSystem.PauseLevel(false);
             }
         }
     }

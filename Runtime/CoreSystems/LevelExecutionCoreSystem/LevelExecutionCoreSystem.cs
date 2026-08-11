@@ -35,12 +35,14 @@ namespace TapEmpire.CoreSystems
         protected INetworkService _networkService;
         protected ISceneManagementService _sceneManagementService;
         protected CoreSystemsContainer _coreSystemsContainer;
+        protected ITicksContainer _ticksContainer;
 
         protected GameSettings GameSettings => _gameService.GameSettings;
 
         protected CompositeDisposable _disposables = new();
         protected IExecutionAction<FlowAction> _executionAction = null;
         protected bool _shouldSkipAd;
+        protected int _pauseCounter;
 
         protected override IExecutionModule[] ExecutionModules
             => ExecutionData.Value?.LevelView.LevelModules ?? Array.Empty<IExecutionModule>();
@@ -49,8 +51,9 @@ namespace TapEmpire.CoreSystems
         private void Construct(DiContainer diContainer, ICoreSceneReferences coreSceneReferences,
             IGameService gameService, IProgressService progressService, IAdsService adsService,
             INetworkService networkService, ISceneManagementService sceneManagementService,
-            CoreSystemsContainer coreSystemsContainer)
+            CoreSystemsContainer coreSystemsContainer, ITicksContainer ticksContainer)
         {
+            _ticksContainer = ticksContainer;
             _diContainer = diContainer;
             _coreSceneReferences = coreSceneReferences;
             _gameService = gameService;
@@ -95,9 +98,36 @@ namespace TapEmpire.CoreSystems
             }
         }
 
+        public void PauseLevel(bool shouldPause)
+        {
+            _pauseCounter += shouldPause ? 1 : -1;
+
+            ApplyPause();
+        }
+
         public void SetShouldSkipAd(bool shouldSkip)
         {
             _shouldSkipAd = shouldSkip;
+        }
+
+        private void ApplyTicksPause()
+        {
+            _ticksContainer.IsPaused = ExecutionData.Value.LevelStateData.LevelState != LevelState.Active;
+        }
+
+        private void ApplyPause()
+        {
+            var levelStateData = ExecutionData.Value?.LevelStateData;
+            if (levelStateData == null) return;
+
+            if (_pauseCounter > 0 && levelStateData.LevelState == LevelState.Active)
+            {
+                levelStateData.SetState(LevelState.Pause);
+            }
+            else if (_pauseCounter <= 0 && levelStateData.LevelState == LevelState.Pause)
+            {
+                levelStateData.SetState(LevelState.Active);
+            }
         }
 
         protected virtual void ProcessLevel(FlowAction flow, LevelEndReason reason)
@@ -198,6 +228,8 @@ namespace TapEmpire.CoreSystems
                 ExecutionData.Value = null;
             }
 
+            _ticksContainer.IsPaused = false;
+
             _disposables.Dispose();
             _executionAction?.Dispose();
         }
@@ -208,6 +240,10 @@ namespace TapEmpire.CoreSystems
 
             ExecutionData.Value = new LevelExecutionData(levelSettings, levelView, levelIndex);
             ExecutionData.Value.LevelStateData.OnDataChanged.Subscribe(OnLevelStateChanged).AddTo(_disposables);
+            ExecutionData.Value.LevelStateData.OnDataChanged.Subscribe(_ => ApplyTicksPause()).AddTo(_disposables);
+
+            ApplyPause();
+            ApplyTicksPause();
 
             InitializeModules();
         }
