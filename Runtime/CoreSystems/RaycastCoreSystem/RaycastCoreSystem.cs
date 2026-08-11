@@ -9,7 +9,7 @@ using Zenject;
 namespace TapEmpire.CoreSystems
 {
     [Serializable]
-    public class RaycastCoreSystem : Initializable, IRaycastCoreSystem, ITickable
+    public class RaycastCoreSystem : Initializable, IRaycastCoreSystem
     {
         private const int MaxOverlapResults = 10;
 
@@ -20,6 +20,7 @@ namespace TapEmpire.CoreSystems
         {
             get
             {
+                DropStaleCache();
                 _inputWorldPoint ??= (Vector2)_camera.ScreenToWorldPoint(_inputCoreSystem.InputPosition);
                 return _inputWorldPoint.Value;
             }
@@ -29,6 +30,7 @@ namespace TapEmpire.CoreSystems
         {
             get
             {
+                DropStaleCache();
                 _raycastHit2D ??= DoRaycast(_raycastLayers);
                 return _raycastHit2D.Value;
             }
@@ -39,6 +41,7 @@ namespace TapEmpire.CoreSystems
 
         private Vector2? _inputWorldPoint;
         private RaycastHit2D? _raycastHit2D;
+        private int _cachedFrame = -1;
         private Camera _camera;
         private IDisposable _subscription;
         private ContactFilter2D _overlapFilter;
@@ -122,8 +125,11 @@ namespace TapEmpire.CoreSystems
             };
         }
 
-        public void Tick()
+        private void DropStaleCache()
         {
+            if (_cachedFrame == Time.frameCount) return;
+
+            _cachedFrame = Time.frameCount;
             _inputWorldPoint = null;
             _raycastHit2D = null;
         }

@@ -13,7 +13,7 @@ using Zenject;
 namespace TapEmpire.CoreSystems
 {
     [Serializable]
-    public class RaycastUICoreSystem : Initializable, IRaycastUICoreSystem, ITickable
+    public class RaycastUICoreSystem : Initializable, IRaycastUICoreSystem
     {
         [SerializeField] private string _raycastTag = string.Empty;
 
@@ -23,11 +23,14 @@ namespace TapEmpire.CoreSystems
         private GraphicRaycaster _raycaster;
         private IDisposable _subscription;
         private IEnumerable<RaycastResult> _raycastResults = null;
+        private int _cachedFrame = -1;
 
         public IEnumerable<RaycastResult> RaycastHitUI
         {
             get
             {
+                DropStaleCache();
+
                 if (_raycastResults == null)
                 {
                     _raycastResults = DoRaycast(_raycastTag);
@@ -78,8 +81,11 @@ namespace TapEmpire.CoreSystems
             return raycastResults.Where(result => result.gameObject.CompareTag(tag));
         }
 
-        public void Tick()
+        private void DropStaleCache()
         {
+            if (_cachedFrame == Time.frameCount) return;
+
+            _cachedFrame = Time.frameCount;
             _raycastResults = null;
         }
     }
