@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Newtonsoft.Json;
+using TapEmpire.Utility;
 using UnityEngine;
 
 namespace TapEmpire.Services
@@ -117,7 +118,7 @@ namespace TapEmpire.Services
         {
             if (self.StringValuesDictionary.TryGetValue(key, out var value, canUseDefault: false))
             {
-                return JsonConvert.DeserializeObject<T>(value);
+                return JsonConvert.DeserializeObject<T>(value, UnityJsonSettings.Default);
             }
 
             return createNew ? new() : default(T);
@@ -125,7 +126,7 @@ namespace TapEmpire.Services
 
         public static void SetSerializableObject<T>(this IProgressService self, string key, T data)
         {
-            var saveJson = JsonConvert.SerializeObject(data);
+            var saveJson = JsonConvert.SerializeObject(data, UnityJsonSettings.Default);
             self.StringValuesDictionary.SetValue(key, saveJson);
         }
 
