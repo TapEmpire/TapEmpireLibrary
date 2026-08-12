@@ -14,16 +14,14 @@ namespace TapEmpire.CoreSystems
         {
             StepsDone = stepsDone;
             StepsTotal = stepsTotal;
+            CheckWin();
             OnDataChanged.OnNext(this);
         }
 
         public int AddStepDone()
         {
             ++StepsDone;
-            if (StepsDone >= StepsTotal)
-            {
-                LevelState = LevelState.Won;
-            }
+            CheckWin();
             OnDataChanged.OnNext(this);
 
             return StepsDone;
@@ -33,6 +31,14 @@ namespace TapEmpire.CoreSystems
         {
             LevelState = state;
             OnDataChanged.OnNext(this);
+        }
+
+        private void CheckWin()
+        {
+            if (StepsDone >= StepsTotal)
+            {
+                LevelState = LevelState.Won;
+            }
         }
     }
 }

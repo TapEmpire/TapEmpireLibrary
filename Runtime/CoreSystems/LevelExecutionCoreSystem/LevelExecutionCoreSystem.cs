@@ -13,7 +13,8 @@ using Zenject;
 namespace TapEmpire.CoreSystems
 {
     [Serializable]
-    public class LevelExecutionCoreSystem : ExecutionCoreSystem, ILevelExecutionCoreSystem
+    public class LevelExecutionCoreSystem<TLevelSaveData> : ExecutionCoreSystem, ILevelExecutionCoreSystem
+        where TLevelSaveData : LevelSaveData, new()
     {
         private const float LoadingScreenCloseDelay = 0.1f;
 
@@ -24,6 +25,8 @@ namespace TapEmpire.CoreSystems
         public Subject<int> OnCycleCompleted { get; } = new();
 
         public ReactiveProperty<LevelExecutionData> ExecutionData { get; } = new();
+
+        public TLevelSaveData LevelSaveData { get; private set; }
 
         public IReadOnlyList<LevelSettings> Levels => _gameService.LevelsTable.Levels;
 
@@ -40,6 +43,7 @@ namespace TapEmpire.CoreSystems
         protected GameSettings GameSettings => _gameService.GameSettings;
 
         protected CompositeDisposable _disposables = new();
+        protected CompositeDisposable _levelDisposables = new();
         protected IExecutionAction<FlowAction> _executionAction = null;
         protected bool _shouldSkipAd;
         protected int _pauseCounter;
@@ -67,6 +71,8 @@ namespace TapEmpire.CoreSystems
         protected override void OnRelease()
         {
             DestroyLevel();
+
+            _disposables.Dispose();
         }
 
         public virtual void Continue()
@@ -203,8 +209,10 @@ namespace TapEmpire.CoreSystems
         {
             DestroyLevel();
 
-            _disposables = new();
+            _levelDisposables = new();
             _shouldSkipAd = false;
+
+            LevelSaveData = LoadLevelSaveData(level);
 
             await InitializeLevelView(level, levelIndex);
 
@@ -218,6 +226,8 @@ namespace TapEmpire.CoreSystems
             // TODO revisit: fire and forget with no cancellation token.
             UniTaskUtility.ExecuteAfterSeconds(LoadingScreenCloseDelay,
                 () => _sceneManagementService.CloseLoadingScreen(default), default).Forget();
+
+            OnLevelStateChanged(ExecutionData.Value.LevelStateData);
         }
 
         protected virtual void DestroyLevel()
@@ -230,7 +240,7 @@ namespace TapEmpire.CoreSystems
 
             _ticksContainer.IsPaused = false;
 
-            _disposables.Dispose();
+            _levelDisposables.Dispose();
             _executionAction?.Dispose();
         }
 
@@ -239,8 +249,8 @@ namespace TapEmpire.CoreSystems
             var levelView = await InstantiateLevelView(levelSettings);
 
             ExecutionData.Value = new LevelExecutionData(levelSettings, levelView, levelIndex);
-            ExecutionData.Value.LevelStateData.OnDataChanged.Subscribe(OnLevelStateChanged).AddTo(_disposables);
-            ExecutionData.Value.LevelStateData.OnDataChanged.Subscribe(_ => ApplyTicksPause()).AddTo(_disposables);
+            ExecutionData.Value.LevelStateData.OnDataChanged.Subscribe(OnLevelStateChanged).AddTo(_levelDisposables);
+            ExecutionData.Value.LevelStateData.OnDataChanged.Subscribe(_ => ApplyTicksPause()).AddTo(_levelDisposables);
 
             ApplyPause();
             ApplyTicksPause();
@@ -250,6 +260,28 @@ namespace TapEmpire.CoreSystems
 
         protected virtual void OnLevelStateChanged(LevelStateData levelStateData)
         {
+        }
+
+        protected virtual TLevelSaveData LoadLevelSaveData(LevelSettings levelSettings)
+        {
+            var savedData = _progressService.GetLevelSaveData<TLevelSaveData>();
+
+            if (savedData != null && savedData.LevelName == levelSettings.FullName)
+            {
+                return savedData;
+            }
+
+            if (savedData != null)
+            {
+                _progressService.CleanLevelSaveData();
+            }
+
+            return CreateLevelSaveData(levelSettings);
+        }
+
+        protected virtual TLevelSaveData CreateLevelSaveData(LevelSettings levelSettings)
+        {
+            return new TLevelSaveData { LevelName = levelSettings.FullName };
         }
 
         protected async UniTask<LevelView> InstantiateLevelView(LevelSettings levelSettings)
