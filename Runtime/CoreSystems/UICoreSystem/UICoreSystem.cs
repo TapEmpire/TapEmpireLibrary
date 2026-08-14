@@ -69,6 +69,12 @@ namespace TapEmpire.CoreSystems
             _inputCoreSystem.BlockModeProperty.Value = _isUIBlocked.Value;
         }
 
+        public IDisposable BlockUI()
+        {
+            BlockUI(true);
+            return Disposable.Create(() => BlockUI(false));
+        }
+
         protected abstract UniTask CreateUIAsync(CancellationToken cancellationToken);
 
         protected async UniTask OpenHudViewAsync<T>(UIView viewPrefab, T viewModel, CancellationToken cancellationToken)

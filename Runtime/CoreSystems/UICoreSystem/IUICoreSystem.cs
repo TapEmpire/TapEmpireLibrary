@@ -1,3 +1,4 @@
+using System;
 using R3;
 
 namespace TapEmpire.CoreSystems
@@ -7,5 +8,7 @@ namespace TapEmpire.CoreSystems
         ReadOnlyReactiveProperty<bool> IsUIBlocked { get; }
 
         void BlockUI(bool shouldBlock);
+
+        IDisposable BlockUI();
     }
 }
