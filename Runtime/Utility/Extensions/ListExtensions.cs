@@ -226,5 +226,18 @@ namespace TapEmpire.Utility
         {
             return index < list.Count ? list[index] : list[-1];
         }
+
+        public static void ReplaceOrAdd<T>(this List<T> list, Predicate<T> match, T element)
+        {
+            var index = list.FindIndex(match);
+
+            if (index >= 0)
+            {
+                list[index] = element;
+                return;
+            }
+
+            list.Add(element);
+        }
     }
 }
