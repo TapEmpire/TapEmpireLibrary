@@ -17,11 +17,16 @@ namespace TapEmpire.Level
 
         public T As<T>() where T : LevelSettings => this as T;
 
-#if UNITY_EDITOR
-        public virtual void OnValidate()
+        public virtual void UpdateNames()
         {
             IndexName = int.TryParse(name.Split('_')[0], out int levelNumber) ? levelNumber : -1;
             CustomName = name.RemoveFirstBlock('_');
+        }
+
+#if UNITY_EDITOR
+        public virtual void OnValidate()
+        {
+            UpdateNames();
         }
 #endif
 
