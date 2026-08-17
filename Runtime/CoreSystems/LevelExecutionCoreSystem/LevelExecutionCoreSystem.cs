@@ -266,7 +266,8 @@ namespace TapEmpire.CoreSystems
         {
             var savedData = _progressService.GetLevelSaveData<TLevelSaveData>();
 
-            if (savedData != null && savedData.LevelName == levelSettings.FullName)
+            if (savedData != null && savedData.LevelName == levelSettings.FullName
+                                  && IsLevelHashValid(savedData, levelSettings))
             {
                 return savedData;
             }
@@ -278,6 +279,8 @@ namespace TapEmpire.CoreSystems
 
             return CreateLevelSaveData(levelSettings);
         }
+
+        protected virtual bool IsLevelHashValid(TLevelSaveData savedData, LevelSettings levelSettings) => true;
 
         protected virtual TLevelSaveData CreateLevelSaveData(LevelSettings levelSettings)
         {
