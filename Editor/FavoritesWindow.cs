@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using UnityEditor;
 using UnityEngine;
 
@@ -20,7 +21,8 @@ namespace TapEmpire.Editor
             public List<Entry> Entries = new List<Entry>();
         }
 
-        private const string PrefsKeyPrefix = "TapEmpire.Favorites.";
+        private const string LegacyPrefsKeyPrefix = "TapEmpire.Favorites.";
+        private const string StateRelativePath = "../UserSettings/TapEmpire/Favorites.json";
         private const float RowHeight = 20f;
 
         private readonly Dictionary<string, UnityEngine.Object> _resolved = new Dictionary<string, UnityEngine.Object>();
@@ -29,8 +31,11 @@ namespace TapEmpire.Editor
         private GUIStyle _selectedRowStyle;
         private Vector2 _scroll;
         private int _selectedIndex = -1;
+        private bool _loaded;
 
-        private static string PrefsKey => PrefsKeyPrefix + Application.dataPath;
+        private static string LegacyPrefsKey => LegacyPrefsKeyPrefix + Application.dataPath;
+
+        private static string StatePath => Path.GetFullPath(Path.Combine(Application.dataPath, StateRelativePath));
 
         [MenuItem("TapEmpire/Favorites")]
         private static void OpenWindow()
@@ -240,14 +245,69 @@ namespace TapEmpire.Editor
 
         private void Load()
         {
-            var json = EditorPrefs.GetString(PrefsKey, string.Empty);
-            _state = string.IsNullOrEmpty(json) ? new State() : JsonUtility.FromJson<State>(json) ?? new State();
+            var loaded = Read();
+            _loaded = loaded != null;
+            _state = loaded ?? new State();
             _resolved.Clear();
+        }
+
+        private static State Read()
+        {
+            var path = StatePath;
+            if (!File.Exists(path))
+            {
+                return ReadLegacy() ?? new State();
+            }
+
+            try
+            {
+                return JsonUtility.FromJson<State>(File.ReadAllText(path));
+            }
+            catch (Exception exception)
+            {
+                Debug.LogError($"Favorites could not be read from {path}, they will not be overwritten: {exception.Message}");
+                return null;
+            }
+        }
+
+        private static State ReadLegacy()
+        {
+            var json = EditorPrefs.GetString(LegacyPrefsKey, string.Empty);
+            if (string.IsNullOrEmpty(json))
+            {
+                return null;
+            }
+
+            try
+            {
+                var legacy = JsonUtility.FromJson<State>(json);
+                EditorPrefs.DeleteKey(LegacyPrefsKey);
+                return legacy;
+            }
+            catch (Exception exception)
+            {
+                Debug.LogError($"Favorites could not be imported from editor preferences: {exception.Message}");
+                return null;
+            }
         }
 
         private void Save()
         {
-            EditorPrefs.SetString(PrefsKey, JsonUtility.ToJson(_state));
+            if (!_loaded)
+            {
+                return;
+            }
+
+            var path = StatePath;
+            try
+            {
+                Directory.CreateDirectory(Path.GetDirectoryName(path));
+                File.WriteAllText(path, JsonUtility.ToJson(_state, true));
+            }
+            catch (Exception exception)
+            {
+                Debug.LogError($"Favorites could not be written to {path}: {exception.Message}");
+            }
         }
     }
 }
