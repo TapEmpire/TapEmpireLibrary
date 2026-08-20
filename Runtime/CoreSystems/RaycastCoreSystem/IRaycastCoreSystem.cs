@@ -16,5 +16,7 @@ namespace TapEmpire.CoreSystems
         ArraySegment<Collider2D> Overlap(Collider2D target);
 
         ArraySegment<Collider2D> OverlapTouching(Collider2D target);
+
+        ArraySegment<Collider2D> OverlapCircle(Vector2 point, float radius);
     }
 }

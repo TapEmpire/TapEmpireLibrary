@@ -12,6 +12,7 @@ namespace TapEmpire.CoreSystems
     public class RaycastCoreSystem : Initializable, IRaycastCoreSystem
     {
         private const int MaxOverlapResults = 10;
+        private const int MaxCircleOverlapResults = 32;
 
         [SerializeField] private LayerMask _raycastLayers = default;
         [SerializeField] private LayerMask _overlapLayers = default;
@@ -47,6 +48,7 @@ namespace TapEmpire.CoreSystems
         private ContactFilter2D _overlapFilter;
         private RaycastHit2D[] _raycastResults = new RaycastHit2D[1];
         private Collider2D[] _overlapResults = new Collider2D[MaxOverlapResults];
+        private Collider2D[] _circleOverlapResults = new Collider2D[MaxCircleOverlapResults];
 
         [Inject]
         private void Construct(IInputCoreSystem inputCoreSystem, ILevelExecutionCoreSystem levelExecutionCoreSystem)
@@ -105,6 +107,12 @@ namespace TapEmpire.CoreSystems
             }
 
             return new ArraySegment<Collider2D>(_overlapResults, 0, touching);
+        }
+
+        public ArraySegment<Collider2D> OverlapCircle(Vector2 point, float radius)
+        {
+            var count = Physics2D.OverlapCircle(point, radius, _overlapFilter, _circleOverlapResults);
+            return new ArraySegment<Collider2D>(_circleOverlapResults, 0, count);
         }
 
         private RaycastHit2D DoRaycast(LayerMask layerMask)
