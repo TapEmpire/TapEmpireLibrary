@@ -55,6 +55,14 @@ namespace TapEmpire.Utility
                 GameObject.Destroy(gameObject);
             }
         }
+
+        public static void DestroySafe<T>(T component) where T : Component
+        {
+            if (component != null)
+            {
+                DestroySafe(component.gameObject);
+            }
+        }
         
         public static void DestroyObject(GameObject levelObject)
         {
