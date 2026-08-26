@@ -4,6 +4,7 @@ using System.Threading;
 using Cysharp.Threading.Tasks;
 using R3;
 using TapEmpire.Services;
+using TapEmpire.Utility;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using Zenject;
@@ -13,33 +14,52 @@ namespace TapEmpire.CoreSystems
     [Serializable]
     public class InputCoreSystem : Initializable, IInputCoreSystem, ITickable
     {
+        // Every touch the platform reports is read, however few are admitted: the index a touch
+        // arrives under is not stable between frames, so reading only the admitted count could miss
+        // a finger that is already tracked and drop it while it is still down.
+        private const int MaxReportedTouches = 10;
+        private const int DefaultFinger = 0;
+
         [field: SerializeField] public InputMode InputMode { get; private set; } = InputMode.Drag;
+
+        [field: SerializeField] public int MaxTouches { get; set; } = 1;
 
         [SerializeField] private bool _blockInputOverUI = true;
 
         public ReactiveProperty<bool> BlockModeProperty { get; private set; }
 
-        public Observable<Vector2> OnScreenInputStart => _onScreenInputStart;
-        public Observable<Vector2> OnScreenInputEnd => _onScreenInputEnd;
-        public Observable<Vector2> OnScreenTapEnd => _onScreenTapEnd;
+        public Observable<Vector2> OnInputStart => _onInputStart;
+        public Observable<Vector2> OnInputEnd => _onInputEnd;
+        public Observable<Vector2> OnInputTapEnd => _onInputTapEnd;
+
+        public Observable<TouchInput> OnTouchStart => _onTouchStart;
+        public Observable<TouchInput> OnTouchEnd => _onTouchEnd;
+        public Observable<TouchInput> OnTouchTapEnd => _onTouchTapEnd;
 
         public bool IsInputStart { get; private set; }
         public bool IsInputEnd { get; private set; }
         public bool IsInputHold { get; private set; }
 
+        public IReadOnlyList<int> Fingers => _fingers;
+
         public bool IsSimulated { get; set; } = false;
         public Vector2 SimulatedPosition { get; set; } = Vector2.zero;
 
-        private readonly Subject<Vector2> _onScreenInputStart = new();
-        private readonly Subject<Vector2> _onScreenInputEnd = new();
-        private readonly Subject<Vector2> _onScreenTapEnd = new();
+        private readonly Subject<Vector2> _onInputStart = new();
+        private readonly Subject<Vector2> _onInputEnd = new();
+        private readonly Subject<Vector2> _onInputTapEnd = new();
+
+        private readonly Subject<TouchInput> _onTouchStart = new();
+        private readonly Subject<TouchInput> _onTouchEnd = new();
+        private readonly Subject<TouchInput> _onTouchTapEnd = new();
 
         private float _maxTapDuration = 0.2f;
         private float _maxSqrTapMovement = 100.0f;
-        private float _touchStartTime = 0.0f;
-        private Vector2 _inputStartPosition = Vector2.zero;
 
-        private bool _uiOwnsInput;
+        private readonly Dictionary<int, TouchState> _touches = new();
+        private readonly List<int> _fingers = new();
+        private readonly TouchSample[] _samples = new TouchSample[MaxReportedTouches];
+
         private PointerEventData _pointerEventData;
         private readonly List<RaycastResult> _raycastResults = new();
 
@@ -59,6 +79,11 @@ namespace TapEmpire.CoreSystems
             }
         }
 
+        public Vector2 TouchPosition(int finger) => _touches.TryGetValue(finger).Position;
+        public bool IsTouchStart(int finger) => _touches.TryGetValue(finger).IsStart;
+        public bool IsTouchEnd(int finger) => _touches.TryGetValue(finger).IsEnd;
+        public bool IsTouchHold(int finger) => _touches.TryGetValue(finger).IsHold;
+
         public void StartInput(Vector2 position, bool withPress = true)
         {
             if (IsSimulated)
@@ -67,7 +92,8 @@ namespace TapEmpire.CoreSystems
 
                 if (withPress)
                 {
-                    _onScreenInputStart.OnNext(position);
+                    _onInputStart.OnNext(position);
+                    _onTouchStart.OnNext(new TouchInput(DefaultFinger, position));
                 }
             }
         }
@@ -76,7 +102,8 @@ namespace TapEmpire.CoreSystems
         {
             if (IsSimulated)
             {
-                _onScreenInputEnd.OnNext(position);
+                _onInputEnd.OnNext(position);
+                _onTouchEnd.OnNext(new TouchInput(DefaultFinger, position));
             }
         }
 
@@ -88,59 +115,139 @@ namespace TapEmpire.CoreSystems
 
         public void Tick()
         {
+            ResetInputFlags();
+
             if (BlockModeProperty.Value || IsSimulated)
             {
-                ResetInputFlags();
-                _uiOwnsInput = false;
+                _touches.Clear();
+                _fingers.Clear();
                 return;
             }
 
-            if (TryGetPrimaryInputScreenPosition(out var inputScreenPosition, out var touchPhase))
+            var count = ReadTouchSamples();
+
+            for (var i = 0; i < count; i++)
             {
-                if (IsInputOwnedByUI(touchPhase, inputScreenPosition))
+                ApplyTouch(_samples[i]);
+            }
+
+            DropReleasedTouches();
+        }
+
+        // The mouse is the finger a desktop has, so it enters tracking the way a touch does.
+        private int ReadTouchSamples()
+        {
+            var count = 0;
+
+            if (Input.touchSupported)
+            {
+                var touchCount = Mathf.Min(Input.touchCount, MaxReportedTouches);
+
+                for (var i = 0; i < touchCount; i++)
                 {
-                    ResetInputFlags();
-                    return;
-                }
-
-                switch (touchPhase)
-                {
-                    case TouchPhase.Began:
-                        _onScreenInputStart.OnNext(inputScreenPosition);
-                        IsInputStart = true;
-                        IsInputEnd = false;
-                        IsInputHold = false;
-                        SaveTouch(inputScreenPosition);
-                        break;
-
-                    case TouchPhase.Moved:
-                    case TouchPhase.Stationary:
-                        IsInputHold = true;
-                        IsInputStart = false;
-                        IsInputEnd = false;
-                        break;
-
-                    case TouchPhase.Ended:
-                    case TouchPhase.Canceled:
-                        _onScreenInputEnd.OnNext(inputScreenPosition);
-                        IsInputEnd = true;
-                        IsInputStart = false;
-                        IsInputHold = false;
-                        if (InputMode.HasFlag(InputMode.Tap))
-                        {
-                            CheckTouch(inputScreenPosition);
-                        }
-                        break;
-
-                    default:
-                        ResetInputFlags();
-                        break;
+                    var touch = Input.GetTouch(i);
+                    _samples[count++] = new TouchSample(touch.fingerId, touch.position, touch.phase);
                 }
             }
             else
             {
-                ResetInputFlags();
-                _uiOwnsInput = false;
+                var phase = Input.GetMouseButtonDown(0)
+                    ? TouchPhase.Began
+                    : Input.GetMouseButtonUp(0)
+                        ? TouchPhase.Ended
+                        : Input.GetMouseButton(0) ? TouchPhase.Moved : TouchPhase.Canceled;
+
+                if (phase != TouchPhase.Canceled)
+                {
+                    _samples[count++] = new TouchSample(DefaultFinger, Input.mousePosition, phase);
+                }
+            }
+
+            return count;
+        }
+
+        private void ApplyTouch(TouchSample sample)
+        {
+            if (!_touches.TryGetValue(sample.Finger, out var state))
+            {
+                // A finger that begins with the slots full is never admitted, so it stays unknown
+                // for the rest of its life rather than joining halfway through.
+                if (sample.Phase != TouchPhase.Began || _touches.Count >= MaxTouches) return;
+
+                state = new TouchState
+                {
+                    UIOwnsInput = _blockInputOverUI && IsPointerOverUI(sample.Position),
+                };
+
+                _fingers.Add(sample.Finger);
+            }
+
+            var began = sample.Phase == TouchPhase.Began;
+            var held = sample.Phase is TouchPhase.Moved or TouchPhase.Stationary;
+            var ended = sample.Phase is TouchPhase.Ended or TouchPhase.Canceled;
+
+            if (began)
+            {
+                state.StartTime = Time.time;
+                state.StartPosition = sample.Position;
+            }
+
+            state.Position = sample.Position;
+            state.IsTracked = !ended;
+            state.IsStart = began && !state.UIOwnsInput;
+            state.IsHold = held && !state.UIOwnsInput;
+            state.IsEnd = ended && !state.UIOwnsInput;
+
+            IsInputStart |= state.IsStart;
+            IsInputHold |= state.IsHold;
+            IsInputEnd |= state.IsEnd;
+
+            _touches[sample.Finger] = state;
+
+            if (state.IsStart)
+            {
+                Publish(_onTouchStart, _onInputStart, sample.Finger, sample.Position);
+            }
+
+            if (!state.IsEnd) return;
+
+            Publish(_onTouchEnd, _onInputEnd, sample.Finger, sample.Position);
+
+            if (InputMode.HasFlag(InputMode.Tap))
+            {
+                CheckTap(sample.Finger, state, sample.Position);
+            }
+        }
+
+        // The single-touch stream carries the primary finger alone, so one touch reads on both.
+        private void Publish(Subject<TouchInput> perFinger, Subject<Vector2> primary, int finger, Vector2 position)
+        {
+            perFinger.OnNext(new TouchInput(finger, position));
+
+            if (_fingers[0] == finger)
+            {
+                primary.OnNext(position);
+            }
+        }
+
+        // A finger goes when it lifts, and equally when it stops being reported at all, or one the
+        // platform loses would hold its slot for the rest of the session.
+        private void DropReleasedTouches()
+        {
+            for (var i = _fingers.Count - 1; i >= 0; i--)
+            {
+                var finger = _fingers[i];
+                var state = _touches[finger];
+
+                if (state.IsTracked)
+                {
+                    state.IsTracked = false;
+                    _touches[finger] = state;
+                    continue;
+                }
+
+                _touches.Remove(finger);
+                _fingers.RemoveAt(i);
             }
         }
 
@@ -149,23 +256,6 @@ namespace TapEmpire.CoreSystems
             IsInputStart = false;
             IsInputEnd = false;
             IsInputHold = false;
-        }
-
-        private bool IsInputOwnedByUI(TouchPhase touchPhase, Vector2 screenPosition)
-        {
-            if (touchPhase == TouchPhase.Began)
-            {
-                _uiOwnsInput = _blockInputOverUI && IsPointerOverUI(screenPosition);
-            }
-
-            if (!_uiOwnsInput) return false;
-
-            if (touchPhase is TouchPhase.Ended or TouchPhase.Canceled)
-            {
-                _uiOwnsInput = false;
-            }
-
-            return true;
         }
 
         private bool IsPointerOverUI(Vector2 screenPosition)
@@ -182,46 +272,14 @@ namespace TapEmpire.CoreSystems
             return _raycastResults.Count > 0;
         }
 
-        private bool TryGetPrimaryInputScreenPosition(out Vector2 screenPosition, out TouchPhase touchPhase)
+        private void CheckTap(int finger, TouchState state, Vector2 position)
         {
-            if (Input.touchSupported)
-            {
-                if (Input.touchCount > 0)
-                {
-                    var touch = Input.GetTouch(0);
-                    screenPosition = touch.position;
-                    touchPhase = touch.phase;
-                    return true;
-                }
-            }
-            else
-            {
-                screenPosition = Input.mousePosition;
-                touchPhase = Input.GetMouseButtonDown(0)
-                    ? TouchPhase.Began
-                    : Input.GetMouseButtonUp(0)
-                        ? TouchPhase.Ended
-                        : Input.GetMouseButton(0) ? TouchPhase.Moved : TouchPhase.Canceled;
-                return touchPhase != TouchPhase.Canceled;
-            }
-            screenPosition = default;
-            touchPhase = TouchPhase.Canceled;
-            return false;
-        }
+            var duration = Time.time - state.StartTime;
+            var moved = (position - state.StartPosition).sqrMagnitude;
 
-        private void SaveTouch(Vector2 position)
-        {
-            _touchStartTime = Time.time;
-            _inputStartPosition = position;
-        }
-
-        private void CheckTouch(Vector2 position)
-        {
-            var duration = Time.time - _touchStartTime;
-            var moved = (position - _inputStartPosition).sqrMagnitude;
             if (duration <= _maxTapDuration && moved <= _maxSqrTapMovement)
             {
-                _onScreenTapEnd.OnNext(_inputStartPosition);
+                Publish(_onTouchTapEnd, _onInputTapEnd, finger, state.StartPosition);
             }
         }
     }
