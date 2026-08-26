@@ -80,6 +80,22 @@ namespace TapEmpire.CoreSystems
             return DoRaycast(layerMask);
         }
 
+        public Vector2 WorldPoint(Vector2 screenPosition)
+        {
+            return _camera.ScreenToWorldPoint(screenPosition);
+        }
+
+        public RaycastHit2D Raycast(Vector2 worldPoint)
+        {
+            return Raycast(worldPoint, _raycastLayers);
+        }
+
+        public RaycastHit2D Raycast(Vector2 worldPoint, LayerMask layerMask)
+        {
+            var hitCount = Physics2D.Raycast(worldPoint, Vector2.zero, CreateFilter(layerMask, false), _raycastResults, float.MaxValue);
+            return hitCount > 0 ? _raycastResults[0] : default;
+        }
+
         public Collider2D[] OverlapAreaAll(Vector2 pointA, Vector2 pointB)
         {
             return Physics2D.OverlapAreaAll(pointA, pointB, _overlapLayers);
@@ -117,10 +133,7 @@ namespace TapEmpire.CoreSystems
 
         private RaycastHit2D DoRaycast(LayerMask layerMask)
         {
-            if (_camera == null) return default;
-
-            var hitCount = Physics2D.Raycast(InputWorldPoint, Vector2.zero, CreateFilter(layerMask, false), _raycastResults, float.MaxValue);
-            return hitCount > 0 ? _raycastResults[0] : default;
+            return Raycast(InputWorldPoint, layerMask);
         }
 
         private static ContactFilter2D CreateFilter(LayerMask layerMask, bool useTriggers)
