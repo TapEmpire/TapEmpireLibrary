@@ -95,7 +95,7 @@ namespace TapEmpire.CoreSystems
             CreateUIAsync(default).Forget();
         }
 
-        private void OnUpdateExecutionData(LevelExecutionData levelExecutionData)
+        protected virtual void OnUpdateExecutionData(LevelExecutionData levelExecutionData)
         {
             BlockUI(levelExecutionData == null);
         }
