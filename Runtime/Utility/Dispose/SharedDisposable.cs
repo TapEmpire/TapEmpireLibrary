@@ -1,4 +1,5 @@
 using System;
+using Cysharp.Threading.Tasks;
 using R3;
 
 namespace TapEmpire.Utility
@@ -7,7 +8,10 @@ namespace TapEmpire.Utility
     {
         public T Value { get; }
 
+        public UniTask Released => _released.Task;
+
         private readonly Action<T> _release;
+        private readonly UniTaskCompletionSource _released = new();
 
         private int _holdCount = 1;
         private bool _isReleased;
@@ -35,6 +39,7 @@ namespace TapEmpire.Utility
 
             _isReleased = true;
             _release(Value);
+            _released.TrySetResult();
         }
     }
 }
