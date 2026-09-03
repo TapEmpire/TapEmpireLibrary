@@ -111,6 +111,12 @@ namespace TapEmpire.CoreSystems
             ApplyPause();
         }
 
+        public IDisposable PauseLevel()
+        {
+            PauseLevel(true);
+            return Disposable.Create(() => PauseLevel(false));
+        }
+
         public void SetShouldSkipAd(bool shouldSkip)
         {
             _shouldSkipAd = shouldSkip;

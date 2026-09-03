@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using R3;
 using TapEmpire.Level;
 
@@ -15,6 +16,7 @@ namespace TapEmpire.CoreSystems
 
         void StartLevel(int levelIndex);
         void PauseLevel(bool shouldPause);
+        IDisposable PauseLevel();
         void Continue();
         void ExitLevel(LevelEndReason reason);
         void RestartLevel();
