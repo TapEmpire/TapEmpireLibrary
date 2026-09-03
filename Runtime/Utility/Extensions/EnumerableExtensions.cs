@@ -17,6 +17,11 @@ namespace TapEmpire.Utility
             return EnumerableHelper<T>.Random(enumerable, random);
         }
 
+        public static List<T> Shuffled<T>(this IEnumerable<T> enumerable)
+        {
+            return new List<T>(enumerable).Shuffle();
+        }
+
         public static bool Empty<T>(this IEnumerable<T> enumerable)
         {
             return enumerable.Count() == 0;
