@@ -23,7 +23,6 @@ namespace TapEmpire.CoreSystems
 
         private ReactiveProperty<bool> _isUIBlocked = new(false);
         private HashSet<IUIViewModel> _hudViewModels = new();
-        private Dictionary<IUIViewModel, IDisposable> _viewHolds = new();
 
         private int _blockCounter;
 
@@ -48,6 +47,7 @@ namespace TapEmpire.CoreSystems
             if (_uiService.TryGetModel<SceneLoadingUIViewModel>(out _))
             {
                 BlockUI(true);
+                _levelExecutionCoreSystem.PauseLevel(true);
             }
 
             return base.OnInitializeAsync(cancellationToken);
@@ -103,20 +103,20 @@ namespace TapEmpire.CoreSystems
 
         private void UIService_OnBeforeOpenView(IUIViewModel viewModel)
         {
-            if (!ShouldBlockFor(viewModel)) return;
-
-            _viewHolds[viewModel] = new CompositeDisposable
+            if (ShouldBlockFor(viewModel))
             {
-                BlockUI(),
-                _levelExecutionCoreSystem.PauseLevel(),
-            };
+                BlockUI(true);
+                _levelExecutionCoreSystem.PauseLevel(true);
+            }
         }
 
         private void UIService_OnAfterCloseView(IUIViewModel viewModel)
         {
-            if (!_viewHolds.Remove(viewModel, out var hold)) return;
-
-            hold.Dispose();
+            if (ShouldBlockFor(viewModel))
+            {
+                BlockUI(false);
+                _levelExecutionCoreSystem.PauseLevel(false);
+            }
         }
     }
 }
