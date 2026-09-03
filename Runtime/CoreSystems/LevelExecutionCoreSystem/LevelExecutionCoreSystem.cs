@@ -218,6 +218,8 @@ namespace TapEmpire.CoreSystems
             _levelDisposables = new();
             _shouldSkipAd = false;
 
+            using var setup = PauseLevel();
+
             LevelSaveData = LoadLevelSaveData(level);
 
             await InitializeLevelView(level, levelIndex);
