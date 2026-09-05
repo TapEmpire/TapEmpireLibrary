@@ -10,6 +10,8 @@ namespace TapEmpire.UI
     {
         public Subject<Unit> OnImpact { get; } = new();
 
+        public Image Image => _image;
+
         [SerializeField] private Image _image;
         [SerializeField] private Sprite[] _frames;
         [SerializeField] private float _frameRate = 30f;
