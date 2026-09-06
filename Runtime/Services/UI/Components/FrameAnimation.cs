@@ -27,7 +27,7 @@ namespace TapEmpire.UI
                     .SetEase(Ease.Linear))
                 .InsertCallback(_impactFrame / _frameRate, () => OnImpact.OnNext(Unit.Default));
 
-            return sequence.SetLink(gameObject).AsyncWaitForCompletion().AsUniTask();
+            return sequence.SetLink(gameObject).ToUniTask();
         }
     }
 }

@@ -1,5 +1,6 @@
 
 using System;
+using Cysharp.Threading.Tasks;
 using DG.Tweening;
 using R3;
 
@@ -7,6 +8,11 @@ namespace TapEmpire.Utility
 {
     public static class TweenExtensions
     {
+        public static UniTask ToUniTask(this Tween tween)
+        {
+            return tween.AsyncWaitForCompletion().AsUniTask();
+        }
+
         public static IDisposable ToDisposable(this Tween tween)
         {
             return Disposable.Create(() =>
@@ -14,6 +20,10 @@ namespace TapEmpire.Utility
                 if (tween != null && tween.IsActive())
                     tween.Kill();
             });
+        }
+
+        public static void Forget(this Tween tween)
+        {
         }
 
         public static T JoinTo<T>(this T tween, Sequence sequence) where T : Tween
