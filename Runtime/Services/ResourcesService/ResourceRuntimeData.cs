@@ -54,7 +54,7 @@ namespace TapEmpire.Services
 
         public int Subtract(int amount)
         {
-            Amount.Value -= amount;
+            Amount.Value = Mathf.Max(0, Amount.Value - amount);
             _progressService.SetResourceCount(_resourceName, Amount.Value);
             CheckRefill();
             return Amount.Value;

@@ -145,12 +145,14 @@ namespace TapEmpire.Build
 
         private static void ApplyBuildMode(Configuration config, ProjectPathSettings paths)
         {
-            var startSettings = AssetDatabase.LoadAssetAtPath<GameStartSettings>(paths.GameStartSettingsPath);
-            startSettings.Debug = config == Configuration.Debug;
-            startSettings.SkipInters &= config == Configuration.Debug;
-            startSettings.AutoRestartLevel &= config == Configuration.Debug;
-            startSettings.IgnoreConnection &= config == Configuration.Debug;
-            EditorUtility.SetDirty(startSettings);
+            var systemSettings = AssetDatabase.LoadAssetAtPath<SystemSettings>(paths.SystemSettingsPath);
+            systemSettings.Debug = config == Configuration.Debug;
+            systemSettings.IgnoreConnection &= config == Configuration.Debug;
+            EditorUtility.SetDirty(systemSettings);
+
+            var gameSettings = AssetDatabase.LoadAssetAtPath<GameSettings>(paths.GameSettingsPath);
+            gameSettings.AutoRestartLevel &= config == Configuration.Debug;
+            EditorUtility.SetDirty(gameSettings);
 
             var attributionSettings = AssetDatabase.LoadAssetAtPath<AttributionSettings>($"{paths.DefaultScriptablesPath}/AttributionSettings.asset");
             attributionSettings.Environment = config == Configuration.Debug
@@ -160,6 +162,7 @@ namespace TapEmpire.Build
 
             var adsConfig = AssetDatabase.LoadAssetAtPath<AdsConfig>($"{paths.DefaultScriptablesPath}/AdsConfig.asset");
             adsConfig.TestMode = config == Configuration.Debug;
+            adsConfig.SkipAds &= config == Configuration.Debug;
             EditorUtility.SetDirty(adsConfig);
 
             var console = UnityEngine.Object.FindObjectOfType<LunarConsole>(true);

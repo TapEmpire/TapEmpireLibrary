@@ -54,6 +54,8 @@ public sealed partial class SerializableDictionary<TKey, TValue> : Dictionary<TK
 
     public SerializableDictionary() : base() { }
 
+    public SerializableDictionary(int capacity) : base(capacity) { }
+
     public SerializableDictionary(Dictionary<TKey, TValue> dictionary) : base(dictionary)
     {
         UpdateSerializedEntries();

@@ -49,7 +49,7 @@ namespace TapEmpire.Services.Offer
             _animationService = animationService;
             _offerService = offerService;
 
-            _isDebug = systemService.StaticSettings.Debug;
+            _isDebug = systemService.SystemSettings.Debug;
         }
 
         protected override UniTask OnOpenAsync(CancellationToken cancellationToken)

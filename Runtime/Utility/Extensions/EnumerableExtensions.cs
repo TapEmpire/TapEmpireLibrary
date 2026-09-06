@@ -17,6 +17,11 @@ namespace TapEmpire.Utility
             return EnumerableHelper<T>.Random(enumerable, random);
         }
 
+        public static List<T> Shuffled<T>(this IEnumerable<T> enumerable)
+        {
+            return new List<T>(enumerable).Shuffle();
+        }
+
         public static bool Empty<T>(this IEnumerable<T> enumerable)
         {
             return enumerable.Count() == 0;
@@ -201,6 +206,17 @@ namespace TapEmpire.Utility
                 }
             }
             return minItem;
+        }
+
+        public static Dictionary<TKey, int> CountByExt<T, TKey>(this IEnumerable<T> self, Func<T, TKey> getKeyDelegate)
+        {
+            var counts = new Dictionary<TKey, int>();
+            foreach (var item in self)
+            {
+                var key = getKeyDelegate.Invoke(item);
+                counts[key] = counts.TryGetValue(key, out var count) ? count + 1 : 1;
+            }
+            return counts;
         }
 
         public static bool TryGetAt<T>(this IList<T> self, int index, out T item)

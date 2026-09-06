@@ -11,10 +11,6 @@ namespace TapEmpire.Game
 {
     public class CoreSceneStarter : MonoBehaviour
     {
-        [Header("Settings")]
-        [SerializeField]
-        private GameStartSettings _startSettings;
-
         [Header("Context")]
         [SerializeField]
         private SceneContext _coreSceneContext;
@@ -88,17 +84,6 @@ namespace TapEmpire.Game
             
             // var level = GetStartLevelIndex();
             // _levelExecutionCoreSystem.StartLevel(level);
-        }
-
-        private int GetStartLevelIndex()
-        {
-            #if UNITY_EDITOR
-            if (_startSettings.Debug && !_startSettings.EditorStartFromPrefLevel)
-            {
-                return _startSettings.EditorDebugStartLevelIndex;
-            }
-            #endif
-            return _progressService.GetLevelProgress();
         }
 
         private void OnDestroy()

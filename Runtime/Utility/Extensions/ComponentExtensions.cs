@@ -1,9 +1,15 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using System.Linq;
+using UnityEngine;
 
 namespace TapEmpire.Utility
 {
     public static class ComponentExtensions
     {
+        public static Vector3 Center(this IReadOnlyCollection<Component> self)
+            => self.Aggregate(Vector3.zero, (sum, component) => sum + component.transform.position) / self.Count;
+
+
         public static void DestroyAllChildrenOfType<T>(this Component self, bool includeInActive = true) where T : Component
         {
             var components = self.GetComponentsInChildren<T>(includeInActive);
