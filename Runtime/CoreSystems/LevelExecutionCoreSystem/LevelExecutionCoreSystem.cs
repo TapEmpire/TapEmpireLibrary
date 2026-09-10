@@ -94,14 +94,19 @@ namespace TapEmpire.CoreSystems
 
         public void StartLevel(int levelIndex)
         {
-            var levels = _gameService.LevelsTable.Levels;
-            levelIndex = MathUtility.LoopClamp(levelIndex, levels.Count);
-            var level = levels[levelIndex];
+            var (level, index) = GetLevel(_gameService.LevelsTable.Levels, levelIndex);
 
             if (level != null)
             {
-                StartLevel(level, levelIndex).Forget();
+                StartLevel(level, index).Forget();
             }
+        }
+
+        protected virtual (LevelSettings Level, int Index) GetLevel(List<LevelSettings> levels, int levelIndex)
+        {
+            var index = MathUtility.LoopClamp(levelIndex, levels.Count);
+
+            return (levels[index], index);
         }
 
         public void PauseLevel(bool shouldPause)
