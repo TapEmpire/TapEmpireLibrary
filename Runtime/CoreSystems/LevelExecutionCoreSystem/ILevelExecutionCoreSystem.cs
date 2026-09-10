@@ -12,7 +12,8 @@ namespace TapEmpire.CoreSystems
 
         Subject<LevelExecutionData> OnLevelStarted { get; }
         Subject<LevelEndReason> OnLevelCompleted { get; }
-        Subject<int> OnCycleCompleted { get; }
+
+        int GetNextLevelIndex();
 
         void StartLevel(int levelIndex);
         void PauseLevel(bool shouldPause);

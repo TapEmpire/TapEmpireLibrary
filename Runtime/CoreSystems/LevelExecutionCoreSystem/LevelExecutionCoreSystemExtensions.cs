@@ -9,14 +9,6 @@ namespace TapEmpire.CoreSystems
             return self.ExecutionData.Value.LevelIndex;
         }
 
-        public static int GetNextLevelIndex(this ILevelExecutionCoreSystem self)
-        {
-            var levels = self.Levels;
-            var currentLevelIndex = self.GetLevelIndex();
-
-            return MathUtility.LoopClamp(currentLevelIndex + 1, levels.Count);
-        }
-
         public static int GetPreviousLevelIndex(this ILevelExecutionCoreSystem self)
         {
             var levels = self.Levels;

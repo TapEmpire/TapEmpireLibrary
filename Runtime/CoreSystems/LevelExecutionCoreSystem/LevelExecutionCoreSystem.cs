@@ -22,7 +22,6 @@ namespace TapEmpire.CoreSystems
 
         public Subject<LevelExecutionData> OnLevelStarted { get; } = new();
         public Subject<LevelEndReason> OnLevelCompleted { get; } = new();
-        public Subject<int> OnCycleCompleted { get; } = new();
 
         public ReactiveProperty<LevelExecutionData> ExecutionData { get; } = new();
 
@@ -107,6 +106,21 @@ namespace TapEmpire.CoreSystems
             var index = MathUtility.LoopClamp(levelIndex, levels.Count);
 
             return (levels[index], index);
+        }
+
+        public virtual int GetNextLevelIndex()
+        {
+            return MathUtility.LoopClamp(this.GetLevelIndex() + 1, Levels.Count);
+        }
+
+        protected virtual void SaveLevelProgress(int levelIndex, bool withVisual = true)
+        {
+            _progressService.SetLevelProgress(levelIndex);
+
+            if (withVisual)
+            {
+                _progressService.SetVisualProgress((levelIndex + 1).ToString());
+            }
         }
 
         public void PauseLevel(bool shouldPause)
@@ -231,8 +245,7 @@ namespace TapEmpire.CoreSystems
 
             MessagesUtility.Invoke(MessageType.StartLevel, new StartLevelMessageData { LevelIndex = levelIndex });
             OnLevelStarted.OnNext(ExecutionData.Value);
-            _progressService.SetLevelProgress(ExecutionData.Value.LevelIndex);
-            _progressService.SetVisualProgress((ExecutionData.Value.LevelIndex + 1).ToString());
+            SaveLevelProgress(ExecutionData.Value.LevelIndex, withVisual: true);
 
             _adsService.ShowBanner(true);
 

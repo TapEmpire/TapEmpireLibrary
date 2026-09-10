@@ -38,7 +38,8 @@ namespace TapEmpire.Services
 
         public LevelSettings GetCurrentLevel()
         {
-            return _levelsTable.Levels[_progressService.GetLevelProgress()];
+            var levels = _levelsTable.Levels;
+            return levels[_progressService.GetLevelProgress() % levels.Count];
         }
 
         protected void UpdateCycles(string lastVersion, string version, int fromLevel)
