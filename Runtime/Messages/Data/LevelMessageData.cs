@@ -1,3 +1,5 @@
+using TapEmpire.CoreSystems;
+
 namespace TapEmpire.Messages
 {
     public class LevelMessageData : IMessageData
@@ -11,5 +13,6 @@ namespace TapEmpire.Messages
 
     public class EndLevelMessageData : LevelMessageData
     {
+        public LevelEndReason Reason;
     }
 }
