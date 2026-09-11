@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using R3;
 using TapEmpire.Utility;
 
 namespace TapEmpire.Messages
@@ -8,7 +9,7 @@ namespace TapEmpire.Messages
     {
         private static readonly Dictionary<MessageType, List<Delegate>> LibraryCallbacks = new ();
 
-        public static void Subscribe<T>(MessageType messageType, Action<T> callback) where T : IMessageData
+        public static IDisposable Subscribe<T>(MessageType messageType, Action<T> callback) where T : IMessageData
             => Subscribe(messageType, callback, LibraryCallbacks);
 
         public static void Unsubscribe<T>(MessageType messageType, Action<T> callback) where T : IMessageData
@@ -17,7 +18,7 @@ namespace TapEmpire.Messages
         public static void Invoke<T>(MessageType messageType, T messageData) where T : IMessageData
             => Invoke(messageType, messageData, LibraryCallbacks);
 
-        private static void Subscribe<TMessageType, T>(TMessageType messageType,
+        private static IDisposable Subscribe<TMessageType, T>(TMessageType messageType,
             Action<T> callback, Dictionary<TMessageType, List<Delegate>> callbackDictionary) where T : IMessageData
         {
             if (callbackDictionary.TryGetValue(messageType, out var callbacks))
@@ -28,6 +29,8 @@ namespace TapEmpire.Messages
             {
                 callbackDictionary.Add(messageType, new List<Delegate>() { callback });
             }
+
+            return Disposable.Create(() => Unsubscribe(messageType, callback, callbackDictionary));
         }
 
         private static void Unsubscribe<TMessageType, T>(TMessageType messageType, Action<T> callback,
