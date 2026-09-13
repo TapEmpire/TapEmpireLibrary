@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Sirenix.OdinInspector;
+using TEL.Utilities;
 using UnityEngine;
 
 namespace TapEmpire.Level
@@ -13,9 +15,13 @@ namespace TapEmpire.Level
 
         public List<LevelSettings> Levels => _levels;
 
-        public List<T> As<T>() where T : LevelSettings
+        public IEnumerable<T> LevelsAs<T>() where T : LevelSettings => Levels.OfType<T>();
+
+        [Button("Remove empty levels")]
+        public void RemoveEmptyLevels()
         {
-            return Levels.Select(level => level as T).ToList();
+            _levels.RemoveAll(level => level == null);
+            EditorTools.SetDirty(this);
         }
     }
 }

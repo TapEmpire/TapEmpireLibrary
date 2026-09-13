@@ -20,7 +20,7 @@ namespace TapEmpire.Game
 
         public void Apply()
         {
-            if (_systemService.StaticSettings.Debug && _prefab != null)
+            if (_systemService.SystemSettings.Debug && _prefab != null)
             {
                 var instance = UnityEngine.Object.Instantiate(_prefab);
                 _diContainer.InjectGameObject(instance.gameObject);

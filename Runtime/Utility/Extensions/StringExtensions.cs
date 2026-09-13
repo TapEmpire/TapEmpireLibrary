@@ -64,6 +64,21 @@ namespace TapEmpire.Utility
             return string.Format(str, amount > 1 ? "s" : "");
         }
 
+        public static int StableHash(this string str)
+        {
+            unchecked
+            {
+                var hash = 17;
+
+                foreach (var symbol in str)
+                {
+                    hash = hash * 31 + symbol;
+                }
+
+                return hash;
+            }
+        }
+
         public static (string left, string right) SplitByLastOccurrence(this string str, char separator)
         {
             var lastIndex = str.LastIndexOf(separator);

@@ -43,6 +43,18 @@ namespace TapEmpire.Utility
             }
         }
 
+        public static Dictionary<TValue, List<TKey>> Invert<TKey, TValue>(this IReadOnlyDictionary<TKey, TValue> self)
+        {
+            var inverted = new Dictionary<TValue, List<TKey>>();
+
+            foreach (var (key, value) in self)
+            {
+                inverted.GetFirstOrAdd(value, _ => new List<TKey>()).Add(key);
+            }
+
+            return inverted;
+        }
+
         public static void AddIfNone<TKey, TValue>(this IDictionary<TKey, TValue> self, TKey key, TValue value)
         {
             if (!self.ContainsKey(key))

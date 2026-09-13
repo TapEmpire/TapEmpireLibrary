@@ -40,6 +40,12 @@ namespace TapEmpire.Utility
             }
         }
 
+        public static async UniTask WaitSecondsUntil(float seconds, Func<bool> predicate, CancellationToken cancellationToken)
+        {
+            await UniTask.WaitForSeconds(seconds, cancellationToken: cancellationToken);
+            await UniTask.WaitUntil(predicate, cancellationToken: cancellationToken);
+        }
+
         public static async UniTask SafeExecuteAsync(UniTask uniTask, CancellationToken cancellationToken, bool logCancel = false)
         {
             try

@@ -22,6 +22,8 @@ namespace TapEmpire.UI
         UniTask CloseAllViewsExcept<T>(CancellationToken cancellationToken, bool tryUseFade = true) where T : IUIViewModel;
 
         // TODO ShibariContext тоже убрал бы из общей реализации, мне кажется не везде будет востребован, я бы его сбоку реализовал
+        void SetCanvasCamera(Camera camera);
+
         void AddToContext(string name, RectTransform transform);
         void RemoveFromContext(string name);
 

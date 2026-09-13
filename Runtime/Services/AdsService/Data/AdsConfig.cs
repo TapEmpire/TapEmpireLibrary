@@ -9,6 +9,7 @@ namespace TapEmpire.Services
         public AdsData Admob;
 
         public bool TestMode;
+        public bool SkipAds;
         public string PrivacyPolicyUrl;
     }
 }
