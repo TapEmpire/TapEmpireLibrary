@@ -14,6 +14,7 @@ namespace TapEmpire.Utility
         public static IDisposable ShiftSorting(this IReadOnlyCollection<Component> self, int offset)
         {
             var renderers = self
+                .Where(component => component != null)
                 .SelectMany(component => component.GetComponentsInChildren<SpriteRenderer>())
                 .ToArray();
 
