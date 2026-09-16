@@ -36,5 +36,10 @@ namespace TapEmpire.Utility
             DateTime nowUtc = DateTime.UtcNow;
             return nowUtc - nowUtc.Date;
         }
+
+        public static string ToSigned(this int value)
+        {
+            return value.ToString("+#;-#;0");
+        }
     }
 }
