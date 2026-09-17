@@ -94,6 +94,7 @@ namespace TapEmpire.UI
 
         protected override void OnRelease()
         {
+            _views.Keys.OfType<IDisposable>().ForEach(viewModel => viewModel.Dispose());
             _views.Clear();
             if (_sceneContextsService != null)
             {
