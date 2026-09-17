@@ -10,9 +10,13 @@ namespace TapEmpire.Services
     {
         public readonly Subject<SystemSettings> OnDataChanged = new();
 
+        public bool Debug;
+        public int FrameRate = 60;
+
         public float SessionInterval = 600.0f;
         public bool PlayOfflineForPayers = true;
         public bool PlayOfflineNoAds = true;
+        public bool IgnoreConnection = false;
 
         public bool IsPushServiceEnabled;
 

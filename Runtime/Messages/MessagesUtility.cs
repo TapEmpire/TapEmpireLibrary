@@ -1,24 +1,25 @@
 ﻿using System;
 using System.Collections.Generic;
+using R3;
 using TapEmpire.Utility;
 
 namespace TapEmpire.Messages
 {
     public static partial class MessagesUtility
     {
-        private static readonly Dictionary<TelMessageType, List<Delegate>> LibraryCallbacks = new ();
+        private static readonly Dictionary<MessageType, List<Delegate>> LibraryCallbacks = new ();
 
-        public static void Subscribe<T>(TelMessageType messageType, Action<T> callback) where T : IMessageData
+        public static IDisposable Subscribe<T>(MessageType messageType, Action<T> callback) where T : IMessageData
             => Subscribe(messageType, callback, LibraryCallbacks);
 
-        public static void Unsubscribe<T>(TelMessageType messageType, Action<T> callback) where T : IMessageData
+        public static void Unsubscribe<T>(MessageType messageType, Action<T> callback) where T : IMessageData
             => Unsubscribe(messageType, callback, LibraryCallbacks);
 
-        public static void Invoke<T>(TelMessageType messageType, T messageData) where T : IMessageData
+        public static void Invoke<T>(MessageType messageType, T messageData) where T : IMessageData
             => Invoke(messageType, messageData, LibraryCallbacks);
 
-        private static void Subscribe<MessageType, T>(MessageType messageType,
-            Action<T> callback, Dictionary<MessageType, List<Delegate>> callbackDictionary) where T : IMessageData
+        private static IDisposable Subscribe<TMessageType, T>(TMessageType messageType,
+            Action<T> callback, Dictionary<TMessageType, List<Delegate>> callbackDictionary) where T : IMessageData
         {
             if (callbackDictionary.TryGetValue(messageType, out var callbacks))
             {
@@ -28,10 +29,12 @@ namespace TapEmpire.Messages
             {
                 callbackDictionary.Add(messageType, new List<Delegate>() { callback });
             }
+
+            return Disposable.Create(() => Unsubscribe(messageType, callback, callbackDictionary));
         }
 
-        private static void Unsubscribe<MessageType, T>(MessageType messageType, Action<T> callback,
-            Dictionary<MessageType, List<Delegate>> callbackDictionary) where T : IMessageData
+        private static void Unsubscribe<TMessageType, T>(TMessageType messageType, Action<T> callback,
+            Dictionary<TMessageType, List<Delegate>> callbackDictionary) where T : IMessageData
         {
             if (callbackDictionary.TryGetValue(messageType, out var callbacks))
             {
@@ -39,8 +42,8 @@ namespace TapEmpire.Messages
             }
         }
 
-        private static void Invoke<MessageType, T>(MessageType messageType, T messageData,
-            Dictionary<MessageType, List<Delegate>> callbackDictionary) where T : IMessageData
+        private static void Invoke<TMessageType, T>(TMessageType messageType, T messageData,
+            Dictionary<TMessageType, List<Delegate>> callbackDictionary) where T : IMessageData
         {
             if (!callbackDictionary.TryGetValue(messageType, out var callbacks))
             {

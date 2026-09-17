@@ -6,6 +6,8 @@ namespace TapEmpire.Utility
 {
     public static class MathUtility
     {
+        public const float Epsilon = 0.001f;
+
         private static readonly float TURNOVER_INVERSE = 1.0f / 180.0f;
 
         public static int LoopClamp(int value, int max)
@@ -85,6 +87,17 @@ namespace TapEmpire.Utility
         {
             vector.x = shouldAdjust ? vector.x + x : x;
             return vector;
+        }
+
+        public static float SmoothStep(float min, float max, float value)
+        {
+            var t = Mathf.InverseLerp(min, max, value);
+            return t * t * (3f - 2f * t);
+        }
+
+        public static float Clamp(float value, float min, float max)
+        {
+            return Mathf.Min(Mathf.Max(value, min), max);
         }
 
         public static int ConvertToNumber(List<bool> list)

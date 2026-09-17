@@ -9,6 +9,7 @@ using Cysharp.Threading.Tasks;
 using R3;
 using Unity.Notifications;
 using UnityEngine;
+using TapEmpire.Utility;
 using Zenject;
 
 namespace TapEmpire.Services.Notifications
@@ -17,7 +18,7 @@ namespace TapEmpire.Services.Notifications
     /// Global notifications service that serves as a wrapper for multiple platforms' notification systems.
     /// </summary>
     [Serializable]
-    public class PushNotificationsService : Initializable, IPushNotificationsService, ITickable
+    public class PushNotificationsService : Initializable, IPushNotificationsService, IAlwaysTickable
     {
         [SerializeField] private PushNotificationSettings _notificationSettings;
 
@@ -159,7 +160,7 @@ namespace TapEmpire.Services.Notifications
         /// <summary>
         /// Check pending list for expired notifications, when in queue mode.
         /// </summary>
-        public void Tick()
+        public void AlwaysTick()
         {
             if (PendingNotifications == null || !PendingNotifications.Any()
                 || (mode & OperatingMode.Queue) != OperatingMode.Queue)

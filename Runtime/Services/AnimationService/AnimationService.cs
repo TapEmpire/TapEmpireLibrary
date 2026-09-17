@@ -213,7 +213,9 @@ namespace TapEmpire.Services
             const float hoverHeight = 20f;
 
             var newCount = Mathf.Clamp(count, 1, MaxResourceAmount);
-            var spawnPoints = AnimationFragment.GetRadialSpreadPoints(start, newCount, scatterRadius, scatterRandomness);
+            var canvasScale = target.GetComponentInParent<Canvas>().rootCanvas.transform.lossyScale.x;
+            var spawnPoints = AnimationFragment.GetRadialSpreadPoints(start, newCount,
+                scatterRadius * canvasScale, scatterRandomness * canvasScale);
             var animation = DOTween.Sequence();
             var end = target.position;
 
@@ -222,8 +224,8 @@ namespace TapEmpire.Services
                 var resourceTransform = _flyingPrefabPool.Get();
                 resourceTransform.localScale = Vector3.zero;
                 var cg = resourceTransform.GetComponent<CanvasGroup>();
-                var spawnPos = (Vector3)spawnPoints[i];
-                var hoverPos = spawnPos + Vector3.up * hoverHeight;
+                var spawnPos = new Vector3(spawnPoints[i].x, spawnPoints[i].y, start.z);
+                var hoverPos = spawnPos + Vector3.up * (hoverHeight * canvasScale);
                 resourceTransform.position = spawnPos;
                 resourceTransform.SetParent(GetFlightParent(target.parent), true);
 

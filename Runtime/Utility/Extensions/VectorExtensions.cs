@@ -32,6 +32,18 @@ namespace TapEmpire.Utility
             return self;
         }
         
+        public static Vector2 MirrorX(this Vector2 self)
+        {
+            self.x = -self.x;
+            return self;
+        }
+
+        public static Vector2 MirrorY(this Vector2 self)
+        {
+            self.y = -self.y;
+            return self;
+        }
+
         public static Vector3 WithDeltaX(this Vector3 self, float delta)
         {
             self.x += delta;

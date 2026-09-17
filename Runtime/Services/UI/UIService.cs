@@ -101,6 +101,7 @@ namespace TapEmpire.UI
 
         protected override void OnRelease()
         {
+            _views.Keys.OfType<IDisposable>().ForEach(viewModel => viewModel.Dispose());
             _views.Clear();
             if (_sceneContextsService != null)
             {
@@ -258,6 +259,15 @@ namespace TapEmpire.UI
         public event Action<IUIViewModel> OnAfterOpenView;
         public event Action<IUIViewModel> OnBeforeCloseView;
         public event Action<IUIViewModel> OnAfterCloseView;
+
+        // A canvas without a camera falls back to overlay, so clearing it restores the default.
+        public void SetCanvasCamera(Camera camera)
+        {
+            var canvas = _canvasRectTransform.GetComponent<Canvas>();
+
+            canvas.renderMode = camera == null ? RenderMode.ScreenSpaceOverlay : RenderMode.ScreenSpaceCamera;
+            canvas.worldCamera = camera;
+        }
 
         public void AddToContext(string name, RectTransform transform)
         {

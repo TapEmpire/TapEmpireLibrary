@@ -8,12 +8,15 @@ namespace TapEmpire.Utility
         private readonly List<ITickable> _tickables = new();
         private readonly List<IFixedTickable> _fixedTickables = new();
         private readonly List<ILateTickable> _lateTickables = new();
+        private readonly List<IAlwaysTickable> _alwaysTickables = new();
 
         private TickableManager _tickableManager;
 
         private bool _initialized;
 
         public bool Initialized => _initialized;
+
+        public bool IsPaused { get; set; }
 
         public void TryInitialize(TickableManager tickableManager)
         {
@@ -60,6 +63,10 @@ namespace TapEmpire.Utility
             {
                 _lateTickables.Add(lateTickable);
             }
+            if (target is IAlwaysTickable alwaysTickable && !_alwaysTickables.Contains(alwaysTickable))
+            {
+                _alwaysTickables.Add(alwaysTickable);
+            }
         }
 
         void ITicksContainer.TryRemoveTicks<T>(T target)
@@ -76,10 +83,21 @@ namespace TapEmpire.Utility
             {
                 _lateTickables.Remove(lateTickable);
             }
+            if (target is IAlwaysTickable alwaysTickable && _alwaysTickables.Contains(alwaysTickable))
+            {
+                _alwaysTickables.Remove(alwaysTickable);
+            }
         }
 
         public void Tick()
         {
+            foreach (var alwaysTickable in _alwaysTickables)
+            {
+                alwaysTickable.AlwaysTick();
+            }
+
+            if (IsPaused) return;
+
             foreach (var tickable in _tickables)
             {
                 tickable.Tick();
@@ -88,6 +106,8 @@ namespace TapEmpire.Utility
 
         public void FixedTick()
         {
+            if (IsPaused) return;
+
             foreach (var fixedTickable in _fixedTickables)
             {
                 fixedTickable.FixedTick();
@@ -96,6 +116,8 @@ namespace TapEmpire.Utility
 
         public void LateTick()
         {
+            if (IsPaused) return;
+
             foreach (var lateTickable in _lateTickables)
             {
                 lateTickable.LateTick();

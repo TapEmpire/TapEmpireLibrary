@@ -65,10 +65,26 @@ namespace TapEmpire.Services
             MMVibrationManager.Haptic(type);
         }
 
+        public void PlayContinuousHaptic(float intensity, float sharpness, float duration)
+        {
+            if (!IsHapticsActive)
+            {
+                return;
+            }
+            Log(intensity, sharpness, duration);
+            MMVibrationManager.ContinuousHaptic(intensity, sharpness, duration);
+        }
+
         [Conditional("UNITY_EDITOR")]
         private void Log(HapticTypes type)
         {
             Debug.Log("[HAPTIC] Play haptic: " + type);
+        }
+
+        [Conditional("UNITY_EDITOR")]
+        private void Log(float intensity, float sharpness, float duration)
+        {
+            Debug.Log($"[HAPTIC] Play continuous haptic: {intensity} / {sharpness} for {duration}s");
         }
     }
 }
