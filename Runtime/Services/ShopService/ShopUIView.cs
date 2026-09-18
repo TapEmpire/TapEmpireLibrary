@@ -12,7 +12,6 @@ namespace TapEmpire.Services.Shop
     public class ShopUIView : UIView<ShopUIViewModel>, IInjectable
     {
         [SerializeField] private Button _closeButton = null;
-        [SerializeField] private Button _settingsButton = null;
         [SerializeField] private Transform _content;
         [SerializeField] private int _minBottomOffset;
         [SerializeField] private int _maxBottomOffset;
@@ -27,15 +26,6 @@ namespace TapEmpire.Services.Shop
             if (DerivedModel.HasCloseButton)
             {
                 _closeButton.onClick.Subscribe(DerivedModel.OnClosePressed).AddTo(_disposables);
-            }
-
-            if (_settingsButton != null)
-            {
-                _settingsButton.gameObject.SetActive(!DerivedModel.HasCloseButton);
-                if (!DerivedModel.HasCloseButton)
-                {
-                    _settingsButton.onClick.Subscribe(() => DerivedModel.OnSettingsPressed?.Invoke()).AddTo(_disposables);
-                }
             }
 
             if (_verticalLayoutGroup != null)

@@ -77,9 +77,9 @@ namespace TapEmpire.Services.Shop
             base.OnRelease();
         }
 
-        public void ShowShop(string placement, bool hasCloseButton = true, bool hasBottomOffset = false, Action onSettingsPressed = null)
+        public void ShowShop(string placement, bool hasCloseButton = true, bool hasBottomOffset = false)
         {
-            _uiService.OpenViewAsync(_shopSettings.ShopView, new ShopUIViewModel(hasCloseButton, hasBottomOffset, onSettingsPressed), default).Forget();
+            _uiService.OpenViewAsync(_shopSettings.ShopView, new ShopUIViewModel(hasCloseButton, hasBottomOffset), default).Forget();
             OnShopShown.OnNext(placement);
         }
 
