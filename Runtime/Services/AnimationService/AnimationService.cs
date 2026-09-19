@@ -140,7 +140,9 @@ namespace TapEmpire.Services
             Action<int> onItemComplete)
         {
             var newCount = Mathf.Clamp(count, 0, MaxResourceAmount);
-            var points = AnimationFragment.GetRadialSpreadPoints(start, newCount, scatterRadius, scatterRandomness);
+            var canvasScale = target.GetComponentInParent<Canvas>().rootCanvas.transform.lossyScale.x;
+            var points = AnimationFragment.GetRadialSpreadPoints(start, newCount,
+                scatterRadius * canvasScale, scatterRandomness * canvasScale);
             var animation = DOTween.Sequence();
             var end = target.position;
             var index = 0;
@@ -148,17 +150,17 @@ namespace TapEmpire.Services
             foreach (var point in points)
             {
                 var resourceRenderer = _flyingResources.Get();
-                
-                resourceRenderer.sprite = sprite;  
-                
+
+                resourceRenderer.sprite = sprite;
+
                 configureRenderer?.Invoke(resourceRenderer);
 
                 var resource = resourceRenderer.transform;
+                resource.SetParent(target.parent, worldPositionStays: false);
                 resource.position = start;
-                resource.parent = target;
 
                 var sequence = DOTween.Sequence();
-                resource.DOMove(point, 0.3f).AppendTo(sequence);
+                resource.DOMove(new Vector3(point.x, point.y, start.z), 0.3f).AppendTo(sequence);
                 resource.DOMove(end, 0.5f)
                     .SetDelay(Random.Range(0.05f, 0.2f))
                     .SetEase(Ease.InBack)
@@ -170,7 +172,7 @@ namespace TapEmpire.Services
                 {
                     onItemComplete?.Invoke(flyAmount);
                     _flyingResources.Release(resourceRenderer);
-                    resourceRenderer.transform.parent = _parent;
+                    resourceRenderer.transform.SetParent(_parent, worldPositionStays: false);
                 });
 
                 animation.Join(sequence);
