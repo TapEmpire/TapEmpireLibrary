@@ -14,6 +14,7 @@ namespace TapEmpire.CoreSystems
     public class CameraCoreSystem : Initializable, ICameraCoreSystem
     {
         [SerializeField] private float _bottomPadding = 0.0f;
+        [SerializeField] private bool _alwaysReserveBannerSpace = false;
 
         private ILevelExecutionCoreSystem _levelExecutionCoreSystem;
         private IAdsService _adsService;
@@ -52,7 +53,7 @@ namespace TapEmpire.CoreSystems
             var aspect = (float)Screen.width / Screen.height;
             var orthographicSize = bounds.size.x * 0.5f / aspect;
 
-            var bottomInset = _adsService.AdsEnabled.CurrentValue
+            var bottomInset = _alwaysReserveBannerSpace || _adsService.AdsEnabled.CurrentValue
                 ? _bottomPadding + ToWorldHeight(levelView, BannerHeight, orthographicSize)
                 : _bottomPadding;
 
