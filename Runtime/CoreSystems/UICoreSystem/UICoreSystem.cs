@@ -88,7 +88,7 @@ namespace TapEmpire.CoreSystems
 
         protected virtual bool ShouldBlockFor(IUIViewModel viewModel)
         {
-            return !_hudViewModels.Contains(viewModel);
+            return viewModel is not INonBlocking && !_hudViewModels.Contains(viewModel);
         }
 
         private void OnSceneContextInstalled((string, SceneContext) eventData)
