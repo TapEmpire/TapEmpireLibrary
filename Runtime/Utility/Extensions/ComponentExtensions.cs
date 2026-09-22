@@ -11,6 +11,9 @@ namespace TapEmpire.Utility
         public static Vector3 Center(this IReadOnlyCollection<Component> self)
             => self.Aggregate(Vector3.zero, (sum, component) => sum + component.transform.position) / self.Count;
 
+        public static T[] AsArray<T>(this T self) where T : Component
+            => (Component)self != null ? new[] { self } : Array.Empty<T>();
+
         public static IDisposable ShiftSorting(this IReadOnlyCollection<Component> self, int offset)
         {
             var renderers = self
