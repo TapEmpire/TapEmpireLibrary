@@ -12,12 +12,15 @@ namespace TapEmpire.UI
         [SerializeField] private Sprite _disabledSprite;
 
         [SerializeField] private Image _icon;
-        [SerializeField][ShowIf("@_icon != null")] private Color _enabledIconColor;
-        [SerializeField][ShowIf("@_icon != null")] private Color _disabledIconColor;
+        [SerializeField][ShowIf("@_icon != null")] private Sprite _enabledIconSprite;
+        [SerializeField][ShowIf("@_icon != null")] private Sprite _disabledIconSprite;
+        [SerializeField][ShowIf("@_icon != null && _disabledIconSprite == null")] private Color _enabledIconColor;
+        [SerializeField][ShowIf("@_icon != null && _disabledIconSprite == null")] private Color _disabledIconColor;
 
         [SerializeField] private TMP_Text _text;
-        [SerializeField][ShowIf("@_text != null")] private Material _enabledMaterial;
-        [SerializeField][ShowIf("@_text != null")] private Material _disabledMaterial;
+        [SerializeField][ShowIf("@_text != null")] private TMP_Text _disabledText;
+        [SerializeField][ShowIf("@_text != null && _disabledText == null")] private Material _enabledMaterial;
+        [SerializeField][ShowIf("@_text != null && _disabledText == null")] private Material _disabledMaterial;
 
         public void SetActive(bool isActive)
         {
@@ -25,12 +28,27 @@ namespace TapEmpire.UI
 
             if (_icon != null)
             {
-                _icon.color = isActive ? _enabledIconColor : _disabledIconColor;
+                if (_disabledIconSprite != null)
+                {
+                    _icon.sprite = isActive ? _enabledIconSprite : _disabledIconSprite;
+                }
+                else
+                {
+                    _icon.color = isActive ? _enabledIconColor : _disabledIconColor;
+                }
             }
 
             if (_text != null)
             {
-                _text.fontSharedMaterial = isActive ? _enabledMaterial : _disabledMaterial;
+                if (_disabledText != null)
+                {
+                    _text.gameObject.SetActive(isActive);
+                    _disabledText.gameObject.SetActive(!isActive);
+                }
+                else
+                {
+                    _text.fontSharedMaterial = isActive ? _enabledMaterial : _disabledMaterial;
+                }
             }
         }
     }
