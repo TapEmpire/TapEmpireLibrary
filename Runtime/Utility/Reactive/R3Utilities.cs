@@ -21,6 +21,8 @@ namespace TapEmpire.Utility
             });
         }
 
+        public static Observable<T> NextFrame<T>(this Observable<T> source) => source.AfterFrames(1);
+
         public static Observable<T> AfterFrames<T>(this Observable<T> source, int frames)
         {
             return Observable.Create<T>(observer =>
