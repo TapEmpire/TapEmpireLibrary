@@ -9,6 +9,11 @@ namespace TapEmpire.CoreSystems
             return self.ExecutionData.Value.LevelIndex;
         }
 
+        public static bool IsLevelActive(this ILevelExecutionCoreSystem self)
+        {
+            return self.ExecutionData.Value?.LevelStateData.LevelState == LevelState.Active;
+        }
+
         public static int GetPreviousLevelIndex(this ILevelExecutionCoreSystem self)
         {
             var levels = self.Levels;
