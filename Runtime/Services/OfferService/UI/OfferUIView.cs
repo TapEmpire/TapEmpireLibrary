@@ -21,6 +21,7 @@ namespace TapEmpire.Services.Offer
         [SerializeField] private Image _border;
         [SerializeField] private List<ShopChoiceData> _offerChoices;
         [SerializeField] private Button _closeButton;
+        [SerializeField] private Button _extraCloseButton;
         [SerializeField] private bool _disableBanners = false;
         [SerializeField] private Button _debugSwitchButton;
         [SerializeField] private bool _useCustomIcons = false;
@@ -60,6 +61,7 @@ namespace TapEmpire.Services.Offer
             }
 
             _closeButton.onClick.Subscribe(DerivedModel.Close).AddTo(_disposables);
+            _extraCloseButton?.onClick.Subscribe(DerivedModel.Close).AddTo(_disposables);
             _debugSwitchButton?.onClick.Subscribe(SwitchRarity).AddTo(_disposables);
             DerivedModel.IapService.OnPurchaseSuccess.Subscribe(OnPurchaseSuccess).AddTo(_disposables);
 
