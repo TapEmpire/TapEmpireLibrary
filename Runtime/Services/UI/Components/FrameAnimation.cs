@@ -12,6 +12,8 @@ namespace TapEmpire.UI
 
         public Image Image => _image;
 
+        public float Duration => _frames.Length / _frameRate;
+
         [SerializeField] private Image _image;
         [SerializeField] private Sprite[] _frames;
         [SerializeField] private float _frameRate = 30f;
@@ -19,11 +21,9 @@ namespace TapEmpire.UI
 
         public UniTask Play()
         {
-            var duration = _frames.Length / _frameRate;
-
             var sequence = DOTween.Sequence()
                 .Append(DOVirtual
-                    .Int(0, _frames.Length - 1, duration, frame => _image.sprite = _frames[frame])
+                    .Int(0, _frames.Length - 1, Duration, frame => _image.sprite = _frames[frame])
                     .SetEase(Ease.Linear))
                 .InsertCallback(_impactFrame / _frameRate, () => OnImpact.OnNext(Unit.Default));
 
