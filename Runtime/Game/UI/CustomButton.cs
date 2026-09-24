@@ -17,10 +17,12 @@ namespace TapEmpire.UI
         [SerializeField][ShowIf("@_icon != null && _disabledIconSprite == null")] private Color _enabledIconColor;
         [SerializeField][ShowIf("@_icon != null && _disabledIconSprite == null")] private Color _disabledIconColor;
 
-        [SerializeField] private TMP_Text _text;
-        [SerializeField][ShowIf("@_text != null")] private TMP_Text _disabledText;
-        [SerializeField][ShowIf("@_text != null && _disabledText == null")] private Material _enabledMaterial;
-        [SerializeField][ShowIf("@_text != null && _disabledText == null")] private Material _disabledMaterial;
+        [SerializeField] private GameObject _enabledText;
+        [SerializeField][ShowIf("@_enabledText != null")] private GameObject _disabledText;
+
+        [SerializeField][ShowIf("@_enabledText == null")] private TMP_Text _text;
+        [SerializeField][ShowIf("@_enabledText == null && _text != null")] private Material _enabledMaterial;
+        [SerializeField][ShowIf("@_enabledText == null && _text != null")] private Material _disabledMaterial;
 
         public void SetActive(bool isActive)
         {
@@ -38,17 +40,14 @@ namespace TapEmpire.UI
                 }
             }
 
-            if (_text != null)
+            if (_enabledText != null)
             {
-                if (_disabledText != null)
-                {
-                    _text.gameObject.SetActive(isActive);
-                    _disabledText.gameObject.SetActive(!isActive);
-                }
-                else
-                {
-                    _text.fontSharedMaterial = isActive ? _enabledMaterial : _disabledMaterial;
-                }
+                _enabledText.SetActive(isActive);
+                _disabledText.SetActive(!isActive);
+            }
+            else if (_text != null)
+            {
+                _text.fontSharedMaterial = isActive ? _enabledMaterial : _disabledMaterial;
             }
         }
     }
