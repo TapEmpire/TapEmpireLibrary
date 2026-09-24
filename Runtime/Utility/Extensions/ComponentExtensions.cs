@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using R3;
 using UnityEngine;
+using UnityEngine.UI;
+using Object = UnityEngine.Object;
 
 namespace TapEmpire.Utility
 {
@@ -32,6 +34,47 @@ namespace TapEmpire.Utility
                 {
                     if (renderer != null) renderer.sortingOrder -= offset;
                 }
+            });
+        }
+
+        public static IDisposable FocusSorting(this Component self, int order, bool raycastable = false)
+        {
+            if (self == null || self.transform is not RectTransform) return Disposable.Empty;
+
+            return self.TryGetComponent<Canvas>(out var canvas)
+                ? FocusCanvas(canvas, order)
+                : FocusWithCanvas(self.gameObject, order, raycastable);
+        }
+
+        private static IDisposable FocusCanvas(Canvas canvas, int order)
+        {
+            var wasOverriding = canvas.overrideSorting;
+            var previousOrder = canvas.sortingOrder;
+
+            canvas.overrideSorting = true;
+            canvas.sortingOrder = order;
+
+            return Disposable.Create(() =>
+            {
+                if (canvas == null) return;
+
+                canvas.overrideSorting = wasOverriding;
+                canvas.sortingOrder = previousOrder;
+            });
+        }
+
+        private static IDisposable FocusWithCanvas(GameObject target, int order, bool raycastable)
+        {
+            var canvas = target.AddComponent<Canvas>();
+            canvas.overrideSorting = true;
+            canvas.sortingOrder = order;
+
+            var raycaster = raycastable ? target.AddComponent<GraphicRaycaster>() : null;
+
+            return Disposable.Create(() =>
+            {
+                if (raycaster != null) Object.Destroy(raycaster);
+                if (canvas != null) Object.Destroy(canvas);
             });
         }
 
