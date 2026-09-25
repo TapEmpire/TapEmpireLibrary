@@ -12,6 +12,7 @@ namespace TapEmpire.Services
 
         public IIapService IapService => _iapService;
         public IUIService UiService => _uiService;
+        public bool CloseOnPurchase { get; set; } = true;
 
         private IUIService _uiService;
         private IIapService _iapService;
@@ -54,7 +55,10 @@ namespace TapEmpire.Services
 
         private void OnPurchaseSuccess(string productId)
         {
-            Close();
+            if (CloseOnPurchase)
+            {
+                Close();
+            }
         }
 
         private void OnPurchaseFailed(PurchaseFailArgs args)
