@@ -29,9 +29,9 @@ namespace TapEmpire.Services.Offer
 
         protected IOfferService _offerService;
         private IAdsService _adsService;
-        private IUIService _uiService;
-        private IResourcesService<ResourceType> _resourcesService;
-        private IAnimationService<ResourceType> _animationService;
+        protected IUIService _uiService;
+        protected IResourcesService<ResourceType> _resourcesService;
+        protected IAnimationService<ResourceType> _animationService;
 
         protected CompositeDisposable _disposables = new();
         private bool _shouldEnableBanners;
@@ -145,15 +145,15 @@ namespace TapEmpire.Services.Offer
                     _offerChoices[index].Resources[index2].Icon.transform.position, false));
         }
 
-        protected virtual void AcquireResources(ResourceType resourceType, int amount, string usageType,
-            Vector3 startPosition, bool shouldAddResource)
+        protected virtual Sequence AcquireResources(ResourceType resourceType, int amount, string usageType,
+            Vector3 startPosition, bool shouldAddResource, ResourceAcquireType acquireType = ResourceAcquireType.IAP)
         {
             var animation = _animationService.CollectResource(resourceType, amount, startPosition, false);
 
             var reason = shouldAddResource ? usageType : string.Empty;
-            _resourcesService.AddVirtual(resourceType, amount, reason, ResourceAcquireType.IAP);
+            _resourcesService.AddVirtual(resourceType, amount, reason, acquireType);
 
-            animation.Play();
+            return animation.Play();
         }
 
         private void SwitchRarity()
