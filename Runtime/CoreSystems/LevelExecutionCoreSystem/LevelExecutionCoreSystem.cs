@@ -170,12 +170,16 @@ namespace TapEmpire.CoreSystems
 
             var shouldSkipAd = _shouldSkipAd || !AreAdsAllowed(flow);
 
-            _executionAction = ExecutionAction<FlowAction>
+            _executionAction = CreateFlowExecution(reason, shouldSkipAd).RunExecute(flow);
+        }
+
+        protected virtual IExecutionAction<FlowAction> CreateFlowExecution(LevelEndReason reason, bool shouldSkipAd)
+        {
+            return ExecutionAction<FlowAction>
                 .Composite(
                     new NetworkExecutionAction(_networkService),
                     new AdsExecutionAction(_adsService, ExecutionData.Value.LevelIndex, shouldSkipAd),
-                    new CallbackExecutionAction<FlowAction>(nextFlow => FinalizeFlow(nextFlow, reason)))
-                .RunExecute(flow);
+                    new CallbackExecutionAction<FlowAction>(nextFlow => FinalizeFlow(nextFlow, reason)));
         }
 
         protected virtual void FinalizeFlow(FlowAction flow, LevelEndReason reason)
