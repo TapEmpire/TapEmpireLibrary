@@ -77,6 +77,12 @@ namespace TapEmpire.Utility
             return (element, index);
         }
 
+        public static T FindLastOrFirst<T>(this List<T> list, Predicate<T> match)
+        {
+            var index = list.FindLastIndex(match);
+            return list.ElementAtOrDefault(Math.Max(index, 0));
+        }
+
         public static void AddRange<T>(this List<T> list, int count, T value = default(T))
         {
             list.AddRange(Enumerable.Repeat(value, count));
