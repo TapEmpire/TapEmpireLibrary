@@ -15,6 +15,7 @@ namespace TapEmpire.CoreSystems
     {
         [SerializeField] private float _bottomPadding = 0.0f;
         [SerializeField] private bool _alwaysReserveBannerSpace = false;
+        [SerializeField] private float _minOrthographicSize = 10.0f;
 
         private ILevelExecutionCoreSystem _levelExecutionCoreSystem;
         private IAdsService _adsService;
@@ -51,7 +52,7 @@ namespace TapEmpire.CoreSystems
             var bounds = levelView.GetLevelReference<BoundsProvider>("Geometry").Bounds;
 
             var aspect = (float)Screen.width / Screen.height;
-            var orthographicSize = bounds.size.x * 0.5f / aspect;
+            var orthographicSize = Mathf.Max(bounds.size.x * 0.5f / aspect, _minOrthographicSize);
 
             var bottomInset = _alwaysReserveBannerSpace || _adsService.AdsEnabled.CurrentValue
                 ? _bottomPadding + ToWorldHeight(levelView, BannerHeight, orthographicSize)
