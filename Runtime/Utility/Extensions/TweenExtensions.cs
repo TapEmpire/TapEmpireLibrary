@@ -43,5 +43,16 @@ namespace TapEmpire.Utility
             sequence.Insert(atPosition, tween);
             return tween;
         }
+
+        public static T OnCompleteAdd<T>(this T tween, System.Action action) where T : Tween
+        {
+            var callback = tween.onComplete;
+            tween.OnComplete(() =>
+            {
+                callback?.Invoke();
+                action();
+            });
+            return tween;
+        }
     }
 }
