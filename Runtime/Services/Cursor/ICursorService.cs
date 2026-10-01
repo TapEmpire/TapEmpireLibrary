@@ -1,6 +1,6 @@
 namespace TapEmpire.Services
 {
-    public interface ICustomCursorService : IService
+    public interface ICursorService : IService
     {
         
     }

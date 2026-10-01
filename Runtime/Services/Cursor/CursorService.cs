@@ -10,9 +10,9 @@ using Zenject;
 namespace TapEmpire.Services
 {
     [Serializable]
-    public class CustomCursorService : Initializable, ICustomCursorService
+    public class CursorService : Initializable, ICursorService
     {
-        [SerializeField] private BaseCustomCursorUIView _uiView;
+        [SerializeField] private CursorUIView _uiView;
         [SerializeField] private string[] _contexts = new []{"Menu", "Core"};
 
         private IUIService _uiService;
@@ -35,7 +35,7 @@ namespace TapEmpire.Services
 
         protected override void OnRelease()
         {
-            _uiService.TryCloseViewAsync<CustomCursorUIViewModel>();
+            _uiService.TryCloseViewAsync<CursorUIViewModel>();
             
             _disposables.Dispose();
             
@@ -53,7 +53,7 @@ namespace TapEmpire.Services
                 uiCoreSystem.BlockUI(false);
                 
                 _isInitialized = true;
-                _uiService.OpenViewAsync(_uiView, new CustomCursorUIViewModel(), CancellationToken.None);
+                _uiService.OpenViewAsync(_uiView, new CursorUIViewModel(), CancellationToken.None);
             }
         }
 
