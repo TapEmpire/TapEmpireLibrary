@@ -17,7 +17,7 @@ namespace TapEmpire.Services
     {
         public ReadOnlyReactiveProperty<string> CampaignName => _campaignName;
 
-        [field: SerializeField] public string AdjustEventToken { get; private set;}
+        [field: SerializeField] public string AdjustEventToken { get; private set; }
 
         [SerializeField]
         private AnalyticsType _analyticsType = AnalyticsType.Amplitude;
@@ -132,12 +132,12 @@ namespace TapEmpire.Services
         {
             switch (analyticsType)
             {
-                #if TEL_AMPLITUDE
+#if TEL_AMPLITUDE
                 case AnalyticsType.Amplitude: return new AmplitudeService(_analyticsKey, _shouldEnableLogs);
-                #endif
-                #if TEL_GAMEANALYTICS
+#endif
+#if TEL_GAMEANALYTICS
                 case AnalyticsType.GameAnalytics: return new GameAnalyticsService(_gameAnalyticsPrefab);
-                #endif
+#endif
                 case AnalyticsType.AppMetrica: return new AppMetricaService(_analyticsKey, _shouldEnableLogs);
                 default: throw new ArgumentOutOfRangeException("Unknown analytics type");
             }
@@ -211,10 +211,13 @@ namespace TapEmpire.Services
 
         public void LogAdjustEvent(IDictionary<string, object> properties)
         {
-            var callbackParams = new Dictionary<string, string>();
-            properties.ForEach(pair => callbackParams[pair.Key] = pair.Value?.ToString() ?? string.Empty);
-            _adjustParameters.ForEach(pair => callbackParams[pair.Key] = pair.Value);
-            AttributionService.TrackEvent(AdjustEventToken, callbackParams);
+            if (!string.IsNullOrEmpty(AdjustEventToken))
+            {
+                var callbackParams = new Dictionary<string, string>();
+                properties.ForEach(pair => callbackParams[pair.Key] = pair.Value?.ToString() ?? string.Empty);
+                _adjustParameters.ForEach(pair => callbackParams[pair.Key] = pair.Value);
+                AttributionService.TrackEvent(AdjustEventToken, callbackParams);
+            }
         }
 
         public void SetCampaignName(string campaignName)
