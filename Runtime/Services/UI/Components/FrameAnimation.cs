@@ -18,16 +18,33 @@ namespace TapEmpire.UI
         [SerializeField] private Sprite[] _frames;
         [SerializeField] private float _frameRate = 30f;
         [SerializeField] private int _impactFrame;
+        [SerializeField] private bool _loop;
+
+        private Tween _tween;
 
         public UniTask Play()
         {
             var sequence = DOTween.Sequence()
-                .Append(DOVirtual
-                    .Int(0, _frames.Length - 1, Duration, frame => _image.sprite = _frames[frame])
-                    .SetEase(Ease.Linear))
+                .Append(RunFrames())
                 .InsertCallback(_impactFrame / _frameRate, () => OnImpact.OnNext(Unit.Default));
 
-            return sequence.SetLink(gameObject).ToUniTask();
+            if (_loop) sequence.OnComplete(() => _tween = RunFrames().SetLoops(-1).SetLink(gameObject));
+
+            _tween = sequence.SetLink(gameObject);
+
+            return sequence.ToUniTask();
+        }
+
+        public void Stop()
+        {
+            _tween?.Kill();
+        }
+
+        private Tween RunFrames()
+        {
+            return DOVirtual
+                .Int(0, _frames.Length - 1, Duration, frame => _image.sprite = _frames[frame])
+                .SetEase(Ease.Linear);
         }
     }
 }
