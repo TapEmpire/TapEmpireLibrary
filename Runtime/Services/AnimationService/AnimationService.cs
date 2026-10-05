@@ -20,6 +20,8 @@ namespace TapEmpire.Services
         [SerializeField] private AnimationSettings _settings;
         [SerializeField] private Image _flyingResourcePrefab;
 
+        protected Transform PoolParent => _parent;
+
         private IUIService _uiService;
         private IResourcesService<ResourceType> _resourcesService;
         protected IAudioService _audioService;
