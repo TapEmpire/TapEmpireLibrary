@@ -251,8 +251,6 @@ namespace TapEmpire.CoreSystems
             OnLevelStarted.OnNext(ExecutionData.Value);
             SaveLevelProgress(ExecutionData.Value.LevelIndex, withVisual: true);
 
-            _adsService.ShowBanner(true);
-
             // TODO revisit: fire and forget with no cancellation token.
             UniTaskUtility.ExecuteAfterSeconds(LoadingScreenCloseDelay,
                 () => _sceneManagementService.CloseLoadingScreen(default), default).Forget();
