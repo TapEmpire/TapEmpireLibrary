@@ -43,6 +43,8 @@ namespace TapEmpire.Services
 
         private void OnPurchaseSuccessDetailed((Product product, string productKey, string placement) data)
         {
+            SetIsPayerProperty();
+
             var iapId = data.product.definition.id;
             var offer = _iapService.GetOfferInfoByStoreId(iapId);
             if (offer == null)
@@ -117,6 +119,8 @@ namespace TapEmpire.Services
 
         private void OnPurchaseRestored(string iapId)
         {
+            SetIsPayerProperty();
+
             var levelsCompleted = _progressService.GetVisualProgress();
             _analyticsService.LogEvent(IapAnalyticsEvents.IapRestored, new Dictionary<string, object>()
             {
@@ -141,6 +145,11 @@ namespace TapEmpire.Services
             {
                 { NoAdsPopupViewModel.IapKey, new JObject(new JProperty("Shown", model.Placement)) }
             });
+        }
+
+        private void SetIsPayerProperty()
+        {
+            _analyticsService.SetUserProperty(AnalyticsParameters.IsPayer, _iapService.IsPayer.ToString());
         }
 
         private void SaveSpend(decimal price, string isoCode)

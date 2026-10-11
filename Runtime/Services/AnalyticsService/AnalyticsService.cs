@@ -154,6 +154,7 @@ namespace TapEmpire.Services
 
             _innerService.SetUserProperties(new Dictionary<string, object>{
                 { AnalyticsParameters.RemoteConfig, _remoteConfigName },
+                { AnalyticsParameters.IsPayer, progressService.GetIsPayer().ToString() },
                 // { CoreGenericAnalyticsParameters.LevelsCompleted, levelsCompleted },
                 // { CoreGenericAnalyticsParameters.CyclesCompleted, cyclesCompleted },
             });
