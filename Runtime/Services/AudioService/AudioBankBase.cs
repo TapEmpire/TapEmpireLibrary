@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using TapEmpire.Utility;
 using UnityEngine;
@@ -7,6 +8,10 @@ namespace TapEmpire.Services
 {
     public abstract class IAudioBank : ScriptableObject
     {
+        [SerializeField] private AudioData[] _musicTracks;
+
+        public IReadOnlyList<AudioData> MusicTracks => _musicTracks;
+
         public abstract AudioData GetAudioData<TAudioId>(TAudioId audioId) where TAudioId : Enum;
 
         public abstract AudioData GetAudioData(string audioId);

@@ -4,6 +4,7 @@ using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Audio;
 using TapEmpire.Utility;
+using Zenject;
 using Object = UnityEngine.Object;
 using System.Collections.Generic;
 
@@ -46,8 +47,17 @@ namespace TapEmpire.Services
 
         private Dictionary<string, AudioSource> _audioSources;
 
+        private IProgressService _progressService;
+        private CancellationTokenSource _musicTracksCancellation;
+
         public float MusicVolume { get; private set; }
         public float SoundsVolume { get; private set; }
+
+        [Inject]
+        private void Construct(IProgressService progressService)
+        {
+            _progressService = progressService;
+        }
 
         protected override UniTask OnInitializeAsync(CancellationToken cancellationToken)
         {
@@ -72,6 +82,7 @@ namespace TapEmpire.Services
         protected override void OnRelease()
         {
             StopAllSounds();
+            StopMusicTracks();
             _soundsSourcesPool?.Clear();
             _soundsSources3DPool?.Clear();
         }
@@ -237,9 +248,49 @@ namespace TapEmpire.Services
 
         public void StartPlayMusic<TAudioId>(TAudioId audioId, float fadeInDuration = 0.5f) where TAudioId : Enum
         {
+            StopMusicTracks();
+
             var audioData = GetAudioData(audioId);
+            _backgroundMusicSource.loop = true;
             _backgroundMusicSource.SetupDataWithVolumeFadeIn(audioData, fadeInDuration);
             _backgroundMusicSource.Play();
+        }
+
+        public void StartMusicTracks(float fadeInDuration = 0.5f)
+        {
+            StopMusicTracks();
+
+            _musicTracksCancellation = CancellationTokenSource.CreateLinkedTokenSource(Application.exitCancellationToken);
+            PlayMusicTracks(fadeInDuration, _musicTracksCancellation.Token).Forget();
+        }
+
+        private async UniTaskVoid PlayMusicTracks(float fadeInDuration, CancellationToken cancellationToken)
+        {
+            var tracks = _audioBank.MusicTracks;
+            var index = MathUtility.LoopClamp(_progressService.GetMusicTrack(), tracks.Count);
+
+            _backgroundMusicSource.loop = false;
+
+            while (true)
+            {
+                var track = tracks[index];
+
+                _progressService.SetMusicTrack(index);
+
+                _backgroundMusicSource.SetupDataWithVolumeFadeIn(track, fadeInDuration);
+                _backgroundMusicSource.Play();
+
+                await UniTask.WaitForSeconds(track.Clip.length / track.Pitch, cancellationToken: cancellationToken);
+
+                index = MathUtility.LoopValue(index, tracks.Count);
+            }
+        }
+
+        private void StopMusicTracks()
+        {
+            _musicTracksCancellation?.Cancel();
+            _musicTracksCancellation?.Dispose();
+            _musicTracksCancellation = null;
         }
 
         public void PlaySoundLoop(string audioId, string uniqueId = "")
