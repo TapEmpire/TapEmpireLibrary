@@ -54,7 +54,7 @@ namespace TapEmpire.CoreSystems
             var aspect = (float)Screen.width / Screen.height;
             var orthographicSize = Mathf.Max(bounds.size.x * 0.5f / aspect, _minOrthographicSize);
 
-            var bottomInset = (_alwaysReserveBannerSpace || _adsService.AdsEnabled.CurrentValue) && _adsService.Settings.EnableBanner
+            var bottomInset = (_alwaysReserveBannerSpace || _adsService.AdsEnabled.CurrentValue) //  && _adsService.Settings.EnableBanner
                 ? _bottomPadding + ToWorldHeight(levelView, BannerHeight, orthographicSize)
                 : _bottomPadding;
 
