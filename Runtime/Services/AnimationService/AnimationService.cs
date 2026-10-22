@@ -130,6 +130,12 @@ namespace TapEmpire.Services
                     onComplete?.Invoke();
                 });
         }
+        
+        private Transform GetFlightParent(Transform legacyFallback)
+        {
+            var overlayLayer = _uiService?.OverlayLayer;
+            return overlayLayer != null ? overlayLayer : legacyFallback;
+        }
 
         private Sequence PlayFlyingAnimation(
             int count,
@@ -154,11 +160,12 @@ namespace TapEmpire.Services
                 var resourceRenderer = _flyingResources.Get();
 
                 resourceRenderer.sprite = sprite;
+                resourceRenderer.raycastTarget = false;
 
                 configureRenderer?.Invoke(resourceRenderer);
 
                 var resource = resourceRenderer.transform;
-                resource.SetParent(target.parent, worldPositionStays: false);
+                resource.SetParent(GetFlightParent(target.parent), worldPositionStays: false);
                 resource.position = start;
 
                 var sequence = DOTween.Sequence();
@@ -173,6 +180,10 @@ namespace TapEmpire.Services
                 sequence.AppendCallback(() =>
                 {
                     onItemComplete?.Invoke(flyAmount);
+                });
+                
+                sequence.OnKill(() =>
+                {
                     _flyingResources.Release(resourceRenderer);
                     resourceRenderer.transform.SetParent(_parent, worldPositionStays: false);
                 });
@@ -220,7 +231,7 @@ namespace TapEmpire.Services
                 var spawnPos = new Vector3(spawnPoints[i].x, spawnPoints[i].y, start.z);
                 var hoverPos = spawnPos + Vector3.up * (hoverHeight * canvasScale);
                 resourceTransform.position = spawnPos;
-                resourceTransform.SetParent(target.parent);
+                resourceTransform.SetParent(GetFlightParent(target.parent), true);
 
                 var sequence = DOTween.Sequence();
                 sequence.SetDelay(i * spawnInterval);
@@ -235,12 +246,16 @@ namespace TapEmpire.Services
                 sequence.AppendCallback(() =>
                 {
                     onItemComplete?.Invoke(flyIndex);
-                    _flyingPrefabPool.Release(resourceTransform);
-                    cg.alpha = 1;
-                    resourceTransform.SetParent(_parent);
 
                     if (isLast)
                         onAllComplete?.Invoke();
+                });
+                
+                sequence.OnKill(() =>
+                {
+                    cg.alpha = 1;
+                    resourceTransform.SetParent(_parent);
+                    _flyingPrefabPool.Release(resourceTransform);
                 });
 
                 animation.Join(sequence);

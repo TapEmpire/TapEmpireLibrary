@@ -28,7 +28,7 @@ namespace TapEmpire.Services
             adsService.OnAdClicked.Subscribe(OnAdClicked).AddTo(_disposables);
             adsService.OnInterstitialAttempt.Subscribe(OnInterstitialAttempt).AddTo(_disposables);
             adsService.OnReceivedReward.Subscribe(OnReceivedReward).AddTo(_disposables);
-            adsService.OnImpression.Subscribe(OnImpression).AddTo(_disposables);
+            adsService.OnImpressionUnsafe.Subscribe(OnImpression).AddTo(_disposables);
         }
 
         public void Dispose() => _disposables.Dispose();

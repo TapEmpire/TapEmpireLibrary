@@ -62,36 +62,48 @@ namespace TapEmpire.Services
 
         private void OnAdLoaded(string adUnitId, MaxSdkBase.AdInfo adInfo)
         {
-            _retryAttempt = 0;
-            IsLoaded.Value = true;
+            UniTaskUtility.RunOnMainThread(() =>
+            {
+                _retryAttempt = 0;
+                IsLoaded.Value = true;
+            });
         }
 
         private void OnAdLoadFailed(string adUnitId, MaxSdkBase.ErrorInfo errorInfo)
         {
-            IsLoaded.Value = false;
-            _retryAttempt++;
-            var seconds = (float)Math.Pow(2, Math.Min(6, _retryAttempt));
-            _retryDisposable?.Dispose();
-            _retryDisposable = UniTaskUtility.Delay(seconds, LoadRewardedAd);
+            UniTaskUtility.RunOnMainThread(() =>
+            {
+                IsLoaded.Value = false;
+                _retryAttempt++;
+                var seconds = (float)Math.Pow(2, Math.Min(6, _retryAttempt));
+                _retryDisposable?.Dispose();
+                _retryDisposable = UniTaskUtility.Delay(seconds, LoadRewardedAd);
+            });
         }
 
         private void OnAdDisplayFailed(string adUnitId, MaxSdkBase.ErrorInfo errorInfo, MaxSdkBase.AdInfo adInfo)
         {
-            IsLoaded.Value = false;
-            IsShowing.Value = false;
-            LoadRewardedAd();
+            UniTaskUtility.RunOnMainThread(() =>
+            {
+                IsLoaded.Value = false;
+                IsShowing.Value = false;
+                LoadRewardedAd();
+            });
         }
 
         private void OnAdHidden(string adUnitId, MaxSdkBase.AdInfo adInfo)
         {
-            IsLoaded.Value = false;
-            IsShowing.Value = false;
-            LoadRewardedAd();
+            UniTaskUtility.RunOnMainThread(() =>
+            {
+                IsLoaded.Value = false;
+                IsShowing.Value = false;
+                LoadRewardedAd();
+            });
         }
 
         private void OnAdReceivedReward(string adUnitId, MaxSdkBase.Reward reward, MaxSdkBase.AdInfo adInfo)
         {
-            OnReward.OnNext(Unit.Default);
+            UniTaskUtility.RunOnMainThread(() => OnReward.OnNext(Unit.Default));
         }
 
         private void OnAdRevenuePaid(string adUnitId, MaxSdkBase.AdInfo adInfo)

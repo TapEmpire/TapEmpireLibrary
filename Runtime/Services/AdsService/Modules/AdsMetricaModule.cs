@@ -9,7 +9,7 @@ namespace TapEmpire.Services
 
         public AdsMetricaModule(IAdsService adsService)
         {
-            _subscription = adsService.OnImpression.Subscribe(OnImpression);
+            _subscription = adsService.OnImpressionUnsafe.Subscribe(OnImpression);
         }
 
         public void Dispose() => _subscription?.Dispose();

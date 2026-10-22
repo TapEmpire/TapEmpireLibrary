@@ -17,7 +17,7 @@ namespace TapEmpire.Services
         {
             _analyticsSettings = adsService.Settings.AdsAnalyticsSettings;
 
-            adsService.OnImpression.Subscribe(OnImpression).AddTo(_disposables);
+            adsService.OnImpressionUnsafe.Subscribe(OnImpression).AddTo(_disposables);
             iapService.OnPurchaseSuccessDetailed.Subscribe(OnPurchaseDetailed).AddTo(_disposables);
         }
 

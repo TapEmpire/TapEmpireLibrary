@@ -18,7 +18,10 @@ namespace TapEmpire.UI
 
         private void CheckMove(bool isBack)
         {
-            _counter += isBack ? -1 : +1;
+            if (isBack && _counter == 0)
+                Debug.LogWarning($"{nameof(ResourcesBar)}: MoveBack called without a matching MoveFront.", this);
+
+            _counter = Mathf.Max(0, _counter + (isBack ? -1 : +1));
             ChangePosition(_counter == 0);
         }
 

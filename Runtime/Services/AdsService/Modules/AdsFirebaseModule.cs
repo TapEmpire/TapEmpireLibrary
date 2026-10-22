@@ -10,7 +10,7 @@ namespace TapEmpire.Services
 
         public AdsFirebaseModule(IAdsService adsService)
         {
-            _subscription = adsService.OnImpression.Subscribe(OnImpression);
+            _subscription = adsService.OnImpressionUnsafe.Subscribe(OnImpression);
         }
 
         public void Dispose() => _subscription?.Dispose();
