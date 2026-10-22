@@ -19,6 +19,7 @@ namespace TapEmpire.Services
             float? customVolume = null) where TAudioId : Enum;
 
         void StartPlayMusic<TAudioId>(TAudioId audioId, float fadeInDuration = 0.5f) where TAudioId : Enum;
+        void StartMusicTracks(float fadeInDuration = 0.5f);
         void PlaySoundLoop(string audioId, string uniqueId = "");
         void PlaySoundLoop<TAudioId>(TAudioId audioId, string uniqueId = "") where TAudioId : Enum;
         void StopSound(string audioId, string uniqueId = "");

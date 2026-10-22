@@ -21,16 +21,18 @@ namespace TapEmpire.Services.Offer
         [SerializeField] private Image _border;
         [SerializeField] private List<ShopChoiceData> _offerChoices;
         [SerializeField] private Button _closeButton;
+        [SerializeField] private Button _extraCloseButton;
         [SerializeField] private bool _disableBanners = false;
+        [SerializeField] private bool _closeAfterRewards = false;
         [SerializeField] private Button _debugSwitchButton;
         [SerializeField] private bool _useCustomIcons = false;
         [SerializeField][ShowIf(nameof(_useCustomIcons))] private SerializableDictionary<ResourceType, Sprite> _customIcons;
 
         protected IOfferService _offerService;
         private IAdsService _adsService;
-        private IUIService _uiService;
-        private IResourcesService<ResourceType> _resourcesService;
-        private IAnimationService<ResourceType> _animationService;
+        protected IUIService _uiService;
+        protected IResourcesService<ResourceType> _resourcesService;
+        protected IAnimationService<ResourceType> _animationService;
 
         protected CompositeDisposable _disposables = new();
         private bool _shouldEnableBanners;
@@ -49,7 +51,7 @@ namespace TapEmpire.Services.Offer
             _animationService = animationService;
             _offerService = offerService;
 
-            _isDebug = systemService.StaticSettings.Debug;
+            _isDebug = systemService.SystemSettings.Debug;
         }
 
         protected override UniTask OnOpenAsync(CancellationToken cancellationToken)
@@ -59,7 +61,10 @@ namespace TapEmpire.Services.Offer
                 _shouldEnableBanners = _adsService.ShowBanner(false);
             }
 
+            DerivedModel.CloseOnPurchase = !_closeAfterRewards;
+
             _closeButton.onClick.Subscribe(DerivedModel.Close).AddTo(_disposables);
+            _extraCloseButton?.onClick.Subscribe(DerivedModel.Close).AddTo(_disposables);
             _debugSwitchButton?.onClick.Subscribe(SwitchRarity).AddTo(_disposables);
             DerivedModel.IapService.OnPurchaseSuccess.Subscribe(OnPurchaseSuccess).AddTo(_disposables);
 
@@ -138,20 +143,30 @@ namespace TapEmpire.Services.Offer
 
             var rewards = GetRewards(productId);
 
-            rewards.ForEach((reward, index2) =>
-                AcquireResources(reward.ResourceType, reward.Amount, ResourceUsageType.Offer,
-                    _offerChoices[index].Resources[index2].Icon.transform.position, false));
+            var animations = rewards.Select((reward, index2) =>
+                    AcquireResources(reward.ResourceType, reward.Amount, ResourceUsageType.Offer,
+                        _offerChoices[index].Resources[index2].Icon.transform.position, false))
+                .ToList();
+
+            if (_closeAfterRewards)
+            {
+                _offerChoices.ForEach(choice => choice.Button.enabled = false);
+
+                UniTask.WhenAll(animations.Select(animation => animation.ToUniTask()))
+                    .ContinueWith(DerivedModel.Close)
+                    .Forget();
+            }
         }
 
-        protected virtual void AcquireResources(ResourceType resourceType, int amount, string usageType,
-            Vector3 startPosition, bool shouldAddResource)
+        protected virtual Sequence AcquireResources(ResourceType resourceType, int amount, string usageType,
+            Vector3 startPosition, bool shouldAddResource, ResourceAcquireType acquireType = ResourceAcquireType.IAP)
         {
             var animation = _animationService.CollectResource(resourceType, amount, startPosition, false);
 
             var reason = shouldAddResource ? usageType : string.Empty;
-            _resourcesService.AddVirtual(resourceType, amount, reason, ResourceAcquireType.IAP);
+            _resourcesService.AddVirtual(resourceType, amount, reason, acquireType);
 
-            animation.Play();
+            return animation.Play();
         }
 
         private void SwitchRarity()

@@ -20,6 +20,8 @@ namespace TapEmpire.Services
         [SerializeField] private AnimationSettings _settings;
         [SerializeField] private Image _flyingResourcePrefab;
 
+        protected Transform PoolParent => _parent;
+
         private IUIService _uiService;
         private IResourcesService<ResourceType> _resourcesService;
         protected IAudioService _audioService;
@@ -146,7 +148,9 @@ namespace TapEmpire.Services
             Action<int> onItemComplete)
         {
             var newCount = Mathf.Clamp(count, 0, MaxResourceAmount);
-            var points = AnimationFragment.GetRadialSpreadPoints(start, newCount, scatterRadius, scatterRandomness);
+            var canvasScale = target.GetComponentInParent<Canvas>().rootCanvas.transform.lossyScale.x;
+            var points = AnimationFragment.GetRadialSpreadPoints(start, newCount,
+                scatterRadius * canvasScale, scatterRandomness * canvasScale);
             var animation = DOTween.Sequence();
             var end = target.position;
             var index = 0;
@@ -161,11 +165,11 @@ namespace TapEmpire.Services
                 configureRenderer?.Invoke(resourceRenderer);
 
                 var resource = resourceRenderer.transform;
+                resource.SetParent(GetFlightParent(target.parent), worldPositionStays: false);
                 resource.position = start;
-                resource.SetParent(GetFlightParent(target), true);
 
                 var sequence = DOTween.Sequence();
-                resource.DOMove(point, 0.3f).AppendTo(sequence);
+                resource.DOMove(new Vector3(point.x, point.y, start.z), 0.3f).AppendTo(sequence);
                 resource.DOMove(end, 0.5f)
                     .SetDelay(Random.Range(0.05f, 0.2f))
                     .SetEase(Ease.InBack)
@@ -180,8 +184,10 @@ namespace TapEmpire.Services
                 
                 sequence.OnKill(() =>
                 {
+                    if (!resourceRenderer) return;
+
                     _flyingResources.Release(resourceRenderer);
-                    resourceRenderer.transform.SetParent(_parent);
+                    resourceRenderer.transform.SetParent(_parent, worldPositionStays: false);
                 });
 
                 animation.Join(sequence);
@@ -213,7 +219,9 @@ namespace TapEmpire.Services
             const float hoverHeight = 20f;
 
             var newCount = Mathf.Clamp(count, 1, MaxResourceAmount);
-            var spawnPoints = AnimationFragment.GetRadialSpreadPoints(start, newCount, scatterRadius, scatterRandomness);
+            var canvasScale = target.GetComponentInParent<Canvas>().rootCanvas.transform.lossyScale.x;
+            var spawnPoints = AnimationFragment.GetRadialSpreadPoints(start, newCount,
+                scatterRadius * canvasScale, scatterRandomness * canvasScale);
             var animation = DOTween.Sequence();
             var end = target.position;
 
@@ -222,8 +230,8 @@ namespace TapEmpire.Services
                 var resourceTransform = _flyingPrefabPool.Get();
                 resourceTransform.localScale = Vector3.zero;
                 var cg = resourceTransform.GetComponent<CanvasGroup>();
-                var spawnPos = (Vector3)spawnPoints[i];
-                var hoverPos = spawnPos + Vector3.up * hoverHeight;
+                var spawnPos = new Vector3(spawnPoints[i].x, spawnPoints[i].y, start.z);
+                var hoverPos = spawnPos + Vector3.up * (hoverHeight * canvasScale);
                 resourceTransform.position = spawnPos;
                 resourceTransform.SetParent(GetFlightParent(target.parent), true);
 
@@ -247,6 +255,8 @@ namespace TapEmpire.Services
                 
                 sequence.OnKill(() =>
                 {
+                    if (!resourceTransform) return;
+
                     cg.alpha = 1;
                     resourceTransform.SetParent(_parent);
                     _flyingPrefabPool.Release(resourceTransform);

@@ -77,6 +77,18 @@ namespace TapEmpire.Utility
             return (element, index);
         }
 
+        public static T FindLastOrFirst<T>(this List<T> list, Predicate<T> match)
+        {
+            var index = list.FindLastIndex(match);
+            return list.ElementAtOrDefault(Math.Max(index, 0));
+        }
+
+        public static T FindFirstOrLast<T>(this List<T> list, Predicate<T> match)
+        {
+            var index = list.FindIndex(match);
+            return list.ElementAtOrDefault(index < 0 ? list.Count - 1 : index);
+        }
+
         public static void AddRange<T>(this List<T> list, int count, T value = default(T))
         {
             list.AddRange(Enumerable.Repeat(value, count));
@@ -195,6 +207,19 @@ namespace TapEmpire.Utility
             return self;
         }
 
+        public static List<T> StableShuffle<T>(this List<T> self, int seed)
+        {
+            var random = new Random(seed);
+
+            for (int i = self.Count - 1; i > 0; i--)
+            {
+                int j = random.Next(i + 1);
+                (self[i], self[j]) = (self[j], self[i]);
+            }
+
+            return self;
+        }
+
         public static bool Contains<T>(this List<T> self, System.Predicate<T> predicate)
         {
             return self.FindIndex(element => predicate.Invoke(element)) != -1;
@@ -225,6 +250,19 @@ namespace TapEmpire.Utility
         public static T IndexOrLast<T>(this List<T> list, int index)
         {
             return index < list.Count ? list[index] : list[-1];
+        }
+
+        public static void ReplaceOrAdd<T>(this List<T> list, Predicate<T> match, T element)
+        {
+            var index = list.FindIndex(match);
+
+            if (index >= 0)
+            {
+                list[index] = element;
+                return;
+            }
+
+            list.Add(element);
         }
     }
 }

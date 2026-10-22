@@ -45,6 +45,19 @@ namespace TapEmpire.Utility
             }
         }
 
+        public static bool TryFindFirstInChildren<T>(this Transform self, out T result) where T : Component
+        {
+            foreach (Transform child in self)
+            {
+                if (child.TryGetComponent(out result))
+                {
+                    return true;
+                }
+            }
+            result = null;
+            return false;
+        }
+
         public static bool TryFindAllInChildren<T>(this Transform self, out T[] results) where T : Component
         {
             using (ListScope<T>.Create(out var list))

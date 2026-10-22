@@ -124,7 +124,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 4104821015173247466}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fd84afb1f4e64597916885a169a8739d, type: 3}
+  m_Script: {fileID: 11500000, guid: dd0445959a3be4577b5165d4df01dec9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   _coreSceneReferences: {fileID: 2070817831030321432}
@@ -137,11 +137,12 @@ MonoBehaviour:
   m_GameObject: {fileID: 4104821015173247466}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 768e45e538b944c6be6fe1a3fdb8920d, type: 3}
+  m_Script: {fileID: 11500000, guid: 34756469628004e5abadb212587cb6de, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _light: {fileID: 0}
-  _levelsParent: {fileID: 0}
+  <Light>k__BackingField: {fileID: 0}
+  <BackgroundSprite>k__BackingField: {fileID: 0}
+  <LevelParent>k__BackingField: {fileID: 0}
 --- !u!1 &7135091675051033385
 GameObject:
   m_ObjectHideFlags: 0

@@ -28,7 +28,7 @@ namespace TapEmpire.Game
 
         [Header("Settings")]
         [SerializeField]
-        private GameStartSettings _startSettings;
+        private SystemSettings _systemSettings;
 
         [Header("Actions")]
         [SerializeReference]
@@ -86,9 +86,9 @@ namespace TapEmpire.Game
         private void Start()
         {
 #if !UNITY_EDITOR
-            Application.targetFrameRate = _startSettings.FrameRate;
+            Application.targetFrameRate = _systemSettings.FrameRate;
 #endif
-            Debug.unityLogger.filterLogType = (Debug.isDebugBuild || _startSettings.Debug) ? LogType.Log : LogType.Assert;
+            Debug.unityLogger.filterLogType = (Debug.isDebugBuild || _systemSettings.Debug) ? LogType.Log : LogType.Assert;
             InitializeEntryAsync().Forget();
         }
 

@@ -8,17 +8,7 @@ namespace TapEmpire.Utility
 {
     public static class Utility
     {
-        public static void IfElse(bool condition, System.Action doIf, System.Action doElse)
-        {
-            if (condition)
-            {
-                doIf.Invoke();
-            }
-            else
-            {
-                doElse?.Invoke();
-            }
-        }
+        public static void IfElse(bool condition, System.Action doIf, System.Action doElse) => (condition ? doIf : doElse)?.Invoke();
 
         public static Tween Delay(float delay, System.Action callback)
         {
@@ -63,6 +53,14 @@ namespace TapEmpire.Utility
             if (gameObject != null)
             {
                 GameObject.Destroy(gameObject);
+            }
+        }
+
+        public static void DestroySafe<T>(T component) where T : Component
+        {
+            if (component != null)
+            {
+                DestroySafe(component.gameObject);
             }
         }
         

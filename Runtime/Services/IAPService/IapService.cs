@@ -267,7 +267,7 @@ namespace TapEmpire.Services
         {
             if (isInitialized)
             {
-                IsPayer = GetIsPayer();
+                SetIsPayer(GetIsPayer());
             }
         }
 

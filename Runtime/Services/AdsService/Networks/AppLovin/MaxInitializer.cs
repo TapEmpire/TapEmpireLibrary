@@ -1,5 +1,6 @@
 using System.Threading;
 using Cysharp.Threading.Tasks;
+using TapEmpire.Utility;
 
 namespace TapEmpire.Services
 {
@@ -28,7 +29,7 @@ namespace TapEmpire.Services
             void OnInitialized(MaxSdkBase.SdkConfiguration _)
             {
                 MaxSdkCallbacks.OnSdkInitializedEvent -= OnInitialized;
-                completion.TrySetResult();
+                UniTaskUtility.RunOnMainThread(() => completion.TrySetResult());
             }
 
             MaxSdkCallbacks.OnSdkInitializedEvent += OnInitialized;

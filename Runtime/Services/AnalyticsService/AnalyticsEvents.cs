@@ -14,6 +14,7 @@ namespace TapEmpire.Services
         public const string DaysAfterInstall = "DaysAfterInstall";
         public const string AdjustAttribution = "Attribution";
         public const string RemoteConfig = "RemoteConfig";
+        public const string IsPayer = "IsPayer";
 
         public const string AdjustAbTest = "ab_test";
         public const string AdjustAbGroup = "ab_group";

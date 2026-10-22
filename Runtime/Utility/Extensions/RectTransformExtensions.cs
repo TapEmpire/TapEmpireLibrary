@@ -74,6 +74,16 @@ namespace TapEmpire.Utility
             target.localPosition = new Vector2(0, target.localPosition.y);
         }
 
+        public static void PositionAtScreenPoint(this RectTransform self, Vector2 screenPoint)
+        {
+            var space = (RectTransform)self.parent;
+            var camera = space.GetComponentInParent<Canvas>().rootCanvas.worldCamera;
+
+            RectTransformUtility.ScreenPointToLocalPointInRectangle(space, screenPoint, camera, out var local);
+
+            self.localPosition = local;
+        }
+
         public static void SetHeight(this RectTransform self, float height)
         {
             Vector2 size = self.sizeDelta;

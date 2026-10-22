@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<dependencies>
+    <androidPackages>
+        <androidPackage spec="com.adsurge.sdk:adapter-for-max:1.9.1.0" />
+    </androidPackages>
+    <iosPods>
+        <iosPod name="AdSurgeADNAdapterForMAX" version="1.9.1.0" />
+    </iosPods>
+</dependencies>

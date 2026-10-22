@@ -21,6 +21,30 @@ namespace TapEmpire.Utility
             });
         }
 
+        public static Observable<T> NextFrame<T>(this Observable<T> source) => source.AfterFrames(1);
+
+        public static Observable<T> AfterFrames<T>(this Observable<T> source, int frames)
+        {
+            return Observable.Create<T>(observer =>
+            {
+                var cancellation = new CancellationTokenSource();
+
+                var subscription = source.Subscribe(
+                    value => UniTaskUtility
+                        .ExecuteAfterFrames(frames, () => observer.OnNext(value), cancellation.Token)
+                        .Forget(),
+                    observer.OnErrorResume,
+                    observer.OnCompleted);
+
+                return Disposable.Create(() =>
+                {
+                    cancellation.Cancel();
+                    cancellation.Dispose();
+                    subscription.Dispose();
+                });
+            });
+        }
+
         public static IDisposable OnceTrue(this Observable<bool> source, Action onNext)
             => source.Where(v => v).Take(1).Subscribe(_ => onNext());
 

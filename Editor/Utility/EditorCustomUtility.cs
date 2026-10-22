@@ -34,10 +34,15 @@ namespace TapEmpire.Utility
             return AssetDatabase.LoadAssetAtPath<ScriptableObject>(path);
         }
 
-        public static List<T> LoadAllAssetsOfType<T>() where T : Object
+        public static List<T> LoadAllAssetsOfType<T>(params string[] folders) where T : Object
         {
+            var filter = $"t:{typeof(T).Name}";
+            var guids = folders is { Length: > 0 }
+                ? AssetDatabase.FindAssets(filter, folders)
+                : AssetDatabase.FindAssets(filter);
+
             var list = new List<T>();
-            foreach (var guid in AssetDatabase.FindAssets($"t:{typeof(T).Name}"))
+            foreach (var guid in guids)
             {
                 var path = AssetDatabase.GUIDToAssetPath(guid);
                 var asset = AssetDatabase.LoadAssetAtPath<T>(path);
