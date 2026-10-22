@@ -184,6 +184,8 @@ namespace TapEmpire.Services
                 
                 sequence.OnKill(() =>
                 {
+                    if (!resourceRenderer) return;
+
                     _flyingResources.Release(resourceRenderer);
                     resourceRenderer.transform.SetParent(_parent, worldPositionStays: false);
                 });
@@ -253,6 +255,8 @@ namespace TapEmpire.Services
                 
                 sequence.OnKill(() =>
                 {
+                    if (!resourceTransform) return;
+
                     cg.alpha = 1;
                     resourceTransform.SetParent(_parent);
                     _flyingPrefabPool.Release(resourceTransform);

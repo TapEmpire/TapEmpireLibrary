@@ -84,7 +84,7 @@ namespace TapEmpire.UI
             var overlayFxLayer = _canvasRectTransform.Find("OverlayLayer");
             _overlayLayer = overlayFxLayer != null ? (RectTransform)overlayFxLayer : null;
             if (_overlayLayer == null)
-                Debug.LogError("UIService: Canvas prefab is missing the 'OverlayLayer' child.");
+                Debug.LogWarning("UIService: Canvas prefab is missing the 'OverlayLayer' child.");
 
             _sceneContextsService.OnSceneContextInstalled += SceneContextsService_OnSceneContextInstalled;
             return base.OnInitializeAsync(cancellationToken);
