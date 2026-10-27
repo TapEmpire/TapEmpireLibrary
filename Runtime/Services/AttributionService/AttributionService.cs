@@ -46,6 +46,11 @@ namespace TapEmpire.Services
             base.OnRelease();
         }
 
+        public void GetAdjustInfo(Action<string, string> callback)
+        {
+            Adjust.GetAdid(adid => callback(adid, _settings.AppToken));
+        }
+
         public static void TrackEvent(string eventToken, IReadOnlyDictionary<string, string> callbackParameters = null)
         {
             var evt = new AdjustEvent(eventToken);
