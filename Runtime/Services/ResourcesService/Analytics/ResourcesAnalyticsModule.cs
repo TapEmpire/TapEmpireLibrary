@@ -63,10 +63,10 @@ namespace TapEmpire.Services.Analytics
             SendGeneralEvents(data.resource, data.reason);
         }
         
-        private void OnResourceAddedDetailed((ResourceType resource, int amountAdded, ResourceAcquireType type, string reason) data) 
+        private void OnResourceAddedDetailed((ResourceType resource, int amountAdded, ResourceAcquireType type, string reason, int balance) data)
             => SendAdjustAssetEvent("earn_asset", data.resource, data.amountAdded, data.type, data.reason);
 
-        private void OnResourceUsedDetailed((ResourceType resource, int amountUsed, ResourceAcquireType type, string reason) data) 
+        private void OnResourceUsedDetailed((ResourceType resource, int amountUsed, ResourceAcquireType type, string reason, int balance) data)
             => SendAdjustAssetEvent("spend_asset", data.resource, data.amountUsed, data.type, data.reason);
 
         private void SendAdjustAssetEvent(string eventName, ResourceType resource, int amount, ResourceAcquireType type, string reason)

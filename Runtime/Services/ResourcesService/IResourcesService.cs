@@ -8,8 +8,8 @@ namespace TapEmpire.Services
         Observable<(T, int, string)> OnResourceAdded { get; }
         Observable<(T ResourceType, int AmountLeft, string Reason)> OnResourceUsed { get; }
         Observable<T> OnVirtualAdded { get; } // For various events
-        Observable<(T resourceType, int amountAdd, ResourceAcquireType type, string source)> OnResourceAddedDetailed { get; }
-        Observable<(T resourceType, int amountUsed, ResourceAcquireType type, string source)> OnResourceUsedDetailed { get; }
+        Observable<(T resourceType, int amountAdd, ResourceAcquireType type, string source, int balance)> OnResourceAddedDetailed { get; }
+        Observable<(T resourceType, int amountUsed, ResourceAcquireType type, string source, int balance)> OnResourceUsedDetailed { get; }
 
         void Add(T resource, int amount, string reason = "", ResourceAcquireType acquireType = ResourceAcquireType.Free );
         void Subtract(T resource, int amount, string reason = "", ResourceAcquireType acquireType = ResourceAcquireType.Free);

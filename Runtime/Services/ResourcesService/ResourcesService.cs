@@ -16,14 +16,14 @@ namespace TapEmpire.Services
         private Subject<(T, int, string)> _onResourceAdded = new();
         private Subject<(T, int, string)> _onResourceUsed = new();
         private Subject<T> _onVirtualAdded = new();
-        private Subject<(T resourceType, int amountAdd, ResourceAcquireType type, string source)> _onResourceAddedDetailed = new();
-        private Subject<(T resourceType, int amountUsed, ResourceAcquireType type, string source)> _onResourceUsedDetailed = new();
+        private Subject<(T resourceType, int amountAdd, ResourceAcquireType type, string source, int balance)> _onResourceAddedDetailed = new();
+        private Subject<(T resourceType, int amountUsed, ResourceAcquireType type, string source, int balance)> _onResourceUsedDetailed = new();
 
         public Observable<(T, int, string)> OnResourceAdded => _onResourceAdded;
         public Observable<(T, int, string)> OnResourceUsed => _onResourceUsed;
         public Observable<T> OnVirtualAdded => _onVirtualAdded;
-        public Observable<(T, int, ResourceAcquireType, string)> OnResourceAddedDetailed => _onResourceAddedDetailed;
-        public Observable<(T, int, ResourceAcquireType, string)> OnResourceUsedDetailed => _onResourceUsedDetailed;
+        public Observable<(T, int, ResourceAcquireType, string, int)> OnResourceAddedDetailed => _onResourceAddedDetailed;
+        public Observable<(T, int, ResourceAcquireType, string, int)> OnResourceUsedDetailed => _onResourceUsedDetailed;
 
         protected IProgressService _progressService;
         protected ISystemService _systemService;
@@ -78,7 +78,7 @@ namespace TapEmpire.Services
             if (!string.IsNullOrEmpty(reason))
             {
                 _onResourceAdded.OnNext((resource, value, reason));
-                _onResourceAddedDetailed.OnNext((resource, amount, acquireType, reason));
+                _onResourceAddedDetailed.OnNext((resource, amount, acquireType, reason, value));
             }
         }
 
@@ -89,7 +89,7 @@ namespace TapEmpire.Services
             if (!string.IsNullOrEmpty(reason))
             {
                 _onResourceUsed.OnNext((resource, value, reason));
-                _onResourceUsedDetailed.OnNext((resource, amount, acquireType, reason));
+                _onResourceUsedDetailed.OnNext((resource, amount, acquireType, reason, value));
             }
         }
 
@@ -112,8 +112,9 @@ namespace TapEmpire.Services
         {
             if (!string.IsNullOrEmpty(reason))
             {
-                _onResourceAdded.OnNext((resource, _resources[resource].Amount.Value + amount, reason));
-                _onResourceAddedDetailed.OnNext((resource, amount, acquireType, reason));
+                var balance = _resources[resource].Amount.Value + amount;
+                _onResourceAdded.OnNext((resource, balance, reason));
+                _onResourceAddedDetailed.OnNext((resource, amount, acquireType, reason, balance));
             }
             _onVirtualAdded.OnNext(resource);
         }
