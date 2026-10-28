@@ -8,12 +8,12 @@ namespace TapEmpire.Services
     {
         private static bool _initialized;
 
-        public static async UniTask Initialize(
+        public static async UniTask<bool> Initialize(
             bool isPersonalized,
             bool testMode = false,
             CancellationToken cancellationToken = default)
         {
-            if (_initialized) return;
+            if (_initialized) return true;
 
             if (testMode)
             {
@@ -24,19 +24,21 @@ namespace TapEmpire.Services
             MaxSdk.SetVerboseLogging(testMode);
             MaxSdk.SetHasUserConsent(isPersonalized);
 
-            var completion = new UniTaskCompletionSource();
+            var completion = new UniTaskCompletionSource<bool>();
 
-            void OnInitialized(MaxSdkBase.SdkConfiguration _)
+            void OnInitialized(MaxSdkBase.SdkConfiguration configuration)
             {
                 MaxSdkCallbacks.OnSdkInitializedEvent -= OnInitialized;
-                UniTaskUtility.RunOnMainThread(() => completion.TrySetResult());
+                UniTaskUtility.RunOnMainThread(() => completion.TrySetResult(configuration.IsSuccessfullyInitialized));
             }
 
             MaxSdkCallbacks.OnSdkInitializedEvent += OnInitialized;
             MaxSdk.InitializeSdk();
 
-            await completion.Task.AttachExternalCancellation(cancellationToken);
+            var isSuccessful = await completion.Task.AttachExternalCancellation(cancellationToken);
             _initialized = true;
+
+            return isSuccessful;
         }
 
         private static async UniTask SetTestDeviceIds(CancellationToken cancellationToken)

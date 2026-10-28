@@ -20,6 +20,11 @@ namespace TapEmpire.Services
         public Subject<bool> OnInterstitialAttempt { get; } = new();
         public Subject<AdImpressionData> OnImpression { get; } = new();
         public Subject<AdImpressionData> OnImpressionUnsafe { get; } = new();
+        public Observable<AdNetwork> OnNetworkInitializing => _onNetworkInitializing;
+        public Observable<(AdNetwork Network, bool IsSuccessful, TimeSpan Duration)> OnNetworkInitialized => _onNetworkInitialized;
+
+        private ReplaySubject<AdNetwork> _onNetworkInitializing;
+        private ReplaySubject<(AdNetwork Network, bool IsSuccessful, TimeSpan Duration)> _onNetworkInitialized;
 
         public AdsSettings Settings => _settings;
         public ReadOnlyReactiveProperty<bool> AdsEnabled => _adsEnabled;
@@ -86,6 +91,8 @@ namespace TapEmpire.Services
             _disposables = new();
             _removableAdsDisposable = new();
             _pendingCallback = new();
+            _onNetworkInitializing = new();
+            _onNetworkInitialized = new();
 
             _adsEnabled.Value = !_progressService.GetAdsDisabled();
 
@@ -182,11 +189,17 @@ namespace TapEmpire.Services
                 BuildModules();
 
                 Debug.Log("[Ads] Initializing AdMob");
+                var startTime = DateTime.UtcNow;
+                _onNetworkInitializing.OnNext(AdNetwork.Admob);
                 await AdmobInitializer.Initialize(isPersonalized, _consentService.IsForFamily, cancellationToken);
+                _onNetworkInitialized.OnNext((AdNetwork.Admob, true, DateTime.UtcNow - startTime));
                 AddAdmobProviders();
 
                 Debug.Log("[Ads] Initializing AppLovin Max");
-                await MaxInitializer.Initialize(isPersonalized, testMode, cancellationToken);
+                startTime = DateTime.UtcNow;
+                _onNetworkInitializing.OnNext(AdNetwork.Max);
+                var isMaxInitialized = await MaxInitializer.Initialize(isPersonalized, testMode, cancellationToken);
+                _onNetworkInitialized.OnNext((AdNetwork.Max, isMaxInitialized, DateTime.UtcNow - startTime));
 #if TEL_METICA
                 if (_settings.EnableMetica) { _metica = new MeticaInitializer(); await _metica.Initialize(_settings.MeticaPrefab); }
 #endif

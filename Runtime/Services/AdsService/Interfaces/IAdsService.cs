@@ -11,6 +11,8 @@ namespace TapEmpire.Services
         Subject<bool> OnInterstitialAttempt { get; }
         Subject<AdImpressionData> OnImpression { get; }
         Subject<AdImpressionData> OnImpressionUnsafe { get; }
+        Observable<AdNetwork> OnNetworkInitializing { get; }
+        Observable<(AdNetwork Network, bool IsSuccessful, TimeSpan Duration)> OnNetworkInitialized { get; }
 
         AdsSettings Settings { get; }
 
