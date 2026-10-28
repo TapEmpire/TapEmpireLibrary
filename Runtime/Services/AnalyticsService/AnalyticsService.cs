@@ -16,6 +16,7 @@ namespace TapEmpire.Services
     public class AnalyticsService : Initializable, IAnalyticsService
     {
         public ReadOnlyReactiveProperty<string> CampaignName => _campaignName;
+        public ReadOnlyReactiveProperty<bool> IsFirstLaunch => _isFirstLaunch;
 
         [field: SerializeField] public string AdjustEventToken { get; private set; }
 
@@ -31,6 +32,7 @@ namespace TapEmpire.Services
         private bool _shouldEnableLogs = false;
 
         private ReactiveProperty<string> _campaignName = new();
+        private ReactiveProperty<bool> _isFirstLaunch = new();
 
         private DiContainer _diContainer = null;
         private IProgressService _progressService = null;
@@ -146,6 +148,7 @@ namespace TapEmpire.Services
         private void InitializeDeferred()
         {
             var (isFirstLaunch, _) = PlayerPrefsUtility.GetFirstLaunch();
+            _isFirstLaunch.Value = isFirstLaunch;
 
             var progressService = _diContainer.Resolve<IProgressService>();
             // var levelsCompleted = progressService.GetLevelProgress();

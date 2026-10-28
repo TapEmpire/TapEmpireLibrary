@@ -21,6 +21,7 @@ namespace TapEmpire.Services
     public interface IAnalyticsService : IService
     {
         ReadOnlyReactiveProperty<string> CampaignName { get; }
+        ReadOnlyReactiveProperty<bool> IsFirstLaunch { get; }
 
         void LogEvent(string eventName, Dictionary<string, object> eventParams);
         void SetUserProperty(string propertyName, int value);

@@ -11,6 +11,7 @@ namespace TapEmpire.Services
     public class AppMetricaService : Initializable, IAnalyticsService
     {
         public ReadOnlyReactiveProperty<string> CampaignName => null;
+        public ReadOnlyReactiveProperty<bool> IsFirstLaunch => null;
         private Dictionary<string, object> _globalParameters = new();
 
         public AppMetricaService(string analyticsKey, bool shouldEnableLogs)
