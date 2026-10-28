@@ -36,6 +36,7 @@ namespace TapEmpire.Services
             await _consentService.IsResolved.WaitTrue(cancellationToken);
 
             PassDmaConsent();
+            Adjust.AddGlobalCallbackParameter("muid", SystemInfo.deviceUniqueIdentifier);
             Adjust.InitSdk(BuildConfig());
             Adjust.GetAttribution(OnAttribution);
         }
@@ -117,6 +118,7 @@ namespace TapEmpire.Services
             config.IsSendingInBackgroundEnabled = _settings.SendInBackground;
             config.IsDeferredDeeplinkOpeningEnabled = _settings.LaunchDeferredDeeplink;
             config.DefaultTracker = _settings.DefaultTracker;
+            config.ExternalDeviceId = SystemInfo.deviceUniqueIdentifier;
             config.IsCoppaComplianceEnabled = _settings.CoppaCompliance;
             config.IsCostDataInAttributionEnabled = _settings.CostDataInAttribution;
             config.IsPreinstallTrackingEnabled = _settings.PreinstallTracking;
