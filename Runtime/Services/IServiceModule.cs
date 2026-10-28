@@ -1,4 +1,6 @@
 using System;
+using System.Threading;
+using Cysharp.Threading.Tasks;
 using Zenject;
 
 namespace TapEmpire.Modules
@@ -9,6 +11,6 @@ namespace TapEmpire.Modules
 
     public interface IGenericServiceModule : IDisposable
     {
-        void Initialize(DiContainer diContainer);
+        UniTask InitializeAsync(DiContainer diContainer, CancellationToken cancellationToken);
     }
 }

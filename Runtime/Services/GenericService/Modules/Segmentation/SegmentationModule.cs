@@ -4,6 +4,8 @@ using TapEmpire.Services;
 using UnityEngine;
 using System.Linq;
 using System;
+using System.Threading;
+using Cysharp.Threading.Tasks;
 
 namespace TapEmpire.Modules
 {
@@ -16,13 +18,15 @@ namespace TapEmpire.Modules
         private IAdsService _adsService;
         private CompositeDisposable _disposables = new();
 
-        public void Initialize(DiContainer diContainer)
+        public UniTask InitializeAsync(DiContainer diContainer, CancellationToken cancellationToken)
         {
             _progressService = diContainer.Resolve<IProgressService>();
             _adsService = diContainer.Resolve<IAdsService>();
 
             var analyticsService = diContainer.Resolve<IAnalyticsService>();
             analyticsService.CampaignName.Skip(1).Subscribe(OnCampaignName).AddTo(_disposables);
+
+            return UniTask.CompletedTask;
         }
 
         public void Dispose()

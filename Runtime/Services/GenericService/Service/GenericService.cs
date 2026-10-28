@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using TapEmpire.Utility;
@@ -24,12 +25,13 @@ namespace TapEmpire.Services.Generic
             _diContainer = diContainer;
         }
 
-        protected override UniTask OnInitializeAsync(CancellationToken cancellationToken)
+        protected override async UniTask OnInitializeAsync(CancellationToken cancellationToken)
         {
             _liveModules = new();
-            Array.ForEach(_modules, module => InitializeAndRegisterModule(module));
+            var moduleInitializations = _modules.Select(module => InitializeAndRegisterModuleAsync(module, cancellationToken));
+            await UniTask.WhenAll(moduleInitializations);
 
-            return base.OnInitializeAsync(cancellationToken);
+            await base.OnInitializeAsync(cancellationToken);
         }
 
         protected override void OnRelease()
@@ -42,9 +44,9 @@ namespace TapEmpire.Services.Generic
 
         public T GetServiceModule<T>() where T : class, IGenericServiceModule => _liveModules[typeof(T)] as T;
 
-        private void InitializeAndRegisterModule(IGenericServiceModule module)
+        private async UniTask InitializeAndRegisterModuleAsync(IGenericServiceModule module, CancellationToken cancellationToken)
         {
-            module.Initialize(_diContainer);
+            await module.InitializeAsync(_diContainer, cancellationToken);
             _liveModules[module.GetType()] = module;
         }
     }

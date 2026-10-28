@@ -5,6 +5,8 @@ using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
 using System;
+using System.Threading;
+using Cysharp.Threading.Tasks;
 using TapEmpire.Services.Shop;
 using TapEmpire.Services.Offer;
 
@@ -21,7 +23,7 @@ namespace TapEmpire.Modules
         private int _coinsIndex = 0;
         private CompositeDisposable _disposables = new();
 
-        public void Initialize(DiContainer diContainer)
+        public UniTask InitializeAsync(DiContainer diContainer, CancellationToken cancellationToken)
         {
             _diContainer = diContainer;
             _progressService = diContainer.Resolve<IProgressService>();
@@ -31,6 +33,8 @@ namespace TapEmpire.Modules
 
             _coinsIndex = _progressService.GetTopCoinsPurchased();
             iapService.OnPurchaseSuccess.Subscribe(OnPurchase).AddTo(_disposables);
+
+            return UniTask.CompletedTask;
         }
 
         public void Dispose()
