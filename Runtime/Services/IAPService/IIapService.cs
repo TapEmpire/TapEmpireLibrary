@@ -18,7 +18,7 @@ namespace TapEmpire.Services
         void RestoreProducts();
 
         public Observable<string> OnPurchaseSuccess { get; }
-        public Observable<(Product, string, string)> OnPurchaseSuccessDetailed { get; }
+        public Observable<(Product Product, string ProductKey, string Placement, string TransactionId, string OrderId)> OnPurchaseSuccessDetailed { get; }
         public Observable<string> OnPurchaseRestored { get; }
         public Observable<PurchaseFailArgs> OnPurchaseFailed { get; }
         public Observable<IIapHandler> OnIapHandle { get; }

@@ -41,7 +41,7 @@ namespace TapEmpire.Services
             _disposables.Dispose();
         }
 
-        private void OnPurchaseSuccessDetailed((Product product, string productKey, string placement) data)
+        private void OnPurchaseSuccessDetailed((Product product, string productKey, string placement, string transactionId, string orderId) data)
         {
             SetIsPayerProperty();
 

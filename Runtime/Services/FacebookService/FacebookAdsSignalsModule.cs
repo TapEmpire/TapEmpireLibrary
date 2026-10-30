@@ -47,7 +47,7 @@ namespace TapEmpire.Services
                 });
         }
 
-        private void OnPurchaseDetailed((Product product, string productId, string placement) data)
+        private void OnPurchaseDetailed((Product product, string productId, string placement, string transactionId, string orderId) data)
         {
             var price = (double)data.product.metadata.localizedPrice;
             var isoCode = data.product.metadata.isoCurrencyCode;

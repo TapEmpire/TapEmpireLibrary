@@ -33,7 +33,7 @@ namespace TapEmpire.Services
         private DiContainer _diContainer;
 
         private ReactiveCommand<string> _onPurchaseSuccess = new();
-        private ReactiveCommand<(Product, string, string)> _onPurchaseSuccessDetailed = new();
+        private ReactiveCommand<(Product Product, string ProductKey, string Placement, string TransactionId, string OrderId)> _onPurchaseSuccessDetailed = new();
         private ReactiveCommand<string> _onPurchaseRestored = new();
         private ReactiveCommand<PurchaseFailArgs> _onPurchaseFailed = new();
         private ReactiveCommand<IIapHandler> _onIapHandle = new();
@@ -43,7 +43,7 @@ namespace TapEmpire.Services
         private List<int> _iapShowProgress = new();
 
         public Observable<string> OnPurchaseSuccess => _onPurchaseSuccess;
-        public Observable<(Product, string, string)> OnPurchaseSuccessDetailed => _onPurchaseSuccessDetailed;
+        public Observable<(Product Product, string ProductKey, string Placement, string TransactionId, string OrderId)> OnPurchaseSuccessDetailed => _onPurchaseSuccessDetailed;
         public Observable<string> OnPurchaseRestored => _onPurchaseRestored;
         public Observable<PurchaseFailArgs> OnPurchaseFailed => _onPurchaseFailed;
         public Observable<IIapHandler> OnIapHandle => _onIapHandle;
@@ -215,9 +215,9 @@ namespace TapEmpire.Services
             }
         }
 
-        protected void OnProductPurchaseSuccess(Product product)
+        protected void OnProductPurchaseSuccess((Product Product, string TransactionId, string OrderId) purchase)
         {
-            var iapId = product.definition.id;
+            var iapId = purchase.Product.definition.id;
             Debug.Log($"IAP OnProductPurchaseSuccess {iapId}");
             if (!_storeOffers.ContainsKey(iapId))
                 return;
@@ -227,7 +227,7 @@ namespace TapEmpire.Services
             SetIsPayer(true);
             ProcessPurchase(offer).Forget();
             _progressService.AddPurchase();
-            _onPurchaseSuccessDetailed.Execute((product, offer.Key, _placement));
+            _onPurchaseSuccessDetailed.Execute((purchase.Product, offer.Key, _placement, purchase.TransactionId, purchase.OrderId));
             _onPurchaseSuccess.Execute(offer.Key);
         }
 

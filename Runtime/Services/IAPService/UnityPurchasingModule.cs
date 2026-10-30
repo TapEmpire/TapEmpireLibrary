@@ -33,8 +33,8 @@ namespace TapEmpire.Services
         private readonly ReactiveProperty<InitializationFailureReason> _onInitializationFailed = new();
         public Observable<InitializationFailureReason> OnInitializationFailed => _onInitializationFailed;
 
-        private readonly ReactiveCommand<Product> _onPurchaseSuccess = new();
-        public Observable<Product> OnPurchaseSuccess => _onPurchaseSuccess;
+        private readonly ReactiveCommand<(Product Product, string TransactionId, string OrderId)> _onPurchaseSuccess = new();
+        public Observable<(Product Product, string TransactionId, string OrderId)> OnPurchaseSuccess => _onPurchaseSuccess;
 
         private readonly ReactiveCommand<string> _onPurchaseRestored = new();
         public Observable<string> OnPurchaseRestored => _onPurchaseRestored;
@@ -303,6 +303,24 @@ namespace TapEmpire.Services
             return $"{prefix}-{order.Info.TransactionID}";
         }
 
+        private string GetOrderId(Order order)
+        {
+            if (order.Info.Google == null) return order.Info.TransactionID;
+
+            try
+            {
+                var unityReceipt = JsonUtility.FromJson<UnityReceipt>(order.Info.Receipt);
+                var googleReceiptJson = JsonUtility.FromJson<GooglePlayReceiptJson>(unityReceipt.Payload);
+
+                return JsonUtility.FromJson<GooglePlayReceiptFixed>(googleReceiptJson.json).orderId;
+            }
+            catch (Exception exception)
+            {
+                Debug.LogWarning($"IAP Could not read the Google order id: {exception.Message}");
+                return null;
+            }
+        }
+
         public void Dispose()
         {
             _disposables.Clear();
@@ -369,7 +387,7 @@ namespace TapEmpire.Services
                     }
                     else
                     {
-                        _onPurchaseSuccess.Execute(item.Product);
+                        _onPurchaseSuccess.Execute((item.Product, order.Info.TransactionID, GetOrderId(order)));
                         _storeController.ConfirmPurchase(order);
                     }
                 }
@@ -401,6 +419,7 @@ namespace TapEmpire.Services
     [System.Serializable]
     public class GooglePlayReceiptFixed
     {
+        public string orderId;
         public string productId;
         public string purchaseToken;
     }

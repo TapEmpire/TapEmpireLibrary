@@ -11,7 +11,7 @@ namespace TapEmpire.Services
         public ReadOnlyReactiveProperty<bool> IsReady { get; }
         public ReadOnlyReactiveProperty<bool> IsInitialized { get; }
 
-        public Observable<Product> OnPurchaseSuccess { get; }
+        public Observable<(Product Product, string TransactionId, string OrderId)> OnPurchaseSuccess { get; }
         public Observable<string> OnPurchaseRestored { get; }
 
         public Observable<string> OnPurchaseInProgress { get; }

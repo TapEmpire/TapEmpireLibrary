@@ -42,7 +42,7 @@ namespace TapEmpire.Services
             Facebook.Unity.FB.LogAppEvent("ad_impression", valueToSum: (float)data.Revenue, parameters: parameters);
         }
 
-        private void OnPurchaseDetailed((Product product, string productId, string placement) data)
+        private void OnPurchaseDetailed((Product product, string productId, string placement, string transactionId, string orderId) data)
         {
             if (!_analyticsSettings.EnableMetaPurchases) return;
 
