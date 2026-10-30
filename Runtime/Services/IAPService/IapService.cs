@@ -234,6 +234,7 @@ namespace TapEmpire.Services
         protected void OnProductPurchaseFailed(PurchaseFailArgs args)
         {
             Debug.LogError($"IAP OnProductPurchaseFailed {args.IapId} {args.Reason}");
+            args.Placement = _placement;
             _onPurchaseFailed.Execute(args);
         }
 

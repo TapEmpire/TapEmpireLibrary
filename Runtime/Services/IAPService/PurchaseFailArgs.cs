@@ -6,5 +6,6 @@ namespace TapEmpire.Services
     {
         public string IapId;
         public PurchaseFailureReason Reason;
+        public string Placement;
     }
 }

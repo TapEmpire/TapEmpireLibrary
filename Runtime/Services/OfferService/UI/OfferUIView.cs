@@ -114,7 +114,7 @@ namespace TapEmpire.Services.Offer
             _offerChoices.ForEach((visual, index) =>
             {
                 var product = DerivedModel.OfferData.Products[index];
-                visual.Button.onClick.Subscribe(() => DerivedModel.StartPurchase(product)).AddTo(_visualDisposables);
+                visual.Button.onClick.Subscribe(() => DerivedModel.StartPurchase(product, ResourceUsageType.Offer)).AddTo(_visualDisposables);
 
                 var price = DerivedModel.GetPrice(product);
                 visual.Price.text = price;

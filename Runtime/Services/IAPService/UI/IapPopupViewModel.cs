@@ -31,14 +31,14 @@ namespace TapEmpire.Services
             _disposables.Dispose();
         }
 
-        public void StartPurchase(string key)
+        public void StartPurchase(string key, string placement = null)
         {
             Unsubscribe();
             _disposables = new CompositeDisposable();
 
             _iapService.OnPurchaseSuccess.Subscribe(OnPurchaseSuccess).AddTo(_disposables);
             _iapService.OnPurchaseFailed.Subscribe(OnPurchaseFailed).AddTo(_disposables);
-            _iapService.BuyProduct(key);
+            _iapService.BuyProduct(key, placement);
         }
 
         public void Close()
