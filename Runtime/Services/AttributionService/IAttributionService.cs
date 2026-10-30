@@ -7,7 +7,8 @@ namespace TapEmpire.Services
     public interface IAttributionService : IService
     {
         ReadOnlyReactiveProperty<string> CampaignName { get; }
+        string AppToken { get; }
 
-        void GetAdjustInfo(Action<string, string> callback);
+        void GetAdid(Action<string> callback);
     }
 }

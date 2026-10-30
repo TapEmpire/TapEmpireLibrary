@@ -22,6 +22,7 @@ namespace TapEmpire.Services
         private IConsentService _consentService;
 
         public ReadOnlyReactiveProperty<string> CampaignName => _campaignName;
+        public string AppToken => _settings.AppToken;
 
         [Inject]
         private void Construct(IConsentService consentService)
@@ -47,9 +48,9 @@ namespace TapEmpire.Services
             base.OnRelease();
         }
 
-        public void GetAdjustInfo(Action<string, string> callback)
+        public void GetAdid(Action<string> callback)
         {
-            Adjust.GetAdid(adid => callback(adid, _settings.AppToken));
+            Adjust.GetAdid(callback);
         }
 
         public static void TrackEvent(string eventToken, IReadOnlyDictionary<string, string> callbackParameters = null)
