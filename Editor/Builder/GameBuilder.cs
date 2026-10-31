@@ -125,7 +125,7 @@ namespace TapEmpire.Build
             var paths = ProjectPathSettings.Instance;
             ApplyBuildMode(config, paths);
             ApplyPlatform(platform, paths);
-            ApplyActions(config, paths);
+            ApplyActions(config, platform, paths);
         }
 
         private static string DefaultLocation(Configuration config, PlatformType platform, string appName = null)
@@ -158,6 +158,9 @@ namespace TapEmpire.Build
             attributionSettings.Environment = config == Configuration.Debug
                 ? AdjustEnvironment.Sandbox
                 : AdjustEnvironment.Production;
+            attributionSettings.LogLevel = config == Configuration.Debug
+                ? AdjustLogLevel.Verbose
+                : AdjustLogLevel.Error;
             EditorUtility.SetDirty(attributionSettings);
 
             var adsConfig = AssetDatabase.LoadAssetAtPath<AdsConfig>($"{paths.DefaultScriptablesPath}/AdsConfig.asset");
@@ -204,11 +207,11 @@ namespace TapEmpire.Build
             EditorUtility.SetDirty(googleAdsSettings);
         }
 
-        private static void ApplyActions(Configuration config, ProjectPathSettings paths)
+        private static void ApplyActions(Configuration config, PlatformType platform, ProjectPathSettings paths)
         {
             var buildSettings = AssetDatabase.LoadAssetAtPath<GameBuildSettings>(paths.GameBuildSettingsPath);
             var isDebug = config == Configuration.Debug;
-            buildSettings.BuildActions.ForEach(action => action.Apply(isDebug));
+            buildSettings.BuildActions.ForEach(action => action.Apply(isDebug, platform));
         }
 
         private static string GetArg(string[] args, string key)
