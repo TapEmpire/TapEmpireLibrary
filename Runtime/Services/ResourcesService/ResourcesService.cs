@@ -103,6 +103,11 @@ namespace TapEmpire.Services
             return _resources[resource].HasAmount(amount);
         }
 
+        public bool IsFree(T resource, int value)
+        {
+            return _resources[resource].IsFree(value);
+        }
+
         public void Refresh()
         {
             _resources.ForEach(pair => pair.Value.RefreshFromProgress());

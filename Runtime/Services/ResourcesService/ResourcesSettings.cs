@@ -26,6 +26,7 @@ namespace TapEmpire.Services
         public int MaxAmount;
         public int ReplenishTime;
         public int InitialAmount;
+        public int FreeUntil;
         public Sprite FlyingSprite;
     }
 }

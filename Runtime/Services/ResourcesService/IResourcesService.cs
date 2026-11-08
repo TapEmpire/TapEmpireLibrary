@@ -14,6 +14,7 @@ namespace TapEmpire.Services
         void Add(T resource, int amount, string reason = "", ResourceAcquireType acquireType = ResourceAcquireType.Free );
         void Subtract(T resource, int amount, string reason = "", ResourceAcquireType acquireType = ResourceAcquireType.Free);
         bool HasAmount(T resource, int amount);
+        bool IsFree(T resource, int value);
 
         void Set(T resource, int amount); // For update purposes.
 

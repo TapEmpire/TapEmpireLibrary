@@ -15,12 +15,14 @@ namespace TapEmpire.Services
         public int? MaxAmount;
         public int? ReplenishTime;
         public int? InitialAmount;
+        public int? FreeUntil;
 
         public void ApplyTo(ResourceSettings<ResourceT> settings)
         {
             if (MaxAmount.HasValue) settings.MaxAmount = MaxAmount.Value;
             if (ReplenishTime.HasValue) settings.ReplenishTime = ReplenishTime.Value;
             if (InitialAmount.HasValue) settings.InitialAmount = InitialAmount.Value;
+            if (FreeUntil.HasValue) settings.FreeUntil = FreeUntil.Value;
         }
     }
 
@@ -45,6 +47,7 @@ namespace TapEmpire.Services
                     MaxAmount = resource.MaxAmount,
                     ReplenishTime = resource.ReplenishTime,
                     InitialAmount = resource.InitialAmount,
+                    FreeUntil = resource.FreeUntil,
                 }).ToList();
             }
         }

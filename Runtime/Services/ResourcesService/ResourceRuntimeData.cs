@@ -44,6 +44,11 @@ namespace TapEmpire.Services
             return amount <= Amount.Value;
         }
 
+        public bool IsFree(int value)
+        {
+            return value < _settings.FreeUntil;
+        }
+
         public int Add(int amount)
         {
             Amount.Value += amount;
