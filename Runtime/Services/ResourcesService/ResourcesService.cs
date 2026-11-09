@@ -108,6 +108,16 @@ namespace TapEmpire.Services
             return _resources[resource].IsFree(value);
         }
 
+        public void StartTicking(T resource)
+        {
+            _resources[resource].StartTicking();
+        }
+
+        public void StopTicking(T resource)
+        {
+            _resources[resource].StopTicking();
+        }
+
         public void Refresh()
         {
             _resources.ForEach(pair => pair.Value.RefreshFromProgress());

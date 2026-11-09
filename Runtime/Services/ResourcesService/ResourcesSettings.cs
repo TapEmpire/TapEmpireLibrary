@@ -23,10 +23,17 @@ namespace TapEmpire.Services
     public class ResourceSettings<ResourceT>
     {
         public ResourceT ResourceType;
-        public int MaxAmount;
-        public int ReplenishTime;
+        public ResourceKind Kind = ResourceKind.Usable;
         public int InitialAmount;
+        public int MaxAmount;
         public int FreeUntil;
+        public int ReplenishTime;
         public Sprite FlyingSprite;
+    }
+
+    public enum ResourceKind
+    {
+        Usable,
+        Tickable
     }
 }

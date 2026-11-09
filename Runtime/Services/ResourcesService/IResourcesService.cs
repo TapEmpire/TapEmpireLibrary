@@ -16,6 +16,9 @@ namespace TapEmpire.Services
         bool HasAmount(T resource, int amount);
         bool IsFree(T resource, int value);
 
+        void StartTicking(T resource);
+        void StopTicking(T resource);
+
         void Set(T resource, int amount); // For update purposes.
 
         ResourceRuntimeData<T> GetResourceData(T type);

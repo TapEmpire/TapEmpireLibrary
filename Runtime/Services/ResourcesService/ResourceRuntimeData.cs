@@ -9,6 +9,7 @@ namespace TapEmpire.Services
     {
         public ReactiveProperty<int> Amount { get; private set; } = new();
         public ReactiveProperty<DateTime> NextReplenishDate { get; private set; } = new();
+        public ReactiveProperty<bool> IsTicking { get; private set; } = new();
 
         public float ReplenishTimeLeft => GetReplenishTimeLeft();
         public bool IsFull => _isRestorable && Amount.Value >= _settings.MaxAmount;
@@ -17,6 +18,7 @@ namespace TapEmpire.Services
         private ResourceSettings<T> _settings;
         private string _resourceName;
         private CancellableTask _replenishTimer = null;
+        private CancellableTask _tickTimer = null;
 
         private bool _isRestorable => _settings.ReplenishTime > 0;
 
@@ -37,6 +39,7 @@ namespace TapEmpire.Services
         public void Dispose()
         {
             _replenishTimer?.Dispose();
+            _tickTimer?.Dispose();
         }
 
         public bool HasAmount(int amount)
@@ -71,6 +74,27 @@ namespace TapEmpire.Services
             _progressService.SetResourceCount(_resourceName, Amount.Value);
             CheckRefill();
             return Amount.Value;
+        }
+
+        public void StartTicking()
+        {
+            if (_settings.Kind != ResourceKind.Tickable)
+            {
+                Debug.LogError($"{_resourceName} is not a tickable resource");
+                return;
+            }
+
+            if (IsTicking.Value || Amount.Value == 0) return;
+
+            _tickTimer = UniTaskUtility.LoopedTask(1, Tick);
+            IsTicking.Value = true;
+        }
+
+        public void StopTicking()
+        {
+            _tickTimer?.Dispose();
+            _tickTimer = null;
+            IsTicking.Value = false;
         }
 
         public void RefreshFromProgress()
@@ -148,6 +172,16 @@ namespace TapEmpire.Services
             Add(1);
             _replenishTimer = null;
             CheckRefill(DateTime.UtcNow);
+        }
+
+        private void Tick()
+        {
+            Subtract(1);
+
+            if (Amount.Value == 0)
+            {
+                StopTicking();
+            }
         }
 
         private float GetReplenishTimeLeft()
