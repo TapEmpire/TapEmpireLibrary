@@ -1,3 +1,4 @@
+using System;
 using R3;
 using UnityEngine;
 
@@ -18,6 +19,7 @@ namespace TapEmpire.Services
 
         void StartTicking(T resource);
         void StopTicking(T resource);
+        IDisposable PauseTicking(T resource);
 
         void Set(T resource, int amount); // For update purposes.
 

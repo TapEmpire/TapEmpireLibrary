@@ -7,9 +7,12 @@ namespace TapEmpire.Services
 {
     public class ResourceRuntimeData<T> : IDisposable
     {
+        private readonly Subject<Unit> _onRanOut = new();
+
         public ReactiveProperty<int> Amount { get; private set; } = new();
         public ReactiveProperty<DateTime> NextReplenishDate { get; private set; } = new();
         public ReactiveProperty<bool> IsTicking { get; private set; } = new();
+        public Observable<Unit> OnRanOut => _onRanOut;
 
         public float ReplenishTimeLeft => GetReplenishTimeLeft();
         public bool IsFull => _isRestorable && Amount.Value >= _settings.MaxAmount;
@@ -19,6 +22,7 @@ namespace TapEmpire.Services
         private string _resourceName;
         private CancellableTask _replenishTimer = null;
         private CancellableTask _tickTimer = null;
+        private readonly HoldCounter _tickingPauses = new();
 
         private bool _isRestorable => _settings.ReplenishTime > 0;
 
@@ -86,15 +90,26 @@ namespace TapEmpire.Services
 
             if (IsTicking.Value || Amount.Value == 0) return;
 
-            _tickTimer = UniTaskUtility.LoopedTask(1, Tick);
             IsTicking.Value = true;
+            ApplyTickTimer();
         }
 
         public void StopTicking()
         {
-            _tickTimer?.Dispose();
-            _tickTimer = null;
             IsTicking.Value = false;
+            ApplyTickTimer();
+        }
+
+        public IDisposable PauseTicking()
+        {
+            var pause = _tickingPauses.Hold();
+            ApplyTickTimer();
+
+            return Disposable.Create(() =>
+            {
+                pause.Dispose();
+                ApplyTickTimer();
+            });
         }
 
         public void RefreshFromProgress()
@@ -181,6 +196,22 @@ namespace TapEmpire.Services
             if (Amount.Value == 0)
             {
                 StopTicking();
+                _onRanOut.OnNext(Unit.Default);
+            }
+        }
+
+        private void ApplyTickTimer()
+        {
+            var shouldTick = IsTicking.Value && !_tickingPauses.IsHeld.CurrentValue;
+
+            if (shouldTick && _tickTimer == null)
+            {
+                _tickTimer = UniTaskUtility.LoopedTask(1, Tick);
+            }
+            else if (!shouldTick && _tickTimer != null)
+            {
+                _tickTimer.Dispose();
+                _tickTimer = null;
             }
         }
 

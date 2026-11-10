@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using Cysharp.Threading.Tasks;
@@ -116,6 +117,11 @@ namespace TapEmpire.Services
         public void StopTicking(T resource)
         {
             _resources[resource].StopTicking();
+        }
+
+        public IDisposable PauseTicking(T resource)
+        {
+            return _resources[resource].PauseTicking();
         }
 
         public void Refresh()
