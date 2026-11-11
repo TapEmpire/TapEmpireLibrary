@@ -24,6 +24,7 @@ namespace TapEmpire.Services.Analytics
             
             _resourcesService.OnResourceAddedDetailed.Subscribe(OnResourceAddedDetailed).AddTo(_disposables);
             _resourcesService.OnResourceUsedDetailed.Subscribe(OnResourceUsedDetailed).AddTo(_disposables);
+            _resourcesService.OnResourceUseEnded.Subscribe(OnResourceUseEnded).AddTo(_disposables);
         }
 
         public void OnRelease()
@@ -62,7 +63,24 @@ namespace TapEmpire.Services.Analytics
         
             SendGeneralEvents(data.resource, data.reason);
         }
-        
+
+        private void OnResourceUseEnded((ResourceType resource, int amountUsed, int amountLeft, string reason) data)
+        {
+            _analyticsService.LogEvent(CoreAnalyticsStrings.CommonData, new Dictionary<string, object>{
+                { ResourcesAnalyticsStrings.Tag, new JObject(new JProperty(data.resource.ToString(),
+                    new JObject(new JProperty(ResourcesAnalyticsStrings.SubEnd,
+                        new JObject(
+                            new JProperty(ResourcesAnalyticsStrings.Amount, data.amountLeft),
+                            new JProperty(ResourcesAnalyticsStrings.Used, data.amountUsed),
+                            new JProperty(ResourcesAnalyticsStrings.Reason, data.reason)
+                        )
+                    ))
+                ))}
+            });
+
+            SendGeneralEvents(data.resource, $"{ResourcesAnalyticsStrings.End}{data.reason}");
+        }
+
         private void OnResourceAddedDetailed((ResourceType resource, int amountAdded, ResourceAcquireType type, string reason, int balance) data)
             => SendAdjustAssetEvent("earn_asset", data.resource, data.amountAdded, data.type, data.reason);
 

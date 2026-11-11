@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using R3;
@@ -19,12 +20,14 @@ namespace TapEmpire.Services
         private Subject<T> _onVirtualAdded = new();
         private Subject<(T resourceType, int amountAdd, ResourceAcquireType type, string source, int balance)> _onResourceAddedDetailed = new();
         private Subject<(T resourceType, int amountUsed, ResourceAcquireType type, string source, int balance)> _onResourceUsedDetailed = new();
+        private Subject<(T, int, int, string)> _onResourceUseEnded = new();
 
         public Observable<(T, int, string)> OnResourceAdded => _onResourceAdded;
         public Observable<(T, int, string)> OnResourceUsed => _onResourceUsed;
         public Observable<T> OnVirtualAdded => _onVirtualAdded;
         public Observable<(T, int, ResourceAcquireType, string, int)> OnResourceAddedDetailed => _onResourceAddedDetailed;
         public Observable<(T, int, ResourceAcquireType, string, int)> OnResourceUsedDetailed => _onResourceUsedDetailed;
+        public Observable<(T, int, int, string)> OnResourceUseEnded => _onResourceUseEnded;
 
         protected IProgressService _progressService;
         protected ISystemService _systemService;
@@ -51,6 +54,11 @@ namespace TapEmpire.Services
         protected override UniTask OnInitializeAsync(CancellationToken cancellationToken)
         {
             _settings.Resources.ForEach(resource => _resources.Add(resource.ResourceType, new ResourceRuntimeData<T>(resource, _progressService)));
+            _resources.Where(pair => GetSettings(pair.Key).Kind == ResourceKind.Tickable)
+                .ForEach(pair => pair.Value.OnUseEnded
+                    .Where(ended => !string.IsNullOrEmpty(ended.Reason))
+                    .Subscribe(ended => _onResourceUseEnded.OnNext((pair.Key, ended.AmountUsed, pair.Value.Amount.Value, ended.Reason)))
+                    .AddTo(_disposables));
             _systemService.OnApplicationFocusChanged.Subscribe(UpdateOnFocusChange).AddTo(_disposables);
 
             _analyticsModule = new ResourcesAnalyticsModule<T>(_diContainer);
@@ -67,6 +75,7 @@ namespace TapEmpire.Services
 #if TEL_CLOUD_SAVE
             _cloudSaveModule?.OnRelease();
 #endif
+            _disposables.Clear();
             _resources.ForEach(pair => pair.Value.Dispose());
             _resources.Clear();
             base.OnRelease();
@@ -114,9 +123,9 @@ namespace TapEmpire.Services
             _resources[resource].StartTicking();
         }
 
-        public void StopTicking(T resource)
+        public void StopTicking(T resource, string reason = "")
         {
-            _resources[resource].StopTicking();
+            _resources[resource].StopTicking(reason);
         }
 
         public IDisposable PauseTicking(T resource)

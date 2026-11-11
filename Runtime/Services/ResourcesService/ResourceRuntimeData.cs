@@ -8,11 +8,13 @@ namespace TapEmpire.Services
     public class ResourceRuntimeData<T> : IDisposable
     {
         private readonly Subject<Unit> _onRanOut = new();
+        private readonly Subject<(int AmountUsed, string Reason)> _onUseEnded = new();
 
         public ReactiveProperty<int> Amount { get; private set; } = new();
         public ReactiveProperty<DateTime> NextReplenishDate { get; private set; } = new();
         public ReactiveProperty<bool> IsTicking { get; private set; } = new();
         public Observable<Unit> OnRanOut => _onRanOut;
+        public Observable<(int AmountUsed, string Reason)> OnUseEnded => _onUseEnded;
 
         public float ReplenishTimeLeft => GetReplenishTimeLeft();
         public bool IsFull => _isRestorable && Amount.Value >= _settings.MaxAmount;
@@ -23,6 +25,7 @@ namespace TapEmpire.Services
         private CancellableTask _replenishTimer = null;
         private CancellableTask _tickTimer = null;
         private readonly HoldCounter _tickingPauses = new();
+        private int _usedAmount;
 
         private bool _isRestorable => _settings.ReplenishTime > 0;
 
@@ -90,14 +93,18 @@ namespace TapEmpire.Services
 
             if (IsTicking.Value || Amount.Value == 0) return;
 
+            _usedAmount = 0;
             IsTicking.Value = true;
             ApplyTickTimer();
         }
 
-        public void StopTicking()
+        public void StopTicking(string reason = "")
         {
+            if (!IsTicking.Value) return;
+
             IsTicking.Value = false;
             ApplyTickTimer();
+            _onUseEnded.OnNext((_usedAmount, reason));
         }
 
         public IDisposable PauseTicking()
@@ -192,10 +199,11 @@ namespace TapEmpire.Services
         private void Tick()
         {
             Subtract(1);
+            ++_usedAmount;
 
             if (Amount.Value == 0)
             {
-                StopTicking();
+                StopTicking(ResourceUsageType.Auto);
                 _onRanOut.OnNext(Unit.Default);
             }
         }

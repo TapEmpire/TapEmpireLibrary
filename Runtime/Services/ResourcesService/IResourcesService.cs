@@ -11,6 +11,7 @@ namespace TapEmpire.Services
         Observable<T> OnVirtualAdded { get; } // For various events
         Observable<(T resourceType, int amountAdd, ResourceAcquireType type, string source, int balance)> OnResourceAddedDetailed { get; }
         Observable<(T resourceType, int amountUsed, ResourceAcquireType type, string source, int balance)> OnResourceUsedDetailed { get; }
+        Observable<(T ResourceType, int AmountUsed, int AmountLeft, string Reason)> OnResourceUseEnded { get; }
 
         void Add(T resource, int amount, string reason = "", ResourceAcquireType acquireType = ResourceAcquireType.Free );
         void Subtract(T resource, int amount, string reason = "", ResourceAcquireType acquireType = ResourceAcquireType.Free);
@@ -18,7 +19,7 @@ namespace TapEmpire.Services
         bool IsFree(T resource, int value);
 
         void StartTicking(T resource);
-        void StopTicking(T resource);
+        void StopTicking(T resource, string reason = "");
         IDisposable PauseTicking(T resource);
 
         void Set(T resource, int amount); // For update purposes.

@@ -7,5 +7,8 @@ namespace TapEmpire.Services.Analytics
         public const string Reason = "Reason";
         public const string Add = "Add";
         public const string Sub = "Sub";
+        public const string SubEnd = "SubEnd";
+        public const string End = "End";
+        public const string Used = "Used";
     }
 }
