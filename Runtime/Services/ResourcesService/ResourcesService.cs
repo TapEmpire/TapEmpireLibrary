@@ -83,12 +83,13 @@ namespace TapEmpire.Services
 
         public virtual void Add(T resource, int amount, string reason = "", ResourceAcquireType acquireType = ResourceAcquireType.Free)
         {
+            var balanceBefore = _resources[resource].Amount.Value;
             var value = _resources[resource].Add(amount);
 
             if (!string.IsNullOrEmpty(reason))
             {
                 _onResourceAdded.OnNext((resource, value, reason));
-                _onResourceAddedDetailed.OnNext((resource, amount, acquireType, reason, value));
+                _onResourceAddedDetailed.OnNext((resource, value - balanceBefore, acquireType, reason, value));
             }
         }
 

@@ -28,6 +28,7 @@ namespace TapEmpire.Services
         private int _usedAmount;
 
         private bool _isRestorable => _settings.ReplenishTime > 0;
+        private bool _isMaxStrict => _settings.IsMaxStrict && _settings.MaxAmount > 0;
 
         public ResourceRuntimeData(ResourceSettings<T> settings, IProgressService progressService)
         {
@@ -61,7 +62,7 @@ namespace TapEmpire.Services
 
         public int Add(int amount)
         {
-            Amount.Value += amount;
+            Amount.Value = _isMaxStrict ? Mathf.Min(Amount.Value + amount, _settings.MaxAmount) : Amount.Value + amount;
             _progressService.SetResourceCount(_resourceName, Amount.Value);
             CheckRefillCancel();
             return Amount.Value;

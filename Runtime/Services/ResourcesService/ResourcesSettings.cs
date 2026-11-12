@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Sirenix.OdinInspector;
 using UnityEngine;
 
 namespace TapEmpire.Services
@@ -26,6 +27,7 @@ namespace TapEmpire.Services
         public ResourceKind Kind = ResourceKind.Usable;
         public int InitialAmount;
         public int MaxAmount;
+        [ShowIf("@MaxAmount > 0")] public bool IsMaxStrict;
         public int FreeUntil;
         public int ReplenishTime;
         public Sprite FlyingSprite;
