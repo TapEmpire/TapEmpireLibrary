@@ -226,7 +226,7 @@ namespace TapEmpire.Services
 
         private float GetReplenishTimeLeft()
         {
-            return Mathf.Max((NextReplenishDate.Value - DateTime.UtcNow).Seconds, 0);
+            return Mathf.Max((float)(NextReplenishDate.Value - DateTime.UtcNow).TotalSeconds, 0);
         }
     }
 }
