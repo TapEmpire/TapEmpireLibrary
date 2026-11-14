@@ -18,6 +18,7 @@ namespace TapEmpire.Services
 
         public float ReplenishTimeLeft => GetReplenishTimeLeft();
         public bool IsFull => _isRestorable && Amount.Value >= _settings.MaxAmount;
+        public int UsedAmount => IsTicking.Value ? _usedAmount : 0;
 
         private IProgressService _progressService;
         private ResourceSettings<T> _settings;
