@@ -26,7 +26,7 @@ namespace TapEmpire.Services
         private MonoCallbacksService _monoCallbackService = null;
         private DateTime _sessionTimeStamp = DateTime.UtcNow;
         private CompositeDisposable _disposables = new();
-        private readonly Subject<Unit> _secondTick = new();
+        private Subject<Unit> _secondTick = new();
         private float _elapsed;
 
         [Inject]
@@ -38,6 +38,7 @@ namespace TapEmpire.Services
         protected override UniTask OnInitializeAsync(CancellationToken cancellationToken)
         {
             _disposables = new();
+            _secondTick = new();
 
             if (_monoCallbackService == null)
             {
