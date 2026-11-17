@@ -9,7 +9,9 @@ namespace TapEmpire.Utility
 
         public static string FormatMinutesWithUnits(int seconds)
         {
-            return $"{seconds / 60:D2}m{seconds % 60:D2}s";
+            if (seconds < 60) return $"{seconds}s";
+
+            return $"{seconds / 60}m{seconds % 60:D2}s";
         }
     }
 }
