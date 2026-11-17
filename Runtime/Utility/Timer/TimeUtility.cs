@@ -7,11 +7,12 @@ namespace TapEmpire.Utility
             return $"{seconds / 60:D2}:{seconds % 60:D2}";
         }
 
-        public static string FormatMinutesWithUnits(int seconds)
+        public static string FormatMinutesWithUnits(int seconds, bool hasSpace = false)
         {
             if (seconds < 60) return $"{seconds}s";
 
-            return $"{seconds / 60}m{seconds % 60:D2}s";
+            var separator = hasSpace ? " " : "";
+            return $"{seconds / 60}m{separator}{seconds % 60:D2}s";
         }
     }
 }
