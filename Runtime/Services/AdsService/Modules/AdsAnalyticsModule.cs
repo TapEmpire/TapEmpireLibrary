@@ -23,7 +23,7 @@ namespace TapEmpire.Services
             _analyticsService = analyticsService;
             _progressService = progressService;
 
-            _analyticsService.SetUserProperty(AdsAnalyticsEvents.IsMeticaEnabled, adsService.IsMeticaEnabled.ToString(), true);
+            ReportMeticaEnabled(adsService);
 
             adsService.OnAdClicked.Subscribe(OnAdClicked).AddTo(_disposables);
             adsService.OnInterstitialAttempt.Subscribe(OnInterstitialAttempt).AddTo(_disposables);
@@ -32,6 +32,23 @@ namespace TapEmpire.Services
         }
 
         public void Dispose() => _disposables.Dispose();
+
+        private void ReportMeticaEnabled(IAdsService adsService)
+        {
+#if TEL_METICA
+            if (adsService.Settings.EnableMetica)
+            {
+                adsService.OnInitialized.Take(1).Subscribe(_ => SetMeticaEnabled(adsService.IsMeticaEnabled)).AddTo(_disposables);
+                return;
+            }
+#endif
+            SetMeticaEnabled(false);
+        }
+
+        private void SetMeticaEnabled(bool isEnabled)
+        {
+            _analyticsService.SetUserProperty(AdsAnalyticsEvents.IsMeticaEnabled, isEnabled.ToString(), true);
+        }
 
         private void OnAdClicked(string placement)
         {
