@@ -8,6 +8,9 @@ namespace TapEmpire.Services
         public AdsData AppLovin;
         public AdsData Admob;
 
+        public string MeticaApiKey;
+        public string MeticaAppId;
+
         public bool TestMode;
         public bool SkipAds;
         public string PrivacyPolicyUrl;
