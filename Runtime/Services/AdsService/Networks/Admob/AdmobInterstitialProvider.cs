@@ -101,6 +101,7 @@ namespace TapEmpire.Services
         {
             IsLoaded.Value = false;
             IsShowing.Value = false;
+            OnReward.OnNext(Unit.Default);
             LoadInterstitial();
         }
 
