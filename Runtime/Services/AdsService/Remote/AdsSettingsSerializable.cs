@@ -12,6 +12,7 @@ namespace TapEmpire.Services
         public class AdsRemoteModel : IRemoteModel<AdsSettings>
         {
             public bool? EnableMetica;
+            public bool? EnableMeticaBanners;
             public bool? EnableBanner;
             public bool? EnableMrec;
             public bool? EnableAdSessionGuard;
@@ -23,6 +24,7 @@ namespace TapEmpire.Services
             public void FromSettings(AdsSettings settings)
             {
                 EnableMetica = settings.EnableMetica;
+                EnableMeticaBanners = settings.EnableMeticaBanners;
                 EnableBanner = settings.EnableBanner;
                 EnableMrec = settings.EnableMrec;
                 EnableAdSessionGuard = settings.EnableAdSessionGuard;
@@ -35,6 +37,7 @@ namespace TapEmpire.Services
             public void ToSettings(AdsSettings settings)
             {
                 settings.EnableMetica = EnableMetica ?? settings.EnableMetica;
+                settings.EnableMeticaBanners = EnableMeticaBanners ?? settings.EnableMeticaBanners;
                 settings.EnableBanner = EnableBanner ?? settings.EnableBanner;
                 settings.EnableMrec = EnableMrec ?? settings.EnableMrec;
                 settings.EnableAdSessionGuard = EnableAdSessionGuard ?? settings.EnableAdSessionGuard;

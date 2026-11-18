@@ -11,6 +11,7 @@ namespace TapEmpire.Services
         public AdsConfig Config;
 
         public bool EnableMetica = false;
+        public bool EnableMeticaBanners = false;
 
         [Header("Show toggles")]
         public bool EnableBanner = true;

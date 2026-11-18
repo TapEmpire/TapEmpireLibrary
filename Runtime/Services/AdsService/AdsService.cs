@@ -46,7 +46,7 @@ namespace TapEmpire.Services
 
         public bool IsMeticaEnabled =>
 #if TEL_METICA
-            _metica?.IsMeticaEnabled ?? false;
+            _metica?.IsTrial ?? false;
 #else
             false;
 #endif
@@ -201,7 +201,10 @@ namespace TapEmpire.Services
                 var isMaxInitialized = await MaxInitializer.Initialize(isPersonalized, testMode, cancellationToken);
                 _onNetworkInitialized.OnNext((AdNetwork.Max, isMaxInitialized, DateTime.UtcNow - startTime));
 #if TEL_METICA
-                if (_settings.EnableMetica) { _metica = new MeticaInitializer(); await _metica.Initialize(_settings.MeticaPrefab); }
+                if (_settings.EnableMetica)
+                {
+                    await InitializeMeticaAsync(isPersonalized, cancellationToken);
+                }
 #endif
                 AddMaxProviders();
 
@@ -215,6 +218,29 @@ namespace TapEmpire.Services
                 Debug.LogError($"[Ads] Network initialization failed: {exception}");
             }
         }
+
+#if TEL_METICA
+        private async UniTask InitializeMeticaAsync(bool isPersonalized, CancellationToken cancellationToken)
+        {
+            try
+            {
+                Debug.Log("[Ads] Initializing Metica");
+                var metica = new MeticaInitializer();
+                if (await metica.Initialize(_settings.Config, isPersonalized, cancellationToken))
+                {
+                    _metica = metica;
+                }
+                else
+                {
+                    Debug.LogWarning("[Ads] Metica is not ready, using Max");
+                }
+            }
+            catch (Exception exception) when (exception is not OperationCanceledException)
+            {
+                Debug.LogError($"[Ads] Metica initialization failed, using Max: {exception}");
+            }
+        }
+#endif
 
         private void BuildModules()
         {
@@ -277,26 +303,40 @@ namespace TapEmpire.Services
 
             _rewarded.AddProvider(CreateMaxRewarded(config.AppLovin.RewardedId));
             _interstitial?.AddProvider(CreateMaxInterstitial(config.AppLovin.InterstitialId));
-            _banner?.AddProvider(new MaxBannerProvider(config.AppLovin.BannerId, _settings.BannerPosition, bannerWidth));
-            _mrec?.AddProvider(new MaxMrecProvider(config.AppLovin.MrecId, _settings.MrecPosition));
+            _banner?.AddProvider(CreateMaxBanner(config.AppLovin.BannerId, bannerWidth));
+            _mrec?.AddProvider(CreateMaxMrec(config.AppLovin.MrecId));
         }
 
         private IRewarded CreateMaxRewarded(string adUnitId)
         {
-            IRewarded provider = new MaxRewardedProvider(adUnitId);
 #if TEL_METICA
-            if (_metica != null) provider = new MeticaRewardedProvider(provider, _metica);
+            if (_metica != null) return new MeticaRewardedProvider(adUnitId);
 #endif
-            return provider;
+            return new MaxRewardedProvider(adUnitId);
         }
 
         private IInterstitial CreateMaxInterstitial(string adUnitId)
         {
-            IInterstitial provider = new MaxInterstitialProvider(adUnitId);
 #if TEL_METICA
-            if (_metica != null) provider = new MeticaInterstitialProvider(provider, _metica);
+            if (_metica != null) return new MeticaInterstitialProvider(adUnitId);
 #endif
-            return provider;
+            return new MaxInterstitialProvider(adUnitId);
+        }
+
+        private IBanner CreateMaxBanner(string adUnitId, int width)
+        {
+#if TEL_METICA
+            if (_metica != null && _settings.EnableMeticaBanners) return new MeticaBannerProvider(adUnitId, _settings.BannerPosition, width);
+#endif
+            return new MaxBannerProvider(adUnitId, _settings.BannerPosition, width);
+        }
+
+        private IMrec CreateMaxMrec(string adUnitId)
+        {
+#if TEL_METICA
+            if (_metica != null && _settings.EnableMeticaBanners) return new MeticaMrecProvider(adUnitId, _settings.MrecPosition);
+#endif
+            return new MaxMrecProvider(adUnitId, _settings.MrecPosition);
         }
 
         private void SubscribeTo<T>(T ad, Action setNull, CompositeDisposable bag) where T : IAd
