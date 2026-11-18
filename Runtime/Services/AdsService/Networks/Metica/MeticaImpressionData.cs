@@ -1,5 +1,5 @@
 #if TEL_METICA
-using Metica.ADS;
+using Metica.Ads;
 
 namespace TapEmpire.Services
 {
@@ -7,17 +7,16 @@ namespace TapEmpire.Services
     {
         public static AdImpressionData Create(MeticaAd ad, AdFormat format)
         {
-            var adInfo = ad.ToAdInfo();
-            var placement = string.IsNullOrEmpty(adInfo.Placement) ? format.ToString() : adInfo.Placement;
+            var placement = string.IsNullOrEmpty(ad.placementTag) ? format.ToString() : ad.placementTag;
             return new AdImpressionData(
                 AdNetwork.Max,
                 format,
-                adInfo.NetworkName,
-                adInfo.AdUnitIdentifier,
+                ad.networkName,
+                ad.adUnitId,
                 placement,
-                adInfo.Revenue,
+                ad.revenue ?? 0,
                 "USD",
-                adInfo.RevenuePrecision);
+                ad.revenuePrecision);
         }
     }
 }

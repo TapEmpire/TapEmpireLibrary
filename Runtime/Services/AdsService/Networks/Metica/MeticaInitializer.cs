@@ -1,38 +1,29 @@
 #if TEL_METICA
+using System.Threading;
 using Cysharp.Threading.Tasks;
-using Metica.ADS;
-using Metica.SDK;
-using Metica.Unity;
+using Metica;
+using Metica.Ads;
 using UnityEngine;
 
 namespace TapEmpire.Services
 {
     public class MeticaInitializer
     {
-        private bool _initialized;
+        public bool IsTrial { get; private set; }
 
-        public bool IsMeticaEnabled { get; private set; }
-
-        public async UniTask Initialize(MeticaUnitySdk prefab)
+        public async UniTask<bool> Initialize(AdsConfig config, bool isPersonalized, CancellationToken cancellationToken)
         {
-            if (_initialized) return;
+            await UniTask.SwitchToMainThread(cancellationToken);
 
-            Object.Instantiate(prefab);
+            MeticaAds.RevenueCallbackDelivery = CallbackDelivery.NativeThread;
+            MeticaSdk.Ads.SetHasUserConsent(isPersonalized);
 
-            MeticaSdk.CurrentUserId = GetUserId();
-            IsMeticaEnabled = await MeticaAds.InitializeAsync(new MeticaConfiguration());
-            _initialized = true;
-        }
+            var initConfig = new MeticaInitConfig(config.MeticaApiKey, config.MeticaAppId, SystemInfo.deviceUniqueIdentifier);
+            var mediationInfo = new MeticaMediationInfo(MeticaMediationInfo.MeticaMediationType.MAX, config.AppLovin.AppKey);
+            var response = await MeticaSdk.InitializeAsync(initConfig, mediationInfo).AsUniTask().AttachExternalCancellation(cancellationToken);
 
-        private static string GetUserId()
-        {
-#if UNITY_ANDROID
-            return SystemInfo.deviceUniqueIdentifier;
-#elif UNITY_IOS
-            return UnityEngine.iOS.Device.vendorIdentifier;
-#else
-            return "UnknownDevice";
-#endif
+            IsTrial = response.SmartFloors?.UserGroup == MeticaUserGroup.TRIAL;
+            return MeticaSdk.Ads.Max.IsSuccessfullyInitialized();
         }
     }
 }

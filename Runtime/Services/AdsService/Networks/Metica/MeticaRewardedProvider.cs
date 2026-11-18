@@ -1,6 +1,7 @@
 #if TEL_METICA
 using System;
-using Metica.ADS;
+using Metica;
+using Metica.Ads;
 using R3;
 using TapEmpire.Utility;
 
@@ -8,157 +9,98 @@ namespace TapEmpire.Services
 {
     public class MeticaRewardedProvider : IRewarded
     {
-        public ReactiveProperty<bool> IsLoaded { get; }
-        public ReactiveProperty<bool> IsShowing { get; }
-        public Subject<AdImpressionData> OnImpression { get; }
-        public Subject<Unit> OnReward { get; }
+        public ReactiveProperty<bool> IsLoaded { get; } = new(false);
+        public ReactiveProperty<bool> IsShowing { get; } = new(false);
+        public Subject<AdImpressionData> OnImpression { get; } = new();
+        public Subject<Unit> OnReward { get; } = new();
 
-        private readonly IRewarded _inner;
-        private readonly bool _takeover;
+        private readonly string _adUnitId;
 
         private CancellableTask _retryDisposable;
         private int _retryAttempt;
 
-        public MeticaRewardedProvider(IRewarded inner, MeticaInitializer initializer)
+        public MeticaRewardedProvider(string adUnitId)
         {
-            _takeover = initializer.IsMeticaEnabled;
+            _adUnitId = adUnitId;
 
-            if (_takeover)
-            {
-                inner.Dispose();
-                _inner = null;
+            MeticaAdsCallbacks.Rewarded.OnAdLoadSuccess += OnAdLoadSuccess;
+            MeticaAdsCallbacks.Rewarded.OnAdLoadFailed += OnAdLoadFailed;
+            MeticaAdsCallbacks.Rewarded.OnAdShowFailed += OnAdShowFailed;
+            MeticaAdsCallbacks.Rewarded.OnAdHidden += OnAdHidden;
+            MeticaAdsCallbacks.Rewarded.OnAdRewarded += OnAdRewarded;
+            MeticaAdsCallbacks.Rewarded.OnAdRevenuePaid += OnAdRevenuePaid;
 
-                IsLoaded = new ReactiveProperty<bool>(false);
-                IsShowing = new ReactiveProperty<bool>(false);
-                OnImpression = new Subject<AdImpressionData>();
-                OnReward = new Subject<Unit>();
-
-                MeticaAdsCallbacks.Rewarded.OnAdLoadSuccess += OnMeticaLoaded;
-                MeticaAdsCallbacks.Rewarded.OnAdLoadFailed += OnMeticaLoadFailed;
-                MeticaAdsCallbacks.Rewarded.OnAdShowFailed += OnMeticaShowFailed;
-                MeticaAdsCallbacks.Rewarded.OnAdHidden += OnMeticaHidden;
-                MeticaAdsCallbacks.Rewarded.OnAdRewarded += OnMeticaRewarded;
-                MeticaAdsCallbacks.Rewarded.OnAdRevenuePaid += OnMeticaRevenuePaid;
-
-                MeticaAds.LoadRewarded();
-            }
-            else
-            {
-                _inner = inner;
-                IsLoaded = inner.IsLoaded;
-                IsShowing = inner.IsShowing;
-                OnImpression = inner.OnImpression;
-                OnReward = inner.OnReward;
-
-                // NotifyAdLoadAttempt is not forwarded: IRewarded has no OnLoadAttempt hook to surface Max's load calls.
-                MaxSdkCallbacks.Rewarded.OnAdLoadedEvent += OnMaxLoaded;
-                MaxSdkCallbacks.Rewarded.OnAdLoadFailedEvent += OnMaxLoadFailed;
-                MaxSdkCallbacks.Rewarded.OnAdRevenuePaidEvent += OnMaxRevenuePaid;
-            }
+            LoadRewardedAd();
         }
 
         public bool HasRewarded(bool doRequest = false)
         {
-            if (!_takeover) return _inner.HasRewarded(doRequest);
-
-            var ready = MeticaAds.IsRewardedReady();
-            if (!ready && doRequest) MeticaAds.LoadRewarded();
-            return ready;
+            var isReady = MeticaSdk.Ads.IsRewardedReady(_adUnitId);
+            if (!isReady && doRequest)
+            {
+                LoadRewardedAd();
+            }
+            return isReady;
         }
 
         public void Show(string placement)
         {
-            if (_takeover)
-            {
-                IsShowing.Value = true;
-                MeticaAds.ShowRewarded();
-            }
-            else
-            {
-                _inner.Show(placement);
-            }
+            IsShowing.Value = true;
+            MeticaSdk.Ads.ShowRewarded(_adUnitId, placement);
         }
 
         public void Dispose()
         {
-            if (_takeover)
-            {
-                MeticaAdsCallbacks.Rewarded.OnAdLoadSuccess -= OnMeticaLoaded;
-                MeticaAdsCallbacks.Rewarded.OnAdLoadFailed -= OnMeticaLoadFailed;
-                MeticaAdsCallbacks.Rewarded.OnAdShowFailed -= OnMeticaShowFailed;
-                MeticaAdsCallbacks.Rewarded.OnAdHidden -= OnMeticaHidden;
-                MeticaAdsCallbacks.Rewarded.OnAdRewarded -= OnMeticaRewarded;
-                MeticaAdsCallbacks.Rewarded.OnAdRevenuePaid -= OnMeticaRevenuePaid;
-                _retryDisposable?.Dispose();
-            }
-            else
-            {
-                MaxSdkCallbacks.Rewarded.OnAdLoadedEvent -= OnMaxLoaded;
-                MaxSdkCallbacks.Rewarded.OnAdLoadFailedEvent -= OnMaxLoadFailed;
-                MaxSdkCallbacks.Rewarded.OnAdRevenuePaidEvent -= OnMaxRevenuePaid;
-                _inner?.Dispose();
-            }
+            MeticaAdsCallbacks.Rewarded.OnAdLoadSuccess -= OnAdLoadSuccess;
+            MeticaAdsCallbacks.Rewarded.OnAdLoadFailed -= OnAdLoadFailed;
+            MeticaAdsCallbacks.Rewarded.OnAdShowFailed -= OnAdShowFailed;
+            MeticaAdsCallbacks.Rewarded.OnAdHidden -= OnAdHidden;
+            MeticaAdsCallbacks.Rewarded.OnAdRewarded -= OnAdRewarded;
+            MeticaAdsCallbacks.Rewarded.OnAdRevenuePaid -= OnAdRevenuePaid;
+
+            _retryDisposable?.Dispose();
         }
 
-        private void OnMeticaLoaded(MeticaAd ad)
+        private void LoadRewardedAd() => MeticaSdk.Ads.LoadRewarded(_adUnitId);
+
+        private void OnAdLoadSuccess(MeticaAd ad)
         {
-            UniTaskUtility.RunOnMainThread(() =>
-            {
-                _retryAttempt = 0;
-                IsLoaded.Value = true;
-            });
+            _retryAttempt = 0;
+            IsLoaded.Value = true;
         }
 
-        private void OnMeticaLoadFailed(object error)
+        private void OnAdLoadFailed(MeticaAdError error)
         {
-            UniTaskUtility.RunOnMainThread(() =>
-            {
-                IsLoaded.Value = false;
-                _retryAttempt++;
-                var seconds = (float)Math.Pow(2, Math.Min(6, _retryAttempt));
-                _retryDisposable?.Dispose();
-                _retryDisposable = UniTaskUtility.Delay(seconds, MeticaAds.LoadRewarded);
-            });
+            IsLoaded.Value = false;
+            _retryAttempt++;
+            var seconds = (float)Math.Pow(2, Math.Min(6, _retryAttempt));
+            _retryDisposable?.Dispose();
+            _retryDisposable = UniTaskUtility.Delay(seconds, LoadRewardedAd);
         }
 
-        private void OnMeticaShowFailed(MeticaAd ad, object error)
+        private void OnAdShowFailed(MeticaAd ad, MeticaAdError error)
         {
-            UniTaskUtility.RunOnMainThread(() =>
-            {
-                IsLoaded.Value = false;
-                IsShowing.Value = false;
-                MeticaAds.LoadRewarded();
-            });
+            IsLoaded.Value = false;
+            IsShowing.Value = false;
+            LoadRewardedAd();
         }
 
-        private void OnMeticaHidden(MeticaAd ad)
+        private void OnAdHidden(MeticaAd ad)
         {
-            UniTaskUtility.RunOnMainThread(() =>
-            {
-                IsLoaded.Value = false;
-                IsShowing.Value = false;
-                MeticaAds.LoadRewarded();
-            });
+            IsLoaded.Value = false;
+            IsShowing.Value = false;
+            LoadRewardedAd();
         }
 
-        private void OnMeticaRewarded(MeticaAd ad)
+        private void OnAdRewarded(MeticaAd ad)
         {
-            UniTaskUtility.RunOnMainThread(() => OnReward.OnNext(Unit.Default));
+            OnReward.OnNext(Unit.Default);
         }
 
-        private void OnMeticaRevenuePaid(MeticaAd ad)
+        private void OnAdRevenuePaid(MeticaAd ad)
         {
             OnImpression.OnNext(MeticaImpressionData.Create(ad, AdFormat.Rewarded));
         }
-
-        private void OnMaxLoaded(string adUnitId, MaxSdkBase.AdInfo adInfo) =>
-            UniTaskUtility.RunOnMainThread(() => MeticaAds.NotifyAdLoadSuccess(adInfo.ToMeticaAd()));
-
-        private void OnMaxLoadFailed(string adUnitId, MaxSdkBase.ErrorInfo errorInfo) =>
-            UniTaskUtility.RunOnMainThread(() => MeticaAds.NotifyAdLoadFailed(adUnitId, errorInfo.Message));
-
-        private void OnMaxRevenuePaid(string adUnitId, MaxSdkBase.AdInfo adInfo) =>
-            UniTaskUtility.RunOnMainThread(() => MeticaAds.NotifyAdShowSuccess(adInfo.ToMeticaAd()));
     }
 }
 #endif
