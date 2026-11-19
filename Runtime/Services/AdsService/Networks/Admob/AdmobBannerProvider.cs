@@ -32,7 +32,7 @@ namespace TapEmpire.Services
         public void Show()
         {
             _bannerView.Show();
-            UpdateLayout();
+            // UpdateLayout();
         }
 
         public void Hide()
