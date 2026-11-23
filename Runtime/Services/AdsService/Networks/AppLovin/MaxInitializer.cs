@@ -1,6 +1,7 @@
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using TapEmpire.Utility;
+using UnityEngine;
 
 namespace TapEmpire.Services
 {
@@ -23,6 +24,7 @@ namespace TapEmpire.Services
             MaxSdkBase.InvokeEventsOnUnityMainThread = false;
             MaxSdk.SetVerboseLogging(testMode);
             MaxSdk.SetHasUserConsent(isPersonalized);
+            MaxSdk.SetUserId(SystemInfo.deviceUniqueIdentifier);
 
             var completion = new UniTaskCompletionSource<bool>();
 
