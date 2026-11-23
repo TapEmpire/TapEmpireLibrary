@@ -5,7 +5,9 @@ using LunarConsolePlugin;
 using TapEmpire.Services;
 using TapEmpire.Settings;
 using TEL.Utilities;
+using Unity.Android.Types;
 using UnityEditor;
+using UnityEditor.Android;
 using UnityEditor.Build.Reporting;
 using UnityEngine;
 
@@ -92,9 +94,6 @@ namespace TapEmpire.Build
             if (platform == PlatformType.Android)
             {
                 EditorUserBuildSettings.buildAppBundle = config == Configuration.Release;
-                EditorUserBuildSettings.androidCreateSymbols = config == Configuration.Release
-                    ? AndroidCreateSymbols.Public
-                    : AndroidCreateSymbols.Disabled;
             }
 
             var scenes = EditorBuildSettings.scenes
@@ -125,6 +124,7 @@ namespace TapEmpire.Build
             var paths = ProjectPathSettings.Instance;
             ApplyBuildMode(config, paths);
             ApplyPlatform(platform, paths);
+            ApplyDebugSymbols(config, platform);
             ApplyActions(config, platform, paths);
         }
 
@@ -205,6 +205,16 @@ namespace TapEmpire.Build
             ReflectionUtility.SetPrivateField<string>(googleAdsSettings, "adMobAndroidAppId", buildSettings.Android.GoogleAds.AppKey);
             ReflectionUtility.SetPrivateField<string>(googleAdsSettings, "adMobIOSAppId", buildSettings.Ios.GoogleAds.AppKey);
             EditorUtility.SetDirty(googleAdsSettings);
+        }
+
+        private static void ApplyDebugSymbols(Configuration config, PlatformType platform)
+        {
+            if (platform != PlatformType.Android) return;
+
+            UserBuildSettings.DebugSymbols.level = config == Configuration.Release
+                ? DebugSymbolLevel.SymbolTable
+                : DebugSymbolLevel.None;
+            UserBuildSettings.DebugSymbols.format = DebugSymbolFormat.IncludeInBundle;
         }
 
         private static void ApplyActions(Configuration config, PlatformType platform, ProjectPathSettings paths)
