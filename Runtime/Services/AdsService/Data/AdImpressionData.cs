@@ -10,6 +10,7 @@ namespace TapEmpire.Services
         public readonly double Revenue;
         public readonly string Currency;
         public readonly string Precision;
+        public readonly string CreativeId;
 
         public AdImpressionData(
             AdNetwork mediation,
@@ -19,7 +20,8 @@ namespace TapEmpire.Services
             string placement,
             double revenue,
             string currency,
-            string precision)
+            string precision,
+            string creativeId)
         {
             Mediation = mediation;
             Format = format;
@@ -29,6 +31,7 @@ namespace TapEmpire.Services
             Revenue = revenue;
             Currency = currency;
             Precision = precision;
+            CreativeId = creativeId;
         }
     }
 }

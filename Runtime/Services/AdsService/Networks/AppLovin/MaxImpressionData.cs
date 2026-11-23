@@ -13,7 +13,8 @@ namespace TapEmpire.Services
                 placement,
                 adInfo.Revenue,
                 "USD",
-                adInfo.RevenuePrecision);
+                adInfo.RevenuePrecision,
+                adInfo.CreativeIdentifier ?? string.Empty);
         }
     }
 }

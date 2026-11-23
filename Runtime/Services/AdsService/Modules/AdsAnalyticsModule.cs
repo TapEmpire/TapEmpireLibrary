@@ -108,6 +108,7 @@ namespace TapEmpire.Services
                 { "format", data.Format.ToString() },
                 { "price", data.Revenue },
                 { "level", level },
+                { "creative_id", data.CreativeId },
             });
         }
 

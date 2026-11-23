@@ -31,6 +31,7 @@ namespace TapEmpire.Services
                 new Parameter("value", data.Revenue),
                 new Parameter("currency", data.Currency),
                 new Parameter("ad_placement", data.Placement.ToLower()),
+                new Parameter("ad_creative_id", data.CreativeId),
             };
 
             FirebaseAnalytics.LogEvent("ad_impression", parameters);

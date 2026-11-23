@@ -19,7 +19,8 @@ namespace TapEmpire.Services
                 placement,
                 value.Value / 1_000_000d,
                 value.CurrencyCode,
-                value.Precision.ToString());
+                value.Precision.ToString(),
+                string.Empty);
         }
     }
 }
