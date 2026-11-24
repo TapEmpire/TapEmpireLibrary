@@ -11,6 +11,13 @@ namespace TapEmpire.Services
             string placement = "")
         {
             placement = string.IsNullOrEmpty(placement) ? format.ToString() : placement;
+            var precision = value.Precision switch
+            {
+                AdValue.PrecisionType.Precise => "exact",
+                AdValue.PrecisionType.PublisherProvided => "publisher_defined",
+                AdValue.PrecisionType.Estimated => "estimated",
+                _ => "undefined",
+            };
             return new AdImpressionData(
                 AdNetwork.Admob,
                 format,
@@ -19,7 +26,7 @@ namespace TapEmpire.Services
                 placement,
                 value.Value / 1_000_000d,
                 value.CurrencyCode,
-                value.Precision.ToString(),
+                precision,
                 string.Empty);
         }
     }

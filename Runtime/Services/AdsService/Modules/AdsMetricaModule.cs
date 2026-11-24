@@ -22,6 +22,7 @@ namespace TapEmpire.Services
                 AdNetwork = data.Mediation == AdNetwork.Admob ? "Admob_Native" : data.Network,
                 AdUnitId = data.AdUnitId,
                 AdPlacementName = data.Placement,
+                Precision = data.Precision,
             };
             Io.AppMetrica.AppMetrica.ReportAdRevenue(rev);
         }
