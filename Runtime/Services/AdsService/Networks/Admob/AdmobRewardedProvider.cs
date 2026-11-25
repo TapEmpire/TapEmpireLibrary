@@ -12,6 +12,8 @@ namespace TapEmpire.Services
         public ReactiveProperty<bool> IsShowing { get; } = new(false);
         public Subject<AdImpressionData> OnImpression { get; } = new();
         public Subject<Unit> OnReward { get; } = new();
+        public Subject<AdImpressionData> OnLoaded { get; } = new();
+        public Subject<AdImpressionData> OnRecached { get; } = new();
 
         private readonly string _rewardedAdUnitId;
 

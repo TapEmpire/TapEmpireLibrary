@@ -7,6 +7,8 @@ namespace TapEmpire.Services
         ReactiveProperty<bool> IsLoaded { get; }
         ReactiveProperty<bool> IsShowing { get; }
         Subject<Unit> OnReward { get; }
+        Subject<AdImpressionData> OnLoaded { get; }
+        Subject<AdImpressionData> OnRecached { get; }
 
         bool HasInterstitial(bool doRequest = false);
 

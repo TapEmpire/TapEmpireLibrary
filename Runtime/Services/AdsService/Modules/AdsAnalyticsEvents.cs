@@ -7,6 +7,7 @@ namespace TapEmpire.Services
         public const string AdsStarted = "ADS_STARTED";
         public const string AdsWatched = "ADS_WATCHED";
         public const string AdsPayed = "ADS_PAYED";
+        public const string AdsCached = "ADS_CACHED";
         public const string IsMeticaEnabled = "Metica_Enabled";
     }
 

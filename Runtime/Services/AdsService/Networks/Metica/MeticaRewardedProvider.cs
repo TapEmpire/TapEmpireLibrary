@@ -13,6 +13,8 @@ namespace TapEmpire.Services
         public ReactiveProperty<bool> IsShowing { get; } = new(false);
         public Subject<AdImpressionData> OnImpression { get; } = new();
         public Subject<Unit> OnReward { get; } = new();
+        public Subject<AdImpressionData> OnLoaded { get; } = new();
+        public Subject<AdImpressionData> OnRecached { get; } = new();
 
         private readonly string _adUnitId;
 
@@ -24,6 +26,7 @@ namespace TapEmpire.Services
             _adUnitId = adUnitId;
 
             MeticaAdsCallbacks.Rewarded.OnAdLoadSuccess += OnAdLoadSuccess;
+            MeticaAdsCallbacks.Rewarded.OnExpiredAdReloaded += OnExpiredAdReloaded;
             MeticaAdsCallbacks.Rewarded.OnAdLoadFailed += OnAdLoadFailed;
             MeticaAdsCallbacks.Rewarded.OnAdShowFailed += OnAdShowFailed;
             MeticaAdsCallbacks.Rewarded.OnAdHidden += OnAdHidden;
@@ -52,6 +55,7 @@ namespace TapEmpire.Services
         public void Dispose()
         {
             MeticaAdsCallbacks.Rewarded.OnAdLoadSuccess -= OnAdLoadSuccess;
+            MeticaAdsCallbacks.Rewarded.OnExpiredAdReloaded -= OnExpiredAdReloaded;
             MeticaAdsCallbacks.Rewarded.OnAdLoadFailed -= OnAdLoadFailed;
             MeticaAdsCallbacks.Rewarded.OnAdShowFailed -= OnAdShowFailed;
             MeticaAdsCallbacks.Rewarded.OnAdHidden -= OnAdHidden;
@@ -67,6 +71,12 @@ namespace TapEmpire.Services
         {
             _retryAttempt = 0;
             IsLoaded.Value = true;
+            OnLoaded.OnNext(MeticaImpressionData.Create(ad, AdFormat.Rewarded));
+        }
+
+        private void OnExpiredAdReloaded(MeticaAd expiredAd, MeticaAd newAd)
+        {
+            OnRecached.OnNext(MeticaImpressionData.Create(newAd, AdFormat.Rewarded));
         }
 
         private void OnAdLoadFailed(MeticaAdError error)

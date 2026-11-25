@@ -248,6 +248,7 @@ namespace TapEmpire.Services
             new AdsAdjustModule(this).AddTo(_disposables);
             new AdsMetricaModule(this).AddTo(_disposables);
             new AdsAnalyticsModule(this, _analyticsService, _progressService).AddTo(_disposables);
+            new CachedAdsModule(_interstitial, _rewarded, _analyticsService, _progressService).AddTo(_disposables);
             new AdsFirebaseSignalsModule(this, _progressService).AddTo(_disposables);
 
             if (_settings.EnableAdSessionGuard)

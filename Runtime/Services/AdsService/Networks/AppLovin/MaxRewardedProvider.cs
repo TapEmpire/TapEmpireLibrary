@@ -10,6 +10,8 @@ namespace TapEmpire.Services
         public ReactiveProperty<bool> IsShowing { get; } = new(false);
         public Subject<AdImpressionData> OnImpression { get; } = new();
         public Subject<Unit> OnReward { get; } = new();
+        public Subject<AdImpressionData> OnLoaded { get; } = new();
+        public Subject<AdImpressionData> OnRecached { get; } = new();
 
         private readonly string _adUnitId;
 
@@ -21,6 +23,7 @@ namespace TapEmpire.Services
             _adUnitId = adUnitId;
 
             MaxSdkCallbacks.Rewarded.OnAdLoadedEvent += OnAdLoaded;
+            MaxSdkCallbacks.Rewarded.OnExpiredAdReloadedEvent += OnExpiredAdReloaded;
             MaxSdkCallbacks.Rewarded.OnAdLoadFailedEvent += OnAdLoadFailed;
             MaxSdkCallbacks.Rewarded.OnAdDisplayFailedEvent += OnAdDisplayFailed;
             MaxSdkCallbacks.Rewarded.OnAdHiddenEvent += OnAdHidden;
@@ -49,6 +52,7 @@ namespace TapEmpire.Services
         public void Dispose()
         {
             MaxSdkCallbacks.Rewarded.OnAdLoadedEvent -= OnAdLoaded;
+            MaxSdkCallbacks.Rewarded.OnExpiredAdReloadedEvent -= OnExpiredAdReloaded;
             MaxSdkCallbacks.Rewarded.OnAdLoadFailedEvent -= OnAdLoadFailed;
             MaxSdkCallbacks.Rewarded.OnAdDisplayFailedEvent -= OnAdDisplayFailed;
             MaxSdkCallbacks.Rewarded.OnAdHiddenEvent -= OnAdHidden;
@@ -66,7 +70,13 @@ namespace TapEmpire.Services
             {
                 _retryAttempt = 0;
                 IsLoaded.Value = true;
+                OnLoaded.OnNext(MaxImpressionData.Create(adInfo, AdFormat.Rewarded));
             });
+        }
+
+        private void OnExpiredAdReloaded(string adUnitId, MaxSdkBase.AdInfo expiredAdInfo, MaxSdkBase.AdInfo newAdInfo)
+        {
+            UniTaskUtility.RunOnMainThread(() => OnRecached.OnNext(MaxImpressionData.Create(newAdInfo, AdFormat.Rewarded)));
         }
 
         private void OnAdLoadFailed(string adUnitId, MaxSdkBase.ErrorInfo errorInfo)

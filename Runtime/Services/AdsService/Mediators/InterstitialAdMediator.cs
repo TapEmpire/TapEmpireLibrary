@@ -10,6 +10,8 @@ namespace TapEmpire.Services
         public ReactiveProperty<bool> IsShowing { get; } = new(false);
         public Subject<AdImpressionData> OnImpression { get; } = new();
         public Subject<Unit> OnReward { get; } = new();
+        public Subject<AdImpressionData> OnLoaded { get; } = new();
+        public Subject<AdImpressionData> OnRecached { get; } = new();
 
         private readonly List<IInterstitial> _providers = new();
         private readonly CompositeDisposable _disposables = new();
@@ -20,6 +22,8 @@ namespace TapEmpire.Services
 
             provider.OnImpression.Subscribe(OnImpression.OnNext).AddTo(_disposables);
             provider.OnReward.Subscribe(OnReward.OnNext).AddTo(_disposables);
+            provider.OnLoaded.Subscribe(OnLoaded.OnNext).AddTo(_disposables);
+            provider.OnRecached.Subscribe(OnRecached.OnNext).AddTo(_disposables);
             provider.IsLoaded
                 .Subscribe(_ => IsLoaded.Value = _providers.Any(entry => entry.IsLoaded.Value))
                 .AddTo(_disposables);
